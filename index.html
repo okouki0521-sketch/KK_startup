@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Co-Founder Hub | 共同創業コラボレーションワークスペース</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- サイドバー -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i data-lucide="layers"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Co-Founder Hub</h1>
+                    <span>Partnership Workspace</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>ダッシュボード</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="agreement">
+                    <i data-lucide="shield-check"></i>
+                    <span>創業憲章 & 役割定義</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="roadmap">
+                    <i data-lucide="milestone"></i>
+                    <span>ロードマップ & 目標</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="calendar">
+                    <i data-lucide="calendar"></i>
+                    <span>カレンダー共有</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="financials">
+                    <i data-lucide="wallet"></i>
+                    <span>マネーマネージャー</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="ideas">
+                    <i data-lucide="lightbulb"></i>
+                    <span>アイディアボード</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="decisions">
+                    <i data-lucide="book-open"></i>
+                    <span>意思決定ログ</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="updates">
+                    <i data-lucide="clipboard-list"></i>
+                    <span>進捗共有・日報</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="partners-profile">
+                    <div class="partner-avatar alice">A</div>
+                    <div class="partner-avatar bob">B</div>
+                    <div class="partners-info">
+                        <h4>共同経営パートナー</h4>
+                        <p id="partner-names-display">パートナーA & パートナーB</p>
+                    </div>
+                </div>
+                <button class="btn btn-icon-only" id="btn-settings" title="設定">
+                    <i data-lucide="settings"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- ヘッダー -->
+            <header class="main-header">
+                <div class="header-title">
+                    <h2 id="current-tab-title">ダッシュボード</h2>
+                    <p id="current-tab-subtitle">プロジェクトの全体状況を一覧します</p>
+                </div>
+                <div class="header-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-reset-data" style="border-color: rgba(219, 39, 119, 0.2); color: var(--color-pink); background-color: rgba(219, 39, 119, 0.03);" title="データを完全に消去して最初から開始します">
+                        <i data-lucide="trash-2"></i>
+                        <span>初期化</span>
+                    </button>
+                    <button class="btn btn-secondary" id="btn-import">
+                        <i data-lucide="upload"></i>
+                        <span>データを読み込む</span>
+                    </button>
+                    <button class="btn btn-primary" id="btn-export">
+                        <i data-lucide="download"></i>
+                        <span>データを保存 (JSON)</span>
+                    </button>
+                    <input type="file" id="import-file" style="display: none;" accept=".json">
+                </div>
+            </header>
+
+            <!-- ワークスペース (タブごとのコンテンツ) -->
+            <div class="workspace-viewport">
+                
+                <!-- 1. ダッシュボード -->
+                <section class="tab-pane active" id="tab-dashboard">
+                    <!-- 統計カードグリッド -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon purple">
+                                <i data-lucide="target"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>目標達成度</h3>
+                                <div class="stat-value" id="dash-goals-progress">0%</div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" id="dash-goals-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <i data-lucide="banknote"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>現在の事業残高 (収支)</h3>
+                                <div class="stat-value" id="dash-expenses-total">¥0</div>
+                                <span class="stat-label" id="dash-expenses-split">累計収入: ¥0 / 累計支出: ¥0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <i data-lucide="file-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>意思決定ログ</h3>
+                                <div class="stat-value" id="dash-decisions-count">0 件</div>
+                                <span class="stat-label">合意された重要事項</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon yellow">
+                                <i data-lucide="sparkles"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>ストックアイデア</h3>
+                                <div class="stat-value" id="dash-ideas-count">0 件</div>
+                                <span class="stat-label">未検証の新規アイデア</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <!-- 左側: 直近のマイルストーン -->
+                        <div class="content-card dashboard-left">
+                            <div class="card-header">
+                                <div class="card-title-area">
+                                    <i data-lucide="flag" class="title-icon"></i>
+                                    <h3>直近のマイルストーン</h3>
+                                </div>
+                                <button class="btn-text" onclick="switchTab('roadmap')">すべて見る</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="milestones-list" id="dash-milestones-list">
+                                    <!-- 動的生成 -->
+                                    <div class="empty-state">
+                                        <i data-lucide="milestone"></i>
+                                        <p>登録されたマイルストーンはありません</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右側: 最近の意思決定 -->
+                        <div class="content-card dashboard-right">
+                            <div class="card-header">
+                                <div class="card-title-area">
+                                    <i data-lucide="clock" class="title-icon"></i>
+                                    <h3>最近の意思決定ログ</h3>
+                                </div>
+                                <button class="btn-text" onclick="switchTab('decisions')">すべて見る</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="recent-decisions" id="dash-decisions-list">
+                                    <!-- 動的生成 -->
+                                    <div class="empty-state">
+                                        <i data-lucide="book-open"></i>
+                                        <p>登録された意思決定はありません</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. 創業憲章 & 役割定義 -->
+                <section class="tab-pane" id="tab-agreement">
+                    <div class="agreement-layout">
+                        <!-- 左側: 憲章目次 -->
+                        <div class="agreement-nav">
+                            <a href="#ag-vision" class="ag-nav-item active">1. ビジョン・理念</a>
+                            <a href="#ag-roles" class="ag-nav-item">2. 役割分担 & 責任範囲</a>
+                            <a href="#ag-shares" class="ag-nav-item">3. 株式比率 & 利益分配</a>
+                            <a href="#ag-finance" class="ag-nav-item">4. 財務・投資のルール</a>
+                            <a href="#ag-decisions" class="ag-nav-item">5. 意思決定 & デッドロック解決</a>
+                            <a href="#ag-exit" class="ag-nav-item">6. 撤退・パートナー脱退時の対応</a>
+                            <button class="btn btn-outline w-100 mt-4" id="btn-save-agreement">
+                                <i data-lucide="save"></i> 憲章を保存
+                            </button>
+                        </div>
+                        
+                        <!-- 右側: 憲章本文 -->
+                        <div class="agreement-content">
+                            <div class="agreement-doc">
+                                <div class="doc-header">
+                                    <h2>共同経営者 創業憲章 (Co-founder Agreement)</h2>
+                                    <p>この憲章は、パートナー双方が対等で透明性の高い協力体制を築くための基本的な合意事項をまとめたものです。</p>
+                                </div>
+
+                                <!-- 1. ビジョン・理念 -->
+                                <div class="doc-section" id="ag-vision">
+                                    <h3>1. ビジョン・理念</h3>
+                                    <div class="form-group">
+                                        <label>事業の最終目的 (何のためにこの事業を行うのか)</label>
+                                        <textarea id="agree-vision-aim" rows="3" placeholder="例: 世界中のスモールビジネスのDXを推進し、誰もが自由に創造性を発揮できる社会を作る"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>共通の価値観・コアバリュー</label>
+                                        <textarea id="agree-vision-values" rows="3" placeholder="例: 1. 圧倒的な顧客視点  2. 徹底的な透明性  3. スピードと試行錯誤"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- 2. 役割分担 & 責任範囲 -->
+                                <div class="doc-section" id="ag-roles">
+                                    <h3>2. 役割分担 & 責任範囲</h3>
+                                    <div class="roles-grid">
+                                        <div class="role-box">
+                                            <h4 id="partner-a-role-title">パートナーA の役割</h4>
+                                            <div class="form-group">
+                                                <label>主な担当領域 (例: 開発、マーケティング、財務)</label>
+                                                <input type="text" id="agree-pA-domain" placeholder="例: 技術開発、プロダクト設計、インフラ運用">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>具体的な責任業務</label>
+                                                <textarea id="agree-pA-tasks" rows="3" placeholder="例: Webアプリの実装、システムアーキテクチャの選定、技術選定など"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="role-box">
+                                            <h4 id="partner-b-role-title">パートナーB の役割</h4>
+                                            <div class="form-group">
+                                                <label>主な担当領域</label>
+                                                <input type="text" id="agree-pB-domain" placeholder="例: 事業開発、営業、顧客サポート、財務">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>具体的な責任業務</label>
+                                                <textarea id="agree-pB-tasks" rows="3" placeholder="例: 顧客ヒアリング、価格設計、マーケティング施策、資金調達など"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. 株式比率 & 利益分配 -->
+                                <div class="doc-section" id="ag-shares">
+                                    <h3>3. 株式比率 & 利益分配</h3>
+                                    <div class="shares-flex">
+                                        <div class="form-group share-input-group">
+                                            <label id="label-share-a">パートナーA の株式保有比率 (%)</label>
+                                            <input type="number" id="agree-pA-share" min="0" max="100" value="50">
+                                        </div>
+                                        <div class="form-group share-input-group">
+                                            <label id="label-share-b">パートナーB の株式保有比率 (%)</label>
+                                            <input type="number" id="agree-pB-share" min="0" max="100" value="50">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>利益分配の基本ルール</label>
+                                        <textarea id="agree-profit-rule" rows="2" placeholder="例: 事業が軌道に乗るまでは役員報酬をゼロとし、利益は全て事業投資に回す。黒字化後は出資比率および稼働貢献度に応じて配分する。"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- 4. 財務・投資のルール -->
+                                <div class="doc-section" id="ag-finance">
+                                    <h3>4. 財務・投資のルール</h3>
+                                    <div class="form-group">
+                                        <label>初期の自己資金の出資ルール</label>
+                                        <textarea id="agree-finance-initial" rows="2" placeholder="例: 初期費用として、双方が各50万円ずつ、合計100万円を共同口座に出資する。"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>単独で決定・支出できる金額の上限 (これ以上は共同承認)</label>
+                                        <input type="text" id="agree-finance-limit" placeholder="例: 3万円 (これを超える支出は、事前にチャットまたは口頭で双方の合意を得る)">
+                                    </div>
+                                </div>
+
+                                <!-- 5. 意思決定 & デッドロック解決 -->
+                                <div class="doc-section" id="ag-decisions">
+                                    <h3>5. 意思決定 & デッドロック解決</h3>
+                                    <div class="form-group">
+                                        <label>日常業務および経営上の意思決定プロセス</label>
+                                        <textarea id="agree-decision-process" rows="2" placeholder="例: 各担当領域については個人の裁量を尊重するが、事業方針の変更、ピボット、大規模な財務決定は双方の満場一致を原則とする。"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>意見が対立して進まなくなったとき (デッドロック) の解決ルール</label>
+                                        <textarea id="agree-deadlock" rows="2" placeholder="例: 意見が完全に対立した場合、外部のアドバイザー（○○氏）に意見を仰ぎ、第三者の見解を交えて再協議する。それでも決定できない場合は持ち株比率の多い方に従う。"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- 6. 撤退・パートナー脱退時の対応 -->
+                                <div class="doc-section" id="ag-exit">
+                                    <h3>6. 撤退・パートナー脱退時の対応</h3>
+                                    <div class="form-group">
+                                        <label>事業から撤退 (終了) する基準</label>
+                                        <textarea id="agree-exit-criteria" rows="2" placeholder="例: 開始から1年経過時点で、月間売上が10万円未満である場合、または手元資金が5万円を下回った場合は、事業の継続可否を真剣に検討または清算する。"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>どちらか片方が途中で脱退・退任する場合のルール (株式の扱い等)</label>
+                                        <textarea id="agree-exit-shares" rows="3" placeholder="例: 創業から2年以内に脱退する場合、保有する株式をもう一方のパートナーに額面（初期価格）で売却し、勝手な第三者譲渡は行わない。"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- デジタル署名セクション -->
+                                <div class="agreement-signatures">
+                                    <h4>署名と合意</h4>
+                                    <p>私たちは上記の内容を確認し、お互いの信頼関係に基づいて遵守することに合意します。</p>
+                                    <div class="sig-flex">
+                                        <div class="sig-box" id="sig-pA">
+                                            <div class="sig-status unsigned">未署名</div>
+                                            <button class="btn btn-outline btn-sm" id="btn-sig-pA">署名する</button>
+                                            <p class="sig-date" id="sig-date-pA"></p>
+                                            <span class="sig-name" id="sig-name-pA">パートナーA</span>
+                                        </div>
+                                        <div class="sig-box" id="sig-pB">
+                                            <div class="sig-status unsigned">未署名</div>
+                                            <button class="btn btn-outline btn-sm" id="btn-sig-pB">署名する</button>
+                                            <p class="sig-date" id="sig-date-pB"></p>
+                                            <span class="sig-name" id="sig-name-pB">パートナーB</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. ロードマップ & 目標 -->
+                <section class="tab-pane" id="tab-roadmap">
+                    <div class="roadmap-layout">
+                        <!-- 左側: フェーズ型ロードマップ -->
+                        <div class="roadmap-column">
+                            <div class="column-header">
+                                <h3>事業ロードマップ</h3>
+                                <button class="btn btn-primary btn-sm" id="btn-add-phase">
+                                    <i data-lucide="plus"></i> フェーズを追加
+                                </button>
+                            </div>
+                            
+                            <div class="timeline" id="roadmap-timeline">
+                                <!-- ロードマップフェーズが動的に追加される -->
+                            </div>
+                        </div>
+
+                        <!-- 右側: 目標(KPI)管理 -->
+                        <div class="goals-column">
+                            <div class="column-header">
+                                <h3>目標・KPI管理</h3>
+                                <button class="btn btn-primary btn-sm" id="btn-add-goal">
+                                    <i data-lucide="plus"></i> 目標を追加
+                                </button>
+                            </div>
+
+                            <div class="goals-list" id="goals-list-container">
+                                <!-- 目標アイテムが動的に追加される -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. カレンダー共有 -->
+                <section class="tab-pane" id="tab-calendar">
+                    <div class="calendar-layout">
+                        <div class="calendar-main-panel">
+                            <div class="calendar-header-bar">
+                                <div class="calendar-nav-buttons">
+                                    <button class="btn-calendar-nav" id="btn-prev-month">
+                                        <i data-lucide="chevron-left"></i>
+                                    </button>
+                                    <h3 id="calendar-month-year">2026年 5月</h3>
+                                    <button class="btn-calendar-nav" id="btn-next-month">
+                                        <i data-lucide="chevron-right"></i>
+                                    </button>
+                                </div>
+                                <button class="btn btn-primary btn-sm" id="btn-add-event">
+                                    <i data-lucide="plus"></i> 予定を追加
+                                </button>
+                            </div>
+
+                            <!-- 曜日ヘッダー -->
+                            <div class="calendar-weekdays">
+                                <div class="weekday sunday">日</div>
+                                <div class="weekday">月</div>
+                                <div class="weekday">火</div>
+                                <div class="weekday">水</div>
+                                <div class="weekday">木</div>
+                                <div class="weekday">金</div>
+                                <div class="weekday saturday">土</div>
+                            </div>
+
+                            <!-- 日付グリッド -->
+                            <div class="calendar-days" id="calendar-days-grid">
+                                <!-- JSで動的生成 -->
+                            </div>
+                        </div>
+
+                        <!-- カレンダーの右パネル: 予定詳細/本日・今後の予定 -->
+                        <div class="calendar-side-panel">
+                            <h4>近日中のイベント</h4>
+                            <div class="upcoming-events-list" id="upcoming-events-list">
+                                <!-- 動的にイベントが表示される -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. マネーマネージャー -->
+                <section class="tab-pane" id="tab-financials">
+                    <!-- 資金サマリー -->
+                    <div class="finance-summary-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="finance-card" style="border-left: 4px solid var(--color-green);">
+                            <span>共同収入総額 <i data-lucide="trending-up" class="text-green" style="font-size: 14px; vertical-align: middle; margin-left: 4px;"></i></span>
+                            <h2 id="fin-total-income" class="text-green">¥0</h2>
+                            <p>これまでに計上した共同収入・出資の合計</p>
+                        </div>
+                        <div class="finance-card" style="border-left: 4px solid var(--color-primary);">
+                            <span>現在の事業残高 (収支) <i data-lucide="wallet" class="text-primary" style="font-size: 14px; vertical-align: middle; margin-left: 4px;"></i></span>
+                            <h2 id="fin-cash-balance" class="text-primary">¥0</h2>
+                            <p>共同プール内の現在の実質資金残高</p>
+                        </div>
+                        <div class="finance-card" style="border-left: 4px solid var(--color-pink);">
+                            <span>共同支出総額 <i data-lucide="trending-down" class="text-pink" style="font-size: 14px; vertical-align: middle; margin-left: 4px;"></i></span>
+                            <h2 id="fin-total-expense" class="text-pink">¥0</h2>
+                            <p>2人が合意して計上した経費・支出の合計</p>
+                        </div>
+                        <div class="finance-card">
+                            <span>パートナーA 支払い済</span>
+                            <h2 id="fin-pA-total" class="text-blue">¥0</h2>
+                            <p id="fin-pA-share-percent">出資比率: 50%</p>
+                        </div>
+                        <div class="finance-card">
+                            <span>パートナーB 支払い済</span>
+                            <h2 id="fin-pB-total" class="text-purple">¥0</h2>
+                            <p id="fin-pB-share-percent">出資比率: 50%</p>
+                        </div>
+                        <div class="finance-card settlement-card">
+                            <span>現在の清算バランス</span>
+                            <h2 id="fin-settlement-balance">¥0</h2>
+                            <p id="fin-settlement-action">お互いの出費バランスは均等です</p>
+                            <button class="btn btn-primary btn-sm mt-3 w-100" id="btn-clear-settlement">
+                                <i data-lucide="check-circle"></i> 清算を記録する (リセット)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 収支比較グラフカード -->
+                    <div class="content-card glass-card" style="margin-bottom: 24px; border-top: 3px solid var(--color-primary);">
+                        <div class="card-header">
+                            <h3 style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="bar-chart-3" class="text-primary"></i> 月別収支比較（先月と今月）
+                            </h3>
+                        </div>
+                        <div class="card-body" style="position: relative; height: 260px; width: 100%; padding: 15px;">
+                            <canvas id="finance-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 支出入力と一覧 -->
+                    <div class="finance-main-grid">
+                        <!-- 支出入力フォーム -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3>経費を入力する</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="form-add-expense">
+                                    <div class="form-group">
+                                        <label>経費名・購入品</label>
+                                        <input type="text" id="exp-title" placeholder="例: サーバー代、コワーキング利用料" required>
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label>金額 (円)</label>
+                                            <input type="number" id="exp-amount" min="1" placeholder="例: 5400" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>カテゴリ</label>
+                                            <select id="exp-category">
+                                                <option value="infrastructure">インフラ・システム</option>
+                                                <option value="marketing">広告・マーケティング</option>
+                                                <option value="office">オフィス・スペース</option>
+                                                <option value="supplies">備品・デバイス</option>
+                                                <option value="travel">移動・交通費</option>
+                                                <option value="other">その他</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label>支払った人</label>
+                                            <select id="exp-payer">
+                                                <option value="partnerA" id="exp-opt-pA">パートナーA</option>
+                                                <option value="partnerB" id="exp-opt-pB">パートナーB</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>日付</label>
+                                            <input type="date" id="exp-date" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 mt-2">
+                                        <i data-lucide="plus"></i> 経費を追加
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 収入入力フォーム -->
+                        <div class="content-card" style="margin-top: 24px; border-top: 3px solid #10b981;">
+                            <div class="card-header">
+                                <h3 style="color: #10b981; display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="trending-up"></i> 収入・資金を入力する
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="form-add-income">
+                                    <div class="form-group">
+                                        <label>収入名・自己資金出資</label>
+                                        <input type="text" id="inc-title" placeholder="例: 自己資金の出資、サービス初期売上" required>
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label>金額 (円)</label>
+                                            <input type="number" id="inc-amount" min="1" placeholder="例: 150000" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>カテゴリ</label>
+                                            <select id="inc-category">
+                                                <option value="sales">売上・収益</option>
+                                                <option value="investment">自己資金・出資</option>
+                                                <option value="subsidy">助成金・補助金</option>
+                                                <option value="other">その他収入</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label>入金先・受取人</label>
+                                            <select id="inc-receiver">
+                                                <option value="partnerA" id="inc-opt-pA">パートナーA</option>
+                                                <option value="partnerB" id="inc-opt-pB">パートナーB</option>
+                                                <option value="common">共同口座/プール</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>入金日</label>
+                                            <input type="date" id="inc-date" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 mt-2" style="background: linear-gradient(135deg, #10b981, #059669); border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                                        <i data-lucide="plus"></i> 収入を追加
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 支出一覧 -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3>支出履歴</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="finance-table">
+                                        <thead>
+                                            <tr>
+                                                <th>日付</th>
+                                                <th>経費名</th>
+                                                <th>カテゴリ</th>
+                                                <th>支払者</th>
+                                                <th>金額</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="expense-list-rows">
+                                            <!-- 動的に挿入 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 収入履歴一覧 -->
+                        <div class="content-card" style="margin-top: 24px; border-top: 3px solid #10b981;">
+                            <div class="card-header">
+                                <h3 style="color: #10b981; display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="trending-up"></i> 共同収入の入金履歴
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="finance-table">
+                                        <thead>
+                                            <tr>
+                                                <th>日付</th>
+                                                <th>収入・出資名</th>
+                                                <th>カテゴリ</th>
+                                                <th>受取/入金先</th>
+                                                <th>金額</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="income-list-rows">
+                                            <!-- 動的に挿入 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. アイディアボード -->
+                <section class="tab-pane" id="tab-ideas">
+                    <div class="ideas-header">
+                        <div class="ideas-intro">
+                            <p>思いついたビジネスアイデア、機能案、改善案を付箋として追加しましょう。相方の付箋に「いいね」したり、コメントを残せます。</p>
+                        </div>
+                        <button class="btn btn-primary" id="btn-add-idea">
+                            <i data-lucide="plus"></i> 新しいアイデアを出す
+                        </button>
+                    </div>
+
+                    <!-- アイディアボードグリッド -->
+                    <div class="ideas-board" id="ideas-board-grid">
+                        <!-- 付箋が動的にレンダリングされる -->
+                    </div>
+                </section>
+
+                <!-- 7. 意思決定ログ -->
+                <section class="tab-pane" id="tab-decisions">
+                    <div class="decisions-container">
+                        <div class="decisions-header-area">
+                            <p>「言った言わない」を防ぐための決定事項の公式ログです。株式比率の変更、採用、大きな支出、ピボットなど、合意した決定を残しましょう。</p>
+                            <button class="btn btn-primary" id="btn-add-decision">
+                                <i data-lucide="plus"></i> 決定事項を記録する
+                            </button>
+                        </div>
+
+                        <div class="decisions-timeline" id="decisions-timeline-list">
+                            <!-- 意思決定タイムラインが動的に挿入される -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 8. 進捗共有・日報 (Daily Updates) -->
+                <section class="tab-pane" id="tab-updates">
+                    <div class="updates-header" style="margin-bottom: 24px;">
+                        <p style="color: var(--text-muted); font-size: 14px;">
+                            今日取り組んだこと（Done）と、今後・明日取り組むこと（To Do）をパートナーと共有し、「言った言わない」や進捗のすれ違いを防ぐための日報ボードです。
+                        </p>
+                    </div>
+
+                    <div class="updates-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: start;">
+                        <!-- 左側: 進捗の追加フォーム -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="plus-circle" class="text-primary"></i> 今日の進捗を報告する
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="form-add-update">
+                                    <div class="form-group">
+                                        <label>報告者</label>
+                                        <select id="upd-author" class="w-100">
+                                            <option value="partnerA" id="upd-opt-pA">パートナーA</option>
+                                            <option value="partnerB" id="upd-opt-pB">パートナーB</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>報告日付</label>
+                                        <input type="date" id="upd-date" class="w-100" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label style="display: flex; align-items: center; gap: 6px; color: var(--color-green);">
+                                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> 今日取り組んだこと (Done)
+                                        </label>
+                                        <textarea id="upd-done" rows="4" placeholder="例: LPのワイヤーフレーム作成、ドメイン取得、競合のサービス料金調査を完了。" required style="width: 100%; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px; font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label style="display: flex; align-items: center; gap: 6px; color: var(--color-primary);">
+                                            <i data-lucide="arrow-right-circle" style="width: 16px; height: 16px;"></i> 今後取り組むこと (To Do)
+                                        </label>
+                                        <textarea id="upd-todo" rows="4" placeholder="例: LPデザインの第一弾FIX、インタビューフォームのテスト送付と集計計画の作成。" required style="width: 100%; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px; font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 mt-2">
+                                        <i data-lucide="send"></i> 進捗を共有する
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 右側: 進捗タイムライン -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h3 style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="list-todo" class="text-primary"></i> タイムライン履歴
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="updates-timeline" id="updates-timeline-list" style="display: flex; flex-direction: column; gap: 20px; max-height: 700px; overflow-y: auto; padding-right: 8px;">
+                                    <!-- 動的にレンダリング -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- 各種ダイアログ・モーダル -->
+    
+    <!-- モーダル: 共同創業者の名前/設定 -->
+    <div class="modal-overlay" id="modal-settings">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>システム設定</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>パートナーAの名前 (デフォルト: パートナーA)</label>
+                    <input type="text" id="settings-pA-name" placeholder="パートナーAの名前">
+                </div>
+                <div class="form-group">
+                    <label>パートナーBの名前 (デフォルト: パートナーB)</label>
+                    <input type="text" id="settings-pB-name" placeholder="パートナーBの名前">
+                </div>
+                <div class="form-group">
+                    <label>プロジェクト・会社名</label>
+                    <input type="text" id="settings-project-name" placeholder="例: Co-Founder Hub">
+                </div>
+                <!-- リアルタイム自動同期設定 -->
+                <div class="form-group" style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 16px;">
+                    <label style="display: flex; align-items: center; gap: 6px; color: var(--color-primary); font-weight: 700;">
+                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> パートナーとのリアルタイム同期 (自動)
+                    </label>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5;">
+                        お互いに【同じ合言葉 (4文字以上)】を入力して保存するだけで、クラウド経由でカレンダー、目標、経費、日報などすべてが自動でリアルタイム同期されます。
+                    </p>
+                    <input type="text" id="settings-sync-key" placeholder="例: our-dream-project-2026" style="width: 100%;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-save-settings">設定を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 初期化の最終警告確認 -->
+    <div class="modal-overlay" id="modal-reset-confirm">
+        <div class="modal-box" style="border: 1px solid rgba(219, 39, 119, 0.3); box-shadow: 0 20px 40px rgba(219, 39, 119, 0.1);">
+            <div class="modal-header" style="border-bottom-color: rgba(219, 39, 119, 0.1);">
+                <h3 style="color: var(--color-pink); display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="alert-triangle"></i> ワークスペースの完全初期化
+                </h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-weight: 600; color: var(--text-main); margin-bottom: 12px; font-size: 15px;">
+                    本当にすべてのデータを完全に消去して、一から使い始めますか？
+                </p>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-bottom: 8px;">
+                    ※この操作を実行すると、現在のデモデータや入力したすべての情報が削除され、元に戻せません。
+                </p>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.6;">
+                    大切な情報がある場合は、事前に右上の<strong>「データを保存 (JSON)」</strong>からバックアップを取ることをお勧めします。
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top-color: rgba(219, 39, 119, 0.1);">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-reset-data" style="background: linear-gradient(135deg, var(--color-pink), #ec4899); border: none; box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);">
+                    完全に初期化する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: ロードマップフェーズ追加 -->
+    <div class="modal-overlay" id="modal-add-phase">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>新しいフェーズを追加</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>フェーズ名</label>
+                    <input type="text" id="phase-title" placeholder="例: フェーズ1: MVP構築と検証" required>
+                </div>
+                <div class="form-group">
+                    <label>期間・期限</label>
+                    <input type="text" id="phase-period" placeholder="例: 2026年5月〜7月" required>
+                </div>
+                <div class="form-group">
+                    <label>主な注力テーマ・説明</label>
+                    <textarea id="phase-description" rows="3" placeholder="例: コア機能となるプロトタイプを開発し、想定ユーザー10名にテスト利用してもらう。" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-phase">フェーズを追加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 目標追加 -->
+    <div class="modal-overlay" id="modal-add-goal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>新しい目標 (KPI) を追加</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>目標タイトル</label>
+                    <input type="text" id="goal-title" placeholder="例: 事前登録ユーザー 100名獲得" required>
+                </div>
+                <div class="form-group">
+                    <label>担当者</label>
+                    <select id="goal-assignee">
+                        <option value="both">2人共同</option>
+                        <option value="partnerA" id="goal-opt-pA">パートナーA</option>
+                        <option value="partnerB" id="goal-opt-pB">パートナーB</option>
+                    </select>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>現在値</label>
+                        <input type="number" id="goal-current" value="0" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>目標値</label>
+                        <input type="number" id="goal-target" value="100" min="1" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>単位 (例: 名, 円, %, 個)</label>
+                    <input type="text" id="goal-unit" placeholder="例: 名" value="名" required>
+                </div>
+                <div class="form-group">
+                    <label>期限</label>
+                    <input type="date" id="goal-deadline" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-goal">目標を追加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: カレンダーイベント追加 -->
+    <div class="modal-overlay" id="modal-add-event">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>予定を追加</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>イベント名</label>
+                    <input type="text" id="evt-title" placeholder="例: 週次経営ミーティング" required>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>日付</label>
+                        <input type="date" id="evt-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>時間</label>
+                        <input type="time" id="evt-time" value="10:00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>タイプ</label>
+                    <select id="evt-type">
+                        <option value="meeting">ミーティング / 打合せ</option>
+                        <option value="deadline">デッドライン / 締切</option>
+                        <option value="milestone">マイルストーン / 節目</option>
+                        <option value="other">その他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>メモ・場所</label>
+                    <input type="text" id="evt-notes" placeholder="例: オンラインZoom、アジェンダ：今後の開発計画">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-event">予定を追加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: アイディア追加 -->
+    <div class="modal-overlay" id="modal-add-idea">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>新しいアイデア</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>アイデアのタイトル</label>
+                    <input type="text" id="idea-title" placeholder="例: 週末限定のコーヒー配達サービス" required>
+                </div>
+                <div class="form-group">
+                    <label>詳細・メモ</label>
+                    <textarea id="idea-desc" rows="4" placeholder="例: 近隣のオフィス向けに、挽きたての本格コーヒーを届けるサブスク。初期コスト低めでスタートできるのではないか？" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>付箋のカラー</label>
+                    <div class="color-picker-grid">
+                        <label class="color-opt yellow active"><input type="radio" name="idea-color" value="yellow" checked></label>
+                        <label class="color-opt blue"><input type="radio" name="idea-color" value="blue"></label>
+                        <label class="color-opt green"><input type="radio" name="idea-color" value="green"></label>
+                        <label class="color-opt pink"><input type="radio" name="idea-color" value="pink"></label>
+                        <label class="color-opt purple"><input type="radio" name="idea-color" value="purple"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-idea">ボードに貼る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 意思決定追加 -->
+    <div class="modal-overlay" id="modal-add-decision">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>意思決定事項を記録</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>決定された事項</label>
+                    <input type="text" id="dec-title" placeholder="例: 初期インフラにAWSを採用し、月額予算を最大1万円とする合意" required>
+                </div>
+                <div class="form-group">
+                    <label>決定の背景・理由</label>
+                    <textarea id="dec-reason" rows="3" placeholder="例: スケーラビリティを確保しつつ、無料利用枠を活用できるため。他の選択肢（Vercel, Render）とも比較した上で決定。" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>合意日</label>
+                    <input type="date" id="dec-date" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-decision">ログに記録</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- トースト通知用コンテナ -->
+    <div id="toast-container" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

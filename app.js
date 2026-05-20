@@ -1,0 +1,2390 @@
+// Co-Founder Hub - アプリケーション状態 & ロジック
+
+// ==========================================
+// 1. デフォルトデータ (体験向上のための初期データ)
+// ==========================================
+const DEFAULT_STATE = {
+    settings: {
+        partnerAName: '和弥',
+        partnerBName: '煌記',
+        projectName: '新規共同プロジェクト',
+        syncSecretKey: '',
+        migratedToRealNames: true
+    },
+    agreement: {
+        visionAim: 'お互いの強み（事業開発と営業）を融合させ、新規事業を1ヶ月以内に軌道に乗せて持続可能なビジネスモデルを確立する。',
+        visionValues: '1. 徹底した顧客目線と迅速なセールス\n2. 事業開発スピードの最大化\n3. 健全な財務状況のリアルタイム共有',
+        pADomain: '事業開発',
+        pATasks: '新規事業開発、プロダクト設計、戦略立案、システム管理。',
+        pBDomain: '営業',
+        pBTasks: '営業活動、クライアント獲得、マーケティング施策、関係構築。',
+        pAShare: 50,
+        pBShare: 50,
+        profitRule: '事業の月間売上が軌道に乗るまでは、内部留保を優先し、必要経費を除く余剰利益はすべて事業投資に回す。',
+        financeInitial: '共同経費の支払いと売上の管理をこのワークスペースで1円単位で一元管理し、収支状況を常にオープンにする。',
+        financeLimit: '10,000円。これを超える経費支出は、事前にもう一方のパートナーに相談し合意を得る。',
+        decisionProcess: '事業開発と営業の各領域においては、それぞれの意思決定を最大限尊重する。ただし、撤退ラインの判断や大きな投資は完全合意を条件とする。',
+        deadlock: '意見が対立した場合は対話による納得を原則とするが、決着がつかない場合は一度仮説検証データを元に再評価を行う。',
+        exitCriteria: '事業開始から1ヶ月（2026年6月）時点で、売上が3万円未満の場合は、速やかに事業の精算・解散を協議し撤退する。',
+        exitShares: '早期撤退や自己都合による脱退の際は、獲得した知見や資産をフェアに分配し、トラブルなき解散を行う。',
+        sigDatePA: '2026-05-18T10:00:00.000Z',
+        sigDatePB: '2026-05-18T10:05:00.000Z'
+    },
+    phases: [
+        {
+            id: 'phase-1',
+            title: 'フェーズ1: 5月期 初期セールス＆土台作り',
+            period: '2026年5月',
+            description: '営業活動の開始と、初期売上（5,000円）の計上。プロダクト開発方針の決定。',
+            completed: true
+        },
+        {
+            id: 'phase-2',
+            title: 'フェーズ2: 6月期 最低目標（3万円）の突破',
+            period: '2026年6月',
+            description: '理想売上8万円の達成に向けたスケール活動、および撤退ライン（3万円）の確実なクリア。',
+            completed: false
+        }
+    ],
+    goals: [
+        {
+            id: 'goal-1',
+            title: '月間最低売上達成 (撤退ライン)',
+            assignee: 'both',
+            current: 5000,
+            target: 30000,
+            unit: '円',
+            deadline: '2026-06-20'
+        },
+        {
+            id: 'goal-2',
+            title: '月間売上目標 (理想値)',
+            assignee: 'both',
+            current: 5000,
+            target: 80000,
+            unit: '円',
+            deadline: '2026-06-20'
+        }
+    ],
+    events: [
+        {
+            id: 'evt-1',
+            title: '週次経営進捗ミーティング',
+            date: '2026-05-20',
+            time: '14:00',
+            type: 'meeting',
+            notes: 'アジェンダ：プロトタイプのUI確認と、LP掲載テキストのすり合わせ'
+        },
+        {
+            id: 'evt-2',
+            title: '公式LPデザイン完了＆提出',
+            date: '2026-05-25',
+            time: '18:00',
+            type: 'deadline',
+            notes: 'アリスが実装するためのデザインカンプをボブが共有'
+        },
+        {
+            id: 'evt-3',
+            title: 'フェーズ1終了・評価会',
+            date: '2026-06-15',
+            time: '10:00',
+            type: 'milestone',
+            notes: 'ユーザーフィードバックの整理と、次の開発フェーズへの移行判断'
+        }
+    ],
+    expenses: [
+        {
+            id: 'exp-1',
+            title: 'ドメイン取得費用 (neonway.app)',
+            amount: 1980,
+            category: 'infrastructure',
+            payer: 'partnerB',
+            date: '2026-05-12'
+        },
+        {
+            id: 'exp-2',
+            title: 'クラウドサーバー費用 (AWS初期構築)',
+            amount: 5400,
+            category: 'infrastructure',
+            payer: 'partnerA',
+            date: '2026-05-15'
+        },
+        {
+            id: 'exp-3',
+            title: 'UIデザイン参考書籍・素材購入',
+            amount: 3200,
+            category: 'supplies',
+            payer: 'partnerB',
+            date: '2026-05-16'
+        }
+    ],
+    ideas: [
+        {
+            id: 'idea-1',
+            title: 'AIを活用したワイヤーフレーム自動生成機能',
+            desc: '手書きのスケッチ画像をアップロードするだけで、AIがクリーンなデジタルモックアップに変換してくれる機能。競合差別化のキラー機能になりそう！',
+            color: 'purple',
+            author: 'partnerA',
+            date: '2026-05-16',
+            likes: ['partnerA', 'partnerB']
+        },
+        {
+            id: 'idea-2',
+            title: '共同編集中のボイスチャット機能',
+            desc: 'Figmaのように、同じキャンバス上でデザインしながらブラウザ上でそのままクリアに通話できる機能。外部ツール（DiscordやZoom）を開く手間を省く。',
+            color: 'blue',
+            author: 'partnerB',
+            date: '2026-05-17',
+            likes: ['partnerA']
+        },
+        {
+            id: 'idea-3',
+            title: 'テンプレートのマーケットプレイス展開',
+            desc: 'クリエイターが作成したUIテンプレートをアプリ内で販売し、我々が手数料20%を徴収するビジネスモデル。中長期的な収益の柱として機能する。',
+            color: 'yellow',
+            author: 'partnerB',
+            date: '2026-05-18',
+            likes: []
+        }
+    ],
+    decisions: [
+        {
+            id: 'dec-1',
+            title: '初期開発インフラとしてAWSの採用合意',
+            reason: 'アリス（技術担当）が得意であり、初期スケーラビリティに優れるため。またスタートアップ向け無料枠を活用し、当初1年間はサーバー費用を最小化できる見込み。',
+            date: '2026-05-14'
+        },
+        {
+            id: 'dec-2',
+            title: 'プロジェクトロゴデザインの最終決定',
+            reason: 'ボブが提案した3つのパターンのうち、モダンで洗練されたネオンブルーとパープルのグラデーションエンブレムに決定。商標調査も完了。',
+            date: '2026-05-17'
+        }
+    ],
+    incomes: [
+        {
+            id: 'inc-1',
+            title: '5月の事業売上',
+            amount: 5000,
+            category: 'sales',
+            receiver: 'common',
+            date: '2026-05-15'
+        }
+    ],
+    updates: [
+        {
+            id: 'upd-1',
+            author: 'partnerA',
+            date: '2026-05-19',
+            done: '現在の事業残高（収支）の計算モジュールと、カレンダー同期機構のベースライン設計を完了しました。煌記と共同で撤退ライン3万円、目標8万円の設定をFIXしました。',
+            todo: '事業開発の一環として、初期ターゲット層へのインタビュー項目のFIXと、LP公開用インフラの整備。'
+        },
+        {
+            id: 'upd-2',
+            author: 'partnerB',
+            date: '2026-05-19',
+            done: '営業ドメインの立ち上げとして、5月期の初期売上5,000円を無事に計上完了しました。さらに、1ヶ月以内の最低売上3万円の達成に向けた確度の高いリード顧客リストを作成しました。',
+            todo: 'リード顧客への初期営業アプローチの開始。和弥のプロダクト開発進捗と連携し、デモ機での営業活動準備。'
+        }
+    ]
+};
+
+// まっさらな状態から開始するための空のスケルトンデータ
+const EMPTY_STATE = {
+    settings: {
+        partnerAName: 'パートナーA',
+        partnerBName: 'パートナーB',
+        projectName: '新規プロジェクト',
+        syncSecretKey: ''
+    },
+    agreement: {
+        visionAim: '',
+        visionValues: '',
+        pADomain: '',
+        pATasks: '',
+        pBDomain: '',
+        pBTasks: '',
+        pAShare: 50,
+        pBShare: 50,
+        profitRule: '',
+        financeInitial: '',
+        financeLimit: '',
+        decisionProcess: '',
+        deadlock: '',
+        exitCriteria: '',
+        exitShares: '',
+        sigDatePA: null,
+        sigDatePB: null
+    },
+    phases: [],
+    goals: [],
+    events: [],
+    expenses: [],
+    ideas: [],
+    decisions: [],
+    incomes: [],
+    updates: []
+};
+
+
+// ==========================================
+// 2. アプリケーションの状態管理 (State Store)
+// ==========================================
+let state = {};
+
+function initStore() {
+    const saved = localStorage.getItem('cofounder_hub_state');
+    if (saved) {
+        try {
+            state = JSON.parse(saved);
+            
+            // 旧デモデータ（アリスやボブ、パートナーAなど）を検知した場合、またはまだリアルな創業状況に自動コンバートされていない場合
+            if (!state.settings || !state.settings.migratedToRealNames) {
+                console.log('Force migrating to real co-founder names (Kazuya & Koki)...');
+                if (!state.settings) state.settings = {};
+                state.settings.partnerAName = '和弥';
+                state.settings.partnerBName = '煌記';
+                state.settings.projectName = '新規共同プロジェクト';
+                state.settings.migratedToRealNames = true; // マイグレーション完了フラグ
+                
+                if (!state.agreement) state.agreement = {};
+                state.agreement.pADomain = '事業開発';
+                state.agreement.pATasks = '新規事業開発、プロダクト設計、戦略立案、システム管理。';
+                state.agreement.pBDomain = '営業';
+                state.agreement.pBTasks = '営業活動、クライアント獲得、マーケティング施策、関係構築。';
+                state.agreement.exitCriteria = '事業開始から1ヶ月（2026年6月）時点で、売上が3万円未満の場合は、速やかに事業の精算・解散を協議し撤退する。';
+
+                state.goals = [
+                    {
+                        id: 'goal-real-1',
+                        title: '月間最低売上達成 (撤退ライン)',
+                        assignee: 'both',
+                        current: 5000,
+                        target: 30000,
+                        unit: '円',
+                        deadline: '2026-06-20'
+                    },
+                    {
+                        id: 'goal-real-2',
+                        title: '月間売上目標 (理想値)',
+                        assignee: 'both',
+                        current: 5000,
+                        target: 80000,
+                        unit: '円',
+                        deadline: '2026-06-20'
+                    }
+                ];
+
+                state.incomes = [
+                    {
+                        id: 'inc-real-5month',
+                        title: '5月の事業売上',
+                        amount: 5000,
+                        category: 'sales',
+                        receiver: 'common',
+                        date: '2026-05-15'
+                    }
+                ];
+                
+                if (state.expenses) {
+                    state.expenses.forEach(e => {
+                        if (e.payer === 'partnerA') e.payer = 'partnerA'; // 和弥
+                        else e.payer = 'partnerB'; // 煌記
+                    });
+                }
+            }
+
+            // 欠損キーがある場合の補完
+            state = { ...DEFAULT_STATE, ...state };
+            state.settings = { ...DEFAULT_STATE.settings, ...state.settings };
+            state.agreement = { ...DEFAULT_STATE.agreement, ...state.agreement };
+        } catch (e) {
+            console.error('Error loading state, restoring defaults', e);
+            state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        }
+    } else {
+        state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+    
+    // クラウド同期のインターバルを開始
+    startSyncInterval();
+    saveState();
+}
+
+function saveState() {
+    state.lastUpdated = Date.now();
+    localStorage.setItem('cofounder_hub_state', JSON.stringify(state));
+    updateDashboard(); // 状態変化時はダッシュボードを更新
+    uploadToCloud();   // 非同期でクラウドへ上書き送信
+}
+
+// ==========================================
+// 2.5 クラウド同期システム (Cloud Sync Manager)
+// ==========================================
+let syncIntervalId = null;
+let isCurrentlySyncing = false; // 二重実行防止
+
+function getBucketId(secretKey) {
+    let hash = 0;
+    for (let i = 0; i < secretKey.length; i++) {
+        const char = secretKey.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash;
+    }
+    const cleanKey = secretKey.replace(/[^a-zA-Z0-9]/g, '');
+    const uniqueString = cleanKey + Math.abs(hash).toString(36);
+    return (uniqueString + 'cofoundersync').substring(0, 16);
+}
+
+function startSyncInterval() {
+    if (syncIntervalId) clearInterval(syncIntervalId);
+    
+    const secretKey = state.settings.syncSecretKey;
+    if (secretKey && secretKey.trim().length >= 4) {
+        console.log('Starting cloud sync interval...');
+        // 初回即時
+        syncWithCloud();
+        // 5秒おきに自動チェック
+        syncIntervalId = setInterval(syncWithCloud, 5000);
+    }
+}
+
+async function syncWithCloud() {
+    if (isCurrentlySyncing) return;
+    const secretKey = state.settings.syncSecretKey;
+    if (!secretKey || secretKey.trim().length < 4) return;
+
+    isCurrentlySyncing = true;
+    const bucketId = getBucketId(secretKey);
+    const url = `https://kvdb.io/${bucketId}/state`;
+
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const cloudData = await response.json();
+            
+            // クラウド上のデータの方が新しい場合のみ同期する
+            if (cloudData && cloudData.lastUpdated && (!state.lastUpdated || cloudData.lastUpdated > state.lastUpdated)) {
+                console.log('Detected newer data in cloud. Syncing...');
+                
+                state = cloudData;
+                localStorage.setItem('cofounder_hub_state', JSON.stringify(state));
+                
+                // 現在のタブを静かに再描画して更新を反映
+                const activeTab = document.querySelector('.nav-item.active');
+                if (activeTab) {
+                    const tabId = activeTab.getAttribute('data-tab');
+                    switchTabQuietly(tabId);
+                }
+                
+                showToast('パートナーの最新の更新を自動同期しました', 'info');
+            }
+        }
+    } catch (e) {
+        console.error('Error fetching state from cloud:', e);
+    } finally {
+        isCurrentlySyncing = false;
+    }
+}
+
+// 画面を再読み込みせずに静かに最新データをレンダリングするヘルパー
+function switchTabQuietly(tabId) {
+    if (tabId === 'dashboard') {
+        updateDashboard();
+    } else if (tabId === 'agreement') {
+        loadAgreementData();
+    } else if (tabId === 'roadmap') {
+        renderRoadmapAndGoals();
+    } else if (tabId === 'calendar') {
+        renderCalendar();
+    } else if (tabId === 'financials') {
+        renderFinancials();
+    } else if (tabId === 'ideas') {
+        renderIdeas();
+    } else if (tabId === 'decisions') {
+        renderDecisions();
+    } else if (tabId === 'updates') {
+        renderUpdates();
+    }
+}
+
+async function uploadToCloud() {
+    const secretKey = state.settings.syncSecretKey;
+    if (!secretKey || secretKey.trim().length < 4) return;
+
+    const bucketId = getBucketId(secretKey);
+    const url = `https://kvdb.io/${bucketId}/state`;
+
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(state)
+        });
+        console.log('Successfully uploaded latest changes to cloud.');
+    } catch (e) {
+        console.error('Failed to upload latest changes to cloud:', e);
+    }
+}
+
+// ==========================================
+// 2.8 トースト通知機能 (Toast Notification)
+// ==========================================
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        padding: 12px 20px;
+        background: rgba(30, 41, 59, 0.95);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(8px);
+        transform: translateY(-20px);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: auto;
+        border-left: 4px solid #10b981;
+    `;
+    
+    if (type === 'danger') {
+        toast.style.borderLeftColor = '#ef4444';
+    } else if (type === 'info') {
+        toast.style.borderLeftColor = '#3b82f6';
+    }
+
+    const iconHtml = type === 'danger' ? '⚠️' : (type === 'info' ? 'ℹ️' : '✅');
+
+    toast.innerHTML = `<span>${iconHtml}</span><span>${message}</span>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    }, 50);
+
+    setTimeout(() => {
+        toast.style.transform = 'translateY(-20px)';
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
+// ==========================================
+// 3. ルーティング & タブ切り替え
+// ==========================================
+const TAB_INFO = {
+    dashboard: { title: 'ダッシュボード', subtitle: 'プロジェクトの全体状況を一覧します' },
+    agreement: { title: '共同経営 創業憲章', subtitle: 'お互いの信頼と役割分担を明文化します' },
+    roadmap: { title: 'ロードマップ & 目標', subtitle: '事業計画と進捗をトラッキングします' },
+    calendar: { title: 'カレンダー共有', subtitle: '会議、締め切り、重要なイベントを管理します' },
+    financials: { title: 'マネーマネージャー', subtitle: '共同経費の支払い状況と割り勘をクリアに保ちます' },
+    ideas: { title: 'アイディアボード', subtitle: 'ブレインストーミングとインスピレーションの保管庫' },
+    decisions: { title: '意思決定ログ', subtitle: '「言った・言わない」を防ぐための決定事項の公式アーカイブ' },
+    updates: { title: '進捗共有・日報', subtitle: '今日取り組んだことと今後取り組むことをお互いに可視化します' }
+};
+
+function switchTab(tabId) {
+    // タブパネルの切り替え
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+    });
+    const activePane = document.getElementById(`tab-${tabId}`);
+    if (activePane) activePane.classList.add('active');
+
+    // ナビボタンの切り替え
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-tab') === tabId) {
+            item.classList.add('active');
+        }
+    });
+
+    // ヘッダー情報更新
+    const info = TAB_INFO[tabId] || { title: 'ワークスペース', subtitle: '' };
+    document.getElementById('current-tab-title').textContent = info.title;
+    document.getElementById('current-tab-subtitle').textContent = info.subtitle;
+
+    // タブ固有のロード処理
+    if (tabId === 'dashboard') {
+        renderDashboard();
+    } else if (tabId === 'agreement') {
+        loadAgreementData();
+    } else if (tabId === 'roadmap') {
+        renderRoadmapAndGoals();
+    } else if (tabId === 'calendar') {
+        renderCalendar();
+    } else if (tabId === 'financials') {
+        renderFinancials();
+    } else if (tabId === 'ideas') {
+        renderIdeas();
+    } else if (tabId === 'decisions') {
+        renderDecisions();
+    } else if (tabId === 'updates') {
+        renderUpdates();
+    }
+
+    // スクロールをトップに戻す
+    document.querySelector('.workspace-viewport').scrollTop = 0;
+}
+
+// ==========================================
+// 4. ダイアログ・モーダル制御
+// ==========================================
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.add('active');
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('active');
+}
+
+function initModals() {
+    // 閉じるボタンのアタッチ
+    document.querySelectorAll('.btn-close-modal').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const modal = e.target.closest('.modal-overlay');
+            if (modal) modal.classList.remove('active');
+        });
+    });
+
+    // オーバーレイクリックで閉じる
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+            }
+        });
+    });
+}
+
+// ==========================================
+// 5. 設定管理
+// ==========================================
+function loadSettings() {
+    document.getElementById('settings-pA-name').value = state.settings.partnerAName;
+    document.getElementById('settings-pB-name').value = state.settings.partnerBName;
+    document.getElementById('settings-project-name').value = state.settings.projectName;
+    document.getElementById('settings-sync-key').value = state.settings.syncSecretKey || '';
+}
+
+function saveSettings() {
+    const pA = document.getElementById('settings-pA-name').value.trim() || 'パートナーA';
+    const pB = document.getElementById('settings-pB-name').value.trim() || 'パートナーB';
+    const proj = document.getElementById('settings-project-name').value.trim() || 'Co-Founder Hub';
+    const syncKey = document.getElementById('settings-sync-key').value.trim();
+
+    state.settings.partnerAName = pA;
+    state.settings.partnerBName = pB;
+    state.settings.projectName = proj;
+    
+    const prevKey = state.settings.syncSecretKey;
+    state.settings.syncSecretKey = syncKey;
+
+    saveState();
+    applyDynamicNames();
+    
+    if (prevKey !== syncKey) {
+        startSyncInterval();
+    }
+    
+    closeModal('modal-settings');
+    showToast('システム設定を保存しました');
+}
+
+function applyDynamicNames() {
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+    const project = state.settings.projectName;
+
+    // タイトル更新
+    document.querySelector('.brand-text h1').textContent = project;
+
+    // アバター
+    const avatars = document.querySelectorAll('.partner-avatar');
+    if (avatars[0]) {
+        avatars[0].textContent = pA.charAt(0).toUpperCase();
+        avatars[0].title = pA;
+    }
+    if (avatars[1]) {
+        avatars[1].textContent = pB.charAt(0).toUpperCase();
+        avatars[1].title = pB;
+    }
+
+    // パートナー名表記
+    document.getElementById('partner-names-display').textContent = `${pA} & ${pB}`;
+
+    // 創業憲章内の名前ラベル
+    const labelA = document.getElementById('label-share-a');
+    if (labelA) labelA.textContent = `${pA} の株式保有比率 (%)`;
+    const labelB = document.getElementById('label-share-b');
+    if (labelB) labelB.textContent = `${pB} の株式保有比率 (%)`;
+
+    const titleA = document.getElementById('partner-a-role-title');
+    if (titleA) titleA.textContent = `${pA} の役割`;
+    const titleB = document.getElementById('partner-b-role-title');
+    if (titleB) titleB.textContent = `${pB} の役割`;
+
+    const sigA = document.getElementById('sig-name-pA');
+    if (sigA) sigA.textContent = pA;
+    const sigB = document.getElementById('sig-name-pB');
+    if (sigB) sigB.textContent = pB;
+
+    // 経費・目標フォームのセレクトボックスの選択肢更新
+    const expOptA = document.getElementById('exp-opt-pA');
+    if (expOptA) expOptA.textContent = pA;
+    const expOptB = document.getElementById('exp-opt-pB');
+    if (expOptB) expOptB.textContent = pB;
+
+    const goalOptA = document.getElementById('goal-opt-pA');
+    if (goalOptA) goalOptA.textContent = pA;
+    const goalOptB = document.getElementById('goal-opt-pB');
+    if (goalOptB) goalOptB.textContent = pB;
+
+    const incOptA = document.getElementById('inc-opt-pA');
+    if (incOptA) incOptA.textContent = pA;
+    const incOptB = document.getElementById('inc-opt-pB');
+    if (incOptB) incOptB.textContent = pB;
+
+    const updOptA = document.getElementById('upd-opt-pA');
+    if (updOptA) updOptA.textContent = pA;
+    const updOptB = document.getElementById('upd-opt-pB');
+    if (updOptB) updOptB.textContent = pB;
+}
+
+// ==========================================
+// 6. ダッシュボードの統計計算 & レンダリング
+// ==========================================
+function updateDashboard() {
+    // 1. 目標進捗平均の算出
+    let progressSum = 0;
+    const goalCount = state.goals.length;
+    if (goalCount > 0) {
+        state.goals.forEach(g => {
+            const p = Math.min(100, Math.round((g.current / g.target) * 100));
+            progressSum += p;
+        });
+        const avg = Math.round(progressSum / goalCount);
+        document.getElementById('dash-goals-progress').textContent = `${avg}%`;
+        document.getElementById('dash-goals-bar').style.width = `${avg}%`;
+    } else {
+        document.getElementById('dash-goals-progress').textContent = '0%';
+        document.getElementById('dash-goals-bar').style.width = '0%';
+    }
+
+    // 2. 収支の算出
+    let totalIncome = 0;
+    if (state.incomes) {
+        state.incomes.forEach(i => {
+            totalIncome += i.amount;
+        });
+    }
+
+    let totalExpense = 0;
+    let pAPaid = 0;
+    let pBPaid = 0;
+    state.expenses.forEach(e => {
+        totalExpense += e.amount;
+        if (e.payer === 'partnerA') pAPaid += e.amount;
+        else pBPaid += e.amount;
+    });
+
+    const netBalance = totalIncome - totalExpense;
+    const sign = netBalance > 0 ? '+' : '';
+    const dashExpensesTotalEl = document.getElementById('dash-expenses-total');
+    if (dashExpensesTotalEl) {
+        dashExpensesTotalEl.textContent = `¥${sign}${netBalance.toLocaleString()}`;
+        if (netBalance > 0) {
+            dashExpensesTotalEl.style.color = '#10b981'; // グリーン
+        } else if (netBalance < 0) {
+            dashExpensesTotalEl.style.color = '#ef4444'; // レッド
+        } else {
+            dashExpensesTotalEl.style.color = 'var(--text-main)';
+        }
+    }
+
+    const dashExpensesSplitEl = document.getElementById('dash-expenses-split');
+    if (dashExpensesSplitEl) {
+        dashExpensesSplitEl.textContent = `累計収入: ¥${totalIncome.toLocaleString()} / 累計支出: ¥${totalExpense.toLocaleString()}`;
+    }
+
+    // 3. その他件数
+    document.getElementById('dash-decisions-count').textContent = `${state.decisions.length} 件`;
+    document.getElementById('dash-ideas-count').textContent = `${state.ideas.length} 件`;
+}
+
+function renderDashboard() {
+    updateDashboard();
+
+    // 1. 直近のマイルストーン (ロードマップフェーズと目標を日付順に整理)
+    const listContainer = document.getElementById('dash-milestones-list');
+    listContainer.innerHTML = '';
+
+    // 直近3件の未完了目標を表示
+    const activeGoals = state.goals
+        .filter(g => g.current < g.target)
+        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+        .slice(0, 3);
+
+    if (activeGoals.length > 0) {
+        activeGoals.forEach(g => {
+            const item = document.createElement('div');
+            item.className = 'timeline-content';
+            item.style.marginBottom = '12px';
+            item.style.padding = '16px';
+            
+            const pct = Math.round((g.current / g.target) * 100);
+            const assigneeName = g.assignee === 'partnerA' ? state.settings.partnerAName : (g.assignee === 'partnerB' ? state.settings.partnerBName : '共同');
+            
+            item.innerHTML = `
+                <div class="timeline-header" style="margin-bottom: 6px;">
+                    <h4 style="font-size: 14px;">${g.title}</h4>
+                    <span class="timeline-period" style="font-size: 11px;">期限: ${g.deadline}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">
+                    <span>担当: ${assigneeName}</span>
+                    <span>進捗: ${g.current}/${g.target} ${g.unit} (${pct}%)</span>
+                </div>
+                <div class="progress-bar-container" style="height: 4px; margin-top: 0;">
+                    <div class="progress-bar" style="width: ${pct}%; background: linear-gradient(to right, var(--color-green), #34d399)"></div>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
+    } else {
+        listContainer.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="target"></i>
+                <p>現在進行中の目標はありません</p>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+
+    // 2. 最近の意思決定
+    const decContainer = document.getElementById('dash-decisions-list');
+    decContainer.innerHTML = '';
+
+    const recentDecisions = [...state.decisions].reverse().slice(0, 2);
+
+    if (recentDecisions.length > 0) {
+        recentDecisions.forEach(d => {
+            const card = document.createElement('div');
+            card.className = 'decision-card';
+            card.style.padding = '20px';
+            card.style.marginBottom = '12px';
+            card.innerHTML = `
+                <div class="decision-meta" style="margin-bottom: 8px;">
+                    <span class="decision-date-badge" style="padding: 2px 8px; font-size: 10px;">${d.date}</span>
+                </div>
+                <h3 style="font-size: 14px; margin-bottom: 8px;">${d.title}</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">${d.reason}</p>
+            `;
+            decContainer.appendChild(card);
+        });
+    } else {
+        decContainer.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="book-open"></i>
+                <p>合意された重要決定はありません</p>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+}
+
+// ==========================================
+// 7. 創業憲章 (Co-founder Agreement)
+// ==========================================
+function loadAgreementData() {
+    const ag = state.agreement;
+
+    document.getElementById('agree-vision-aim').value = ag.visionAim;
+    document.getElementById('agree-vision-values').value = ag.visionValues;
+    document.getElementById('agree-pA-domain').value = ag.pADomain;
+    document.getElementById('agree-pA-tasks').value = ag.pATasks;
+    document.getElementById('agree-pB-domain').value = ag.pBDomain;
+    document.getElementById('agree-pB-tasks').value = ag.pBTasks;
+    document.getElementById('agree-pA-share').value = ag.pAShare;
+    document.getElementById('agree-pB-share').value = ag.pBShare;
+    document.getElementById('agree-profit-rule').value = ag.profitRule;
+    document.getElementById('agree-finance-initial').value = ag.financeInitial;
+    document.getElementById('agree-finance-limit').value = ag.financeLimit;
+    document.getElementById('agree-decision-process').value = ag.decisionProcess;
+    document.getElementById('agree-deadlock').value = ag.deadlock;
+    document.getElementById('agree-exit-criteria').value = ag.exitCriteria;
+    document.getElementById('agree-exit-shares').value = ag.exitShares;
+
+    renderSignatures();
+}
+
+function saveAgreementData() {
+    const pAShare = parseFloat(document.getElementById('agree-pA-share').value) || 0;
+    const pBShare = parseFloat(document.getElementById('agree-pB-share').value) || 0;
+
+    if (pAShare + pBShare !== 100) {
+        alert('警告: パートナーAとBの株式比率の合計が100%になっていません！ (現在は ' + (pAShare + pBShare) + '%)');
+    }
+
+    state.agreement.visionAim = document.getElementById('agree-vision-aim').value;
+    state.agreement.visionValues = document.getElementById('agree-vision-values').value;
+    state.agreement.pADomain = document.getElementById('agree-pA-domain').value;
+    state.agreement.pATasks = document.getElementById('agree-pA-tasks').value;
+    state.agreement.pBDomain = document.getElementById('agree-pB-domain').value;
+    state.agreement.pBTasks = document.getElementById('agree-pB-tasks').value;
+    state.agreement.pAShare = pAShare;
+    state.agreement.pBShare = pBShare;
+    state.agreement.profitRule = document.getElementById('agree-profit-rule').value;
+    state.agreement.financeInitial = document.getElementById('agree-finance-initial').value;
+    state.agreement.financeLimit = document.getElementById('agree-finance-limit').value;
+    state.agreement.decisionProcess = document.getElementById('agree-decision-process').value;
+    state.agreement.deadlock = document.getElementById('agree-deadlock').value;
+    state.agreement.exitCriteria = document.getElementById('agree-exit-criteria').value;
+    state.agreement.exitShares = document.getElementById('agree-exit-shares').value;
+
+    saveState();
+    alert('憲章の内容を保存しました。');
+}
+
+function renderSignatures() {
+    const ag = state.agreement;
+    
+    // パートナーA
+    const sigA = document.getElementById('sig-pA');
+    const dateA = document.getElementById('sig-date-pA');
+    const btnA = document.getElementById('btn-sig-pA');
+    const statusA = sigA.querySelector('.sig-status');
+
+    if (ag.sigDatePA) {
+        statusA.className = 'sig-status signed';
+        statusA.textContent = '合意済';
+        dateA.textContent = new Date(ag.sigDatePA).toLocaleDateString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+        btnA.textContent = '合意を取り消す';
+        btnA.className = 'btn btn-outline btn-sm btn-secondary';
+    } else {
+        statusA.className = 'sig-status unsigned';
+        statusA.textContent = '未合意';
+        dateA.textContent = '';
+        btnA.textContent = '署名・合意する';
+        btnA.className = 'btn btn-outline btn-sm';
+    }
+
+    // パートナーB
+    const sigB = document.getElementById('sig-pB');
+    const dateB = document.getElementById('sig-date-pB');
+    const btnB = document.getElementById('btn-sig-pB');
+    const statusB = sigB.querySelector('.sig-status');
+
+    if (ag.sigDatePB) {
+        statusB.className = 'sig-status signed';
+        statusB.textContent = '合意済';
+        dateB.textContent = new Date(ag.sigDatePB).toLocaleDateString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+        btnB.textContent = '合意を取り消す';
+        btnB.className = 'btn btn-outline btn-sm btn-secondary';
+    } else {
+        statusB.className = 'sig-status unsigned';
+        statusB.textContent = '未合意';
+        dateB.textContent = '';
+        btnB.textContent = '署名・合意する';
+        btnB.className = 'btn btn-outline btn-sm';
+    }
+}
+
+function toggleSignature(partner) {
+    const key = partner === 'pA' ? 'sigDatePA' : 'sigDatePB';
+    if (state.agreement[key]) {
+        state.agreement[key] = null;
+    } else {
+        state.agreement[key] = new Date().toISOString();
+        
+        // 署名時、意思決定ログに自動で足す
+        const partnerName = partner === 'pA' ? state.settings.partnerAName : state.settings.partnerBName;
+        const anotherSig = partner === 'pA' ? state.agreement.sigDatePB : state.agreement.sigDatePA;
+        
+        if (anotherSig) {
+            // 2人とも署名完了した瞬間
+            addSystemDecision('創業憲章（Co-founder Agreement）の完全調印', '共同創業者2名の完全なデジタル署名による合意成立。株式比率、役割分担、意思決定および撤退プロセスについて正式に効力を発揮します。');
+        }
+    }
+    saveState();
+    renderSignatures();
+}
+
+function addSystemDecision(title, reason) {
+    const newDec = {
+        id: 'dec-' + Date.now(),
+        title: title,
+        reason: reason,
+        date: new Date().toISOString().split('T')[0]
+    };
+    state.decisions.push(newDec);
+    saveState();
+}
+
+// ==========================================
+// 8. ロードマップ & 目標 (Roadmap & Goals)
+// ==========================================
+function renderRoadmapAndGoals() {
+    // 1. ロードマップタイムライン描画
+    const timeline = document.getElementById('roadmap-timeline');
+    timeline.innerHTML = '';
+
+    if (state.phases.length > 0) {
+        state.phases.forEach((p, idx) => {
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            item.innerHTML = `
+                <div class="timeline-dot ${p.completed ? 'completed' : ''}" onclick="togglePhaseCompleted('${p.id}')" style="cursor: pointer;" title="クリックして完了/未完了を切り替え"></div>
+                <div class="timeline-content">
+                    <div class="timeline-header">
+                        <h4>${p.title}</h4>
+                        <span class="timeline-period">${p.period}</span>
+                    </div>
+                    <p>${p.description}</p>
+                    <div class="timeline-actions">
+                        <button type="button" class="btn-icon-sm delete" onclick="deletePhase('${p.id}')" title="フェーズを削除">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            timeline.appendChild(item);
+        });
+    } else {
+        timeline.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="milestone"></i>
+                <p>登録されたフェーズはありません。上のボタンから追加してください。</p>
+            </div>
+        `;
+    }
+
+    // 2. 目標リストの描画
+    const goalsContainer = document.getElementById('goals-list-container');
+    goalsContainer.innerHTML = '';
+
+    if (state.goals.length > 0) {
+        state.goals.forEach(g => {
+            const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+            const card = document.createElement('div');
+            card.className = 'goal-card';
+            
+            const assigneeClass = g.assignee === 'partnerA' ? 'pA' : (g.assignee === 'partnerB' ? 'pB' : '');
+            const assigneeName = g.assignee === 'partnerA' ? state.settings.partnerAName : (g.assignee === 'partnerB' ? state.settings.partnerBName : '共同');
+
+            card.innerHTML = `
+                <div class="goal-header">
+                    <div class="goal-title-container">
+                        <h4>${g.title}</h4>
+                        <div class="goal-meta">
+                            <span class="goal-assignee-badge ${assigneeClass}">${assigneeName}</span>
+                            <span class="goal-deadline-badge">期限: ${g.deadline}</span>
+                        </div>
+                    </div>
+                    <div class="goal-actions">
+                        <button type="button" class="btn-icon-sm delete" onclick="deleteGoal('${g.id}')" title="目標を削除">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="goal-progress-section">
+                    <div class="goal-progress-bar-wrapper">
+                        <div class="goal-progress-bar" style="width: ${pct}%"></div>
+                    </div>
+                    <span class="goal-progress-value">${g.current} / ${g.target} ${g.unit} (${pct}%)</span>
+                </div>
+                <div class="goal-controls">
+                    <span>進捗を調整:</span>
+                    <button class="btn btn-outline btn-sm" onclick="adjustGoalProgress('${g.id}', -1)" style="padding: 2px 8px;">-</button>
+                    <button class="btn btn-outline btn-sm" onclick="adjustGoalProgress('${g.id}', 1)" style="padding: 2px 8px;">+</button>
+                    <button class="btn btn-outline btn-sm" onclick="adjustGoalProgress('${g.id}', 10)" style="padding: 2px 8px;">+10</button>
+                    <button class="btn btn-primary btn-sm" onclick="setGoalCompleted('${g.id}')" style="padding: 2px 8px;"><i data-lucide="check"></i></button>
+                </div>
+            `;
+            goalsContainer.appendChild(card);
+        });
+    } else {
+        goalsContainer.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="target"></i>
+                <p>登録された目標はありません。上のボタンから追加してください。</p>
+            </div>
+        `;
+    }
+    lucide.createIcons();
+}
+
+function togglePhaseCompleted(id) {
+    const phase = state.phases.find(p => p.id === id);
+    if (phase) {
+        phase.completed = !phase.completed;
+        saveState();
+        renderRoadmapAndGoals();
+    }
+}
+
+function deletePhase(id) {
+    const item = state.phases.find(p => p.id === id);
+    const title = item ? item.title : 'フェーズ';
+    state.phases = state.phases.filter(p => p.id !== id);
+    saveState();
+    renderRoadmapAndGoals();
+    showToast(`フェーズ「${title}」を削除しました`, 'danger');
+}
+
+function addPhase() {
+    const title = document.getElementById('phase-title').value.trim();
+    const period = document.getElementById('phase-period').value.trim();
+    const desc = document.getElementById('phase-description').value.trim();
+
+    if (!title || !period || !desc) {
+        alert('すべてのフィールドを入力してください。');
+        return;
+    }
+
+    const newPhase = {
+        id: 'phase-' + Date.now(),
+        title: title,
+        period: period,
+        description: desc,
+        completed: false
+    };
+
+    state.phases.push(newPhase);
+    saveState();
+    renderRoadmapAndGoals();
+    
+    // 入力リセット＆モーダルクローズ
+    document.getElementById('phase-title').value = '';
+    document.getElementById('phase-period').value = '';
+    document.getElementById('phase-description').value = '';
+    closeModal('modal-add-phase');
+}
+
+function deleteGoal(id) {
+    const item = state.goals.find(g => g.id === id);
+    const title = item ? item.title : '目標';
+    state.goals = state.goals.filter(g => g.id !== id);
+    saveState();
+    renderRoadmapAndGoals();
+    showToast(`目標「${title}」を削除しました`, 'danger');
+}
+
+function addGoal() {
+    const title = document.getElementById('goal-title').value.trim();
+    const assignee = document.getElementById('goal-assignee').value;
+    const target = parseInt(document.getElementById('goal-target').value) || 1;
+    const current = parseInt(document.getElementById('goal-current').value) || 0;
+    const unit = document.getElementById('goal-unit').value.trim() || '点';
+    const deadline = document.getElementById('goal-deadline').value;
+
+    if (!title || !deadline) {
+        alert('必要なフィールドを入力してください。');
+        return;
+    }
+
+    const newGoal = {
+        id: 'goal-' + Date.now(),
+        title: title,
+        assignee: assignee,
+        current: current,
+        target: target,
+        unit: unit,
+        deadline: deadline
+    };
+
+    state.goals.push(newGoal);
+    saveState();
+    renderRoadmapAndGoals();
+
+    // リセット＆クローズ
+    document.getElementById('goal-title').value = '';
+    document.getElementById('goal-target').value = 100;
+    document.getElementById('goal-current').value = 0;
+    closeModal('modal-add-goal');
+}
+
+function adjustGoalProgress(id, amt) {
+    const goal = state.goals.find(g => g.id === id);
+    if (goal) {
+        goal.current = Math.max(0, Math.min(goal.target, goal.current + amt));
+        saveState();
+        renderRoadmapAndGoals();
+    }
+}
+
+function setGoalCompleted(id) {
+    const goal = state.goals.find(g => g.id === id);
+    if (goal) {
+        goal.current = goal.target;
+        saveState();
+        renderRoadmapAndGoals();
+    }
+}
+
+// ==========================================
+// 9. カレンダー共有 (Calendar Shared)
+// ==========================================
+let currentCalendarDate = new Date();
+
+function renderCalendar() {
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+
+    // カレンダーの年月表示
+    document.getElementById('calendar-month-year').textContent = `${year}年 ${month + 1}月`;
+
+    const daysGrid = document.getElementById('calendar-days-grid');
+    daysGrid.innerHTML = '';
+
+    // 月の最初の日と最後の日
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const prevLastDay = new Date(year, month, 0).getDate();
+    const totalCells = 42; // 6週間分
+
+    let dayCounter = 1;
+    let nextMonthDayCounter = 1;
+
+    for (let i = 0; i < totalCells; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-day-cell';
+        
+        let cellDateStr = '';
+
+        if (i < firstDayIndex) {
+            // 前月の余り日付
+            const d = prevLastDay - firstDayIndex + i + 1;
+            cell.classList.add('other-month');
+            cell.innerHTML = `<span class="calendar-day-number">${d}</span>`;
+            
+            const prevMonth = month === 0 ? 11 : month - 1;
+            const prevYear = month === 0 ? year - 1 : year;
+            cellDateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        } else if (dayCounter > lastDay) {
+            // 翌月の余り日付
+            cell.classList.add('other-month');
+            cell.innerHTML = `<span class="calendar-day-number">${nextMonthDayCounter}</span>`;
+            
+            const nextMonth = month === 11 ? 0 : month + 1;
+            const nextYear = month === 11 ? year + 1 : year;
+            cellDateStr = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${String(nextMonthDayCounter).padStart(2, '0')}`;
+            nextMonthDayCounter++;
+        } else {
+            // 当月の日付
+            cell.innerHTML = `<span class="calendar-day-number">${dayCounter}</span>`;
+            
+            // 本日チェック
+            const today = new Date();
+            if (dayCounter === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                cell.classList.add('today');
+            }
+            
+            cellDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayCounter).padStart(2, '0')}`;
+            dayCounter++;
+        }
+
+        // イベントバッジのマッチング
+        const dayEvents = state.events.filter(e => e.date === cellDateStr);
+        if (dayEvents.length > 0) {
+            dayEvents.forEach(evt => {
+                const badge = document.createElement('span');
+                badge.className = `calendar-event-dot ${evt.type}`;
+                badge.textContent = `${evt.time || ''} ${evt.title}`;
+                badge.title = `${evt.title}\n時間: ${evt.time || '未指定'}\nメモ: ${evt.notes || 'なし'}`;
+                cell.appendChild(badge);
+            });
+        }
+
+        // セルクリックでその日付のイベント追加をスムーズにする
+        const finalDate = cellDateStr;
+        cell.addEventListener('click', (e) => {
+            if (e.target.className.includes('btn-delete-event') || e.target.closest('.btn-delete-event')) return;
+            document.getElementById('evt-date').value = finalDate;
+            openModal('modal-add-event');
+        });
+
+        daysGrid.appendChild(cell);
+    }
+
+    // 今後の予定リスト
+    renderUpcomingEventsList();
+}
+
+function renderUpcomingEventsList() {
+    const list = document.getElementById('upcoming-events-list');
+    list.innerHTML = '';
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    // 本日以降の予定を昇順で表示
+    const upcoming = state.events
+        .filter(e => e.date >= todayStr)
+        .sort((a, b) => new Date(`${a.date}T${a.time || '00:00'}`) - new Date(`${b.date}T${b.time || '00:00'}`));
+
+    if (upcoming.length > 0) {
+        upcoming.forEach(e => {
+            const item = document.createElement('div');
+            item.className = `upcoming-event-item ${e.type}`;
+            item.innerHTML = `
+                <div class="upcoming-event-time">${e.date} ${e.time || ''}</div>
+                <div class="upcoming-event-title">${e.title}</div>
+                ${e.notes ? `<div class="upcoming-event-desc">${e.notes}</div>` : ''}
+                <button type="button" class="btn-delete-event" onclick="deleteEvent('${e.id}')" title="イベントを削除">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            `;
+            list.appendChild(item);
+        });
+    } else {
+        list.innerHTML = `<p style="font-size: 13px; color: var(--text-muted); text-align: center;">直近の予定はありません</p>`;
+    }
+    lucide.createIcons();
+}
+
+function prevMonth() {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+    renderCalendar();
+}
+
+function nextMonth() {
+    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+    renderCalendar();
+}
+
+function addEvent() {
+    const title = document.getElementById('evt-title').value.trim();
+    const date = document.getElementById('evt-date').value;
+    const time = document.getElementById('evt-time').value;
+    const type = document.getElementById('evt-type').value;
+    const notes = document.getElementById('evt-notes').value.trim();
+
+    if (!title || !date) {
+        alert('イベント名と日付を入力してください。');
+        return;
+    }
+
+    const newEvt = {
+        id: 'evt-' + Date.now(),
+        title: title,
+        date: date,
+        time: time,
+        type: type,
+        notes: notes
+    };
+
+    state.events.push(newEvt);
+    saveState();
+    renderCalendar();
+
+    // リセット
+    document.getElementById('evt-title').value = '';
+    document.getElementById('evt-notes').value = '';
+    closeModal('modal-add-event');
+}
+
+function deleteEvent(id) {
+    const item = state.events.find(e => e.id === id);
+    const title = item ? item.title : '予定';
+    state.events = state.events.filter(e => e.id !== id);
+    saveState();
+    renderCalendar();
+    showToast(`予定「${title}」を削除しました`, 'danger');
+}
+
+// ==========================================
+// 10. マネーマネージャー (Financials / Exp)
+// ==========================================
+function renderFinancials() {
+    // パートナー表記
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+
+    // 比率の取得
+    const pAShare = state.agreement.pAShare;
+    const pBShare = state.agreement.pBShare;
+
+    document.getElementById('fin-pA-share-percent').textContent = `負担比率: ${pAShare}%`;
+    document.getElementById('fin-pB-share-percent').textContent = `負担比率: ${pBShare}%`;
+
+    // 支出合計
+    let totalExpense = 0;
+    let pAPaid = 0;
+    let pBPaid = 0;
+
+    state.expenses.forEach(e => {
+        totalExpense += e.amount;
+        if (e.payer === 'partnerA') pAPaid += e.amount;
+        else pBPaid += e.amount;
+    });
+
+    document.getElementById('fin-total-expense').textContent = `¥${totalExpense.toLocaleString()}`;
+    document.getElementById('fin-pA-total').textContent = `¥${pAPaid.toLocaleString()}`;
+    document.getElementById('fin-pB-total').textContent = `¥${pBPaid.toLocaleString()}`;
+
+    // 【収入合計 & 事業残高の算出】
+    let totalIncome = 0;
+    if (state.incomes) {
+        state.incomes.forEach(i => {
+            totalIncome += i.amount;
+        });
+    }
+
+    const totalIncomeEl = document.getElementById('fin-total-income');
+    if (totalIncomeEl) totalIncomeEl.textContent = `¥${totalIncome.toLocaleString()}`;
+
+    const cashBalanceEl = document.getElementById('fin-cash-balance');
+    if (cashBalanceEl) {
+        const cashBalance = totalIncome - totalExpense;
+        cashBalanceEl.textContent = `¥${cashBalance.toLocaleString()}`;
+        if (cashBalance < 0) {
+            cashBalanceEl.className = 'text-pink';
+        } else {
+            cashBalanceEl.className = 'text-green';
+        }
+    }
+
+    // 清算の計算
+    const pAShouldPay = totalExpense * (pAShare / 100);
+    const pBShouldPay = totalExpense * (pBShare / 100);
+
+    const balanceCard = document.querySelector('.settlement-card');
+    const balanceH2 = document.getElementById('fin-settlement-balance');
+    const balanceP = document.getElementById('fin-settlement-action');
+    const clearBtn = document.getElementById('btn-clear-settlement');
+
+    if (pAPaid > pAShouldPay) {
+        const diff = Math.round(pAPaid - pAShouldPay);
+        balanceH2.textContent = `¥${diff.toLocaleString()}`;
+        balanceH2.className = 'text-blue';
+        balanceP.textContent = `${pB} が ${pA} に支払う金額`;
+        balanceCard.style.backgroundColor = 'rgba(59, 130, 246, 0.08)';
+        balanceCard.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+        clearBtn.style.display = 'block';
+    } else if (pBPaid > pBShouldPay) {
+        const diff = Math.round(pBPaid - pBShouldPay);
+        balanceH2.textContent = `¥${diff.toLocaleString()}`;
+        balanceH2.className = 'text-purple';
+        balanceP.textContent = `${pA} が ${pB} に支払う金額`;
+        balanceCard.style.backgroundColor = 'rgba(168, 85, 247, 0.08)';
+        balanceCard.style.borderColor = 'rgba(168, 85, 247, 0.3)';
+        clearBtn.style.display = 'block';
+    } else {
+        balanceH2.textContent = '¥0';
+        balanceH2.className = '';
+        balanceP.textContent = 'お互いの出費バランスは均等です';
+        balanceCard.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+        balanceCard.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+        clearBtn.style.display = 'none';
+    }
+
+    // 支出履歴テーブルの生成
+    const tbody = document.getElementById('expense-list-rows');
+    tbody.innerHTML = '';
+
+    if (state.expenses.length > 0) {
+        // 新しいものから表示
+        [...state.expenses].reverse().forEach(e => {
+            const tr = document.createElement('tr');
+            const catBadgeText = getCategoryLabel(e.category);
+            const payerLabel = e.payer === 'partnerA' ? pA : pB;
+            const payerClass = e.payer === 'partnerA' ? 'pA' : 'pB';
+
+            tr.innerHTML = `
+                <td>${e.date}</td>
+                <td style="font-weight: 500;">${e.title}</td>
+                <td><span class="badge-category ${e.category}">${catBadgeText}</span></td>
+                <td><span class="payer-span ${payerClass}">${payerLabel}</span></td>
+                <td style="font-weight: 600;">¥${e.amount.toLocaleString()}</td>
+                <td>
+                    <button type="button" class="btn-icon-sm delete" onclick="deleteExpense('${e.id}')" title="削除">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    経費履歴はありません。左のフォームから入力してください。
+                </td>
+            </tr>
+        `;
+    }
+
+    // 収入履歴テーブルの生成
+    const tbodyInc = document.getElementById('income-list-rows');
+    if (tbodyInc) {
+        tbodyInc.innerHTML = '';
+        if (state.incomes && state.incomes.length > 0) {
+            [...state.incomes].reverse().forEach(inc => {
+                const tr = document.createElement('tr');
+                const catBadgeText = getIncomeCategoryLabel(inc.category);
+                let receiverLabel = '';
+                if (inc.receiver === 'partnerA') receiverLabel = pA;
+                else if (inc.receiver === 'partnerB') receiverLabel = pB;
+                else receiverLabel = '共同口座/プール';
+                
+                const recClass = inc.receiver === 'common' ? 'common' : (inc.receiver === 'partnerA' ? 'pA' : 'pB');
+
+                tr.innerHTML = `
+                    <td>${inc.date}</td>
+                    <td style="font-weight: 500;">${inc.title}</td>
+                    <td><span class="badge-category income-${inc.category}">${catBadgeText}</span></td>
+                    <td><span class="receiver-span ${recClass}">${receiverLabel}</span></td>
+                    <td style="font-weight: 600; color: #10b981;">¥${inc.amount.toLocaleString()}</td>
+                    <td>
+                        <button type="button" class="btn-icon-sm delete" onclick="deleteIncome('${inc.id}')" title="削除">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </td>
+                `;
+                tbodyInc.appendChild(tr);
+            });
+        } else {
+            tbodyInc.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        収入履歴はありません。左のフォームから入力してください。
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    renderFinanceChart();
+    lucide.createIcons();
+}
+
+function getIncomeCategoryLabel(cat) {
+    const labels = {
+        sales: '売上・収益',
+        investment: '自己自己資金・出資',
+        subsidy: '助成金・補助金',
+        other: 'その他収入'
+    };
+    return labels[cat] || cat;
+}
+
+function getCategoryLabel(cat) {
+    const labels = {
+        infrastructure: 'インフラ・システム',
+        marketing: '広告・マーケティング',
+        office: 'オフィス・スペース',
+        supplies: '備品・デバイス',
+        travel: '移動・交通費',
+        other: 'その他'
+    };
+    return labels[cat] || cat;
+}
+
+function handleAddExpense(e) {
+    e.preventDefault();
+
+    const title = document.getElementById('exp-title').value.trim();
+    const amount = parseInt(document.getElementById('exp-amount').value) || 0;
+    const category = document.getElementById('exp-category').value;
+    const payer = document.getElementById('exp-payer').value;
+    const date = document.getElementById('exp-date').value;
+
+    if (!title || amount <= 0 || !date) {
+        alert('必要なフィールドを入力してください。');
+        return;
+    }
+
+    const newExpense = {
+        id: 'exp-' + Date.now(),
+        title: title,
+        amount: amount,
+        category: category,
+        payer: payer,
+        date: date
+    };
+
+    state.expenses.push(newExpense);
+    saveState();
+    renderFinancials();
+
+    // リセット
+    document.getElementById('exp-title').value = '';
+    document.getElementById('exp-amount').value = '';
+    document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+}
+
+function deleteExpense(id) {
+    const item = state.expenses.find(e => e.id === id);
+    const title = item ? item.title : '経費';
+    state.expenses = state.expenses.filter(e => e.id !== id);
+    saveState();
+    renderFinancials();
+    showToast(`経費「${title}」を削除しました`, 'danger');
+}
+
+function handleAddIncome(e) {
+    e.preventDefault();
+
+    const title = document.getElementById('inc-title').value.trim();
+    const amount = parseInt(document.getElementById('inc-amount').value) || 0;
+    const category = document.getElementById('inc-category').value;
+    const receiver = document.getElementById('inc-receiver').value;
+    const date = document.getElementById('inc-date').value;
+
+    if (!title || amount <= 0 || !date) {
+        alert('必要なフィールドを入力してください。');
+        return;
+    }
+
+    const newIncome = {
+        id: 'inc-' + Date.now(),
+        title: title,
+        amount: amount,
+        category: category,
+        receiver: receiver,
+        date: date
+    };
+
+    if (!state.incomes) state.incomes = [];
+    state.incomes.push(newIncome);
+    saveState();
+    renderFinancials();
+
+    // リセット
+    document.getElementById('inc-title').value = '';
+    document.getElementById('inc-amount').value = '';
+    document.getElementById('inc-date').value = new Date().toISOString().split('T')[0];
+}
+
+function deleteIncome(id) {
+    const item = state.incomes.find(i => i.id === id);
+    const title = item ? item.title : '収入';
+    state.incomes = state.incomes.filter(i => i.id !== id);
+    saveState();
+    renderFinancials();
+    showToast(`収入「${title}」を削除しました`, 'danger');
+}
+
+// グラフ＆収支比較の初期化
+let financeChartInstance = null;
+
+function renderFallbackFinanceChart(canvas) {
+    const parent = canvas.parentElement;
+    if (!parent) return;
+
+    // すでにフォールバック表示があれば削除して再描画
+    const oldFallback = parent.querySelector('.fallback-chart-container');
+    if (oldFallback) oldFallback.remove();
+
+    // canvasを非表示にする
+    canvas.style.display = 'none';
+
+    // データの集計（先月と今月）
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const thisMonthNum = currentMonth + 1;
+    const thisMonthStr = `${currentYear}-${String(thisMonthNum).padStart(2, '0')}`;
+    const prevMonthNum = currentMonth === 0 ? 12 : currentMonth;
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    const prevMonthStr = `${prevYear}-${String(prevMonthNum).padStart(2, '0')}`;
+
+    let thisMonthIncome = 0;
+    let thisMonthExpense = 0;
+    let prevMonthIncome = 0;
+    let prevMonthExpense = 0;
+
+    if (state.incomes) {
+        state.incomes.forEach(i => {
+            if (i.date.startsWith(thisMonthStr)) thisMonthIncome += i.amount;
+            else if (i.date.startsWith(prevMonthStr)) prevMonthIncome += i.amount;
+        });
+    }
+    if (state.expenses) {
+        state.expenses.forEach(e => {
+            if (e.date.startsWith(thisMonthStr)) thisMonthExpense += e.amount;
+            else if (e.date.startsWith(prevMonthStr)) prevMonthExpense += e.amount;
+        });
+    }
+
+    const maxVal = Math.max(thisMonthIncome, thisMonthExpense, prevMonthIncome, prevMonthExpense, 10000);
+    const getPct = (val) => Math.max(5, Math.min(100, Math.round((val / maxVal) * 100)));
+
+    const fallbackHtml = document.createElement('div');
+    fallbackHtml.className = 'fallback-chart-container';
+    fallbackHtml.style.cssText = 'display: flex; flex-direction: column; gap: 20px; width: 100%; height: 100%; justify-content: center; padding: 10px 0;';
+    fallbackHtml.innerHTML = `
+        <!-- 先月 -->
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 80px; font-size: 13px; font-weight: 700; color: var(--text-muted);">${prevMonthNum}月の収支</div>
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: ${getPct(prevMonthIncome)}%; height: 12px; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 4px; min-width: 8px; transition: width 0.3s ease;"></div>
+                    <span style="font-size: 11px; font-weight: 600; color: #10b981;">収入: ¥${prevMonthIncome.toLocaleString()}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: ${getPct(prevMonthExpense)}%; height: 12px; background: linear-gradient(90deg, #ec4899, #f472b6); border-radius: 4px; min-width: 8px; transition: width 0.3s ease;"></div>
+                    <span style="font-size: 11px; font-weight: 600; color: #ec4899;">支出: ¥${prevMonthExpense.toLocaleString()}</span>
+                </div>
+            </div>
+        </div>
+        <!-- 今月 -->
+        <div style="display: flex; align-items: center; gap: 16px; border-top: 1px dashed rgba(0,0,0,0.06); padding-top: 16px;">
+            <div style="width: 80px; font-size: 13px; font-weight: 700; color: var(--text-muted);">${thisMonthNum}月の収支</div>
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: ${getPct(thisMonthIncome)}%; height: 12px; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 4px; min-width: 8px; transition: width 0.3s ease;"></div>
+                    <span style="font-size: 11px; font-weight: 600; color: #10b981;">収入: ¥${thisMonthIncome.toLocaleString()}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: ${getPct(thisMonthExpense)}%; height: 12px; background: linear-gradient(90deg, #ec4899, #f472b6); border-radius: 4px; min-width: 8px; transition: width 0.3s ease;"></div>
+                    <span style="font-size: 11px; font-weight: 600; color: #ec4899;">支出: ¥${thisMonthExpense.toLocaleString()}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    parent.appendChild(fallbackHtml);
+}
+
+function renderFinanceChart() {
+    const canvas = document.getElementById('finance-chart');
+    if (!canvas) return;
+
+    // Chart.jsが未定義（オフライン・CDNロードエラーなど）の場合の完全な保護処理
+    if (typeof Chart === 'undefined') {
+        renderFallbackFinanceChart(canvas);
+        return;
+    }
+
+    // Chart.jsがある場合は通常描画（canvasを表示状態に戻す）
+    canvas.style.display = 'block';
+    const oldFallback = canvas.parentElement.querySelector('.fallback-chart-container');
+    if (oldFallback) oldFallback.remove();
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    const thisMonthNum = currentMonth + 1;
+    const thisMonthStr = `${currentYear}-${String(thisMonthNum).padStart(2, '0')}`;
+
+    const prevMonthNum = currentMonth === 0 ? 12 : currentMonth;
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    const prevMonthStr = `${prevYear}-${String(prevMonthNum).padStart(2, '0')}`;
+
+    let thisMonthIncome = 0;
+    let thisMonthExpense = 0;
+    let prevMonthIncome = 0;
+    let prevMonthExpense = 0;
+
+    if (state.incomes) {
+        state.incomes.forEach(i => {
+            if (i.date.startsWith(thisMonthStr)) {
+                thisMonthIncome += i.amount;
+            } else if (i.date.startsWith(prevMonthStr)) {
+                prevMonthIncome += i.amount;
+            }
+        });
+    }
+
+    if (state.expenses) {
+        state.expenses.forEach(e => {
+            if (e.date.startsWith(thisMonthStr)) {
+                thisMonthExpense += e.amount;
+            } else if (e.date.startsWith(prevMonthStr)) {
+                prevMonthExpense += e.amount;
+            }
+        });
+    }
+
+    if (financeChartInstance) {
+        financeChartInstance.destroy();
+    }
+
+    const ctx = canvas.getContext('2d');
+    
+    financeChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [`先月 (${prevMonthNum}月)`, `今月 (${thisMonthNum}月)`],
+            datasets: [
+                {
+                    label: '共同収入 (自己資金・売上)',
+                    data: [prevMonthIncome, thisMonthIncome],
+                    backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                    borderColor: '#10b981',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                },
+                {
+                    label: '共同支出 (経費合計)',
+                    data: [prevMonthExpense, thisMonthExpense],
+                    backgroundColor: 'rgba(236, 72, 153, 0.75)',
+                    borderColor: '#ec4899',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: 11,
+                            weight: '500'
+                        },
+                        boxWidth: 12,
+                        boxHeight: 12,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#1e293b',
+                    bodyColor: '#1e293b',
+                    borderColor: 'rgba(0, 0, 0, 0.08)',
+                    borderWidth: 1,
+                    padding: 12,
+                    boxPadding: 6,
+                    titleFont: {
+                        family: "'Plus Jakarta Sans', sans-serif",
+                        weight: '700'
+                    },
+                    bodyFont: {
+                        family: "'Plus Jakarta Sans', sans-serif",
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += '¥' + context.parsed.y.toLocaleString();
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            weight: '600'
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.04)'
+                    },
+                    ticks: {
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif"
+                        },
+                        callback: function(value) {
+                            return '¥' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ==========================================
+// 12.5 進捗共有・日報 (Daily Updates)
+// ==========================================
+function renderUpdates() {
+    const container = document.getElementById('updates-timeline-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+
+    if (state.updates && state.updates.length > 0) {
+        const sortedUpdates = [...state.updates].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+
+        sortedUpdates.forEach(upd => {
+            const authorName = upd.author === 'partnerA' ? pA : pB;
+            const authorClass = upd.author === 'partnerA' ? 'pA' : 'pB';
+            const avatarChar = authorName.charAt(0).toUpperCase();
+
+            const card = document.createElement('div');
+            card.className = `update-timeline-item ${upd.author}`;
+            card.style.display = 'flex';
+            card.style.gap = '16px';
+            card.style.background = 'rgba(255, 255, 255, 0.5)';
+            card.style.border = '1px solid var(--border-color)';
+            card.style.borderRadius = 'var(--radius-lg)';
+            card.style.padding = '20px';
+            card.style.boxShadow = 'var(--shadow-sm)';
+            card.style.position = 'relative';
+
+            card.innerHTML = `
+                <div class="partner-avatar ${authorClass}" style="flex-shrink: 0; width: 42px; height: 42px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); color: #fff;">
+                    ${avatarChar}
+                </div>
+                <div style="flex-grow: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <span style="font-weight: 700; color: var(--text-main); font-size: 15px; margin-right: 8px;">${authorName}</span>
+                            <span style="color: var(--text-muted); font-size: 12px; font-weight: 500;">${upd.date}</span>
+                        </div>
+                        <button type="button" class="btn-icon-sm delete" onclick="deleteUpdate('${upd.id}')" title="削除" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s;">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                    
+                    <div style="margin-bottom: 12px;">
+                        <h5 style="color: var(--color-green); font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> 今日取り組んだこと (Done)
+                        </h5>
+                        <p style="font-size: 13px; color: var(--text-main); line-height: 1.6; white-space: pre-wrap; background: rgba(16, 185, 129, 0.02); border: 1px solid rgba(16, 185, 129, 0.08); border-radius: 6px; padding: 10px;">${upd.done}</p>
+                    </div>
+                    
+                    <div>
+                        <h5 style="color: var(--color-primary); font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <i data-lucide="arrow-right-circle" style="width: 14px; height: 14px;"></i> 今後取り組むこと (To Do)
+                        </h5>
+                        <p style="font-size: 13px; color: var(--text-main); line-height: 1.6; white-space: pre-wrap; background: rgba(79, 70, 229, 0.02); border: 1px solid rgba(79, 70, 229, 0.08); border-radius: 6px; padding: 10px;">${upd.todo}</p>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    } else {
+        container.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                <i data-lucide="clipboard-list" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.3;"></i>
+                <p style="font-size: 14px;">本日の進捗報告はありません。<br>左側のフォームから「今日取り組んだこと」を共有しましょう！</p>
+            </div>
+        `;
+    }
+    lucide.createIcons();
+}
+
+function handleAddUpdate(e) {
+    e.preventDefault();
+
+    const author = document.getElementById('upd-author').value;
+    const date = document.getElementById('upd-date').value;
+    const done = document.getElementById('upd-done').value.trim();
+    const todo = document.getElementById('upd-todo').value.trim();
+
+    if (!author || !date || !done || !todo) {
+        alert('すべての項目を入力してください。');
+        return;
+    }
+
+    const newUpdate = {
+        id: 'upd-' + Date.now(),
+        author: author,
+        date: date,
+        done: done,
+        todo: todo
+    };
+
+    if (!state.updates) state.updates = [];
+    state.updates.push(newUpdate);
+    saveState();
+    renderUpdates();
+
+    document.getElementById('upd-done').value = '';
+    document.getElementById('upd-todo').value = '';
+    document.getElementById('upd-date').value = new Date().toISOString().split('T')[0];
+    
+    alert('進捗報告をメンバーと共有しました！');
+}
+
+function deleteUpdate(id) {
+    state.updates = state.updates.filter(u => u.id !== id);
+    saveState();
+    renderUpdates();
+    showToast('進捗共有ログを削除しました', 'danger');
+}
+
+
+function clearSettlement() {
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+
+    // 清算額の算出
+    let totalExpense = 0;
+    let pAPaid = 0;
+    let pBPaid = 0;
+    state.expenses.forEach(e => {
+        totalExpense += e.amount;
+        if (e.payer === 'partnerA') pAPaid += e.amount;
+        else pBPaid += e.amount;
+    });
+
+    const pAShare = state.agreement.pAShare;
+    const pAShouldPay = totalExpense * (pAShare / 100);
+
+    let info = '';
+    if (pAPaid > pAShouldPay) {
+        const diff = Math.round(pAPaid - pAShouldPay);
+        info = `${pB} から ${pA} への ¥${diff.toLocaleString()} の支払いが完了したため清算記録をリセットします。`;
+    } else {
+        const diff = Math.round(pAShouldPay - pAPaid);
+        info = `${pA} から ${pB} への ¥${diff.toLocaleString()} の支払いが完了したため清算記録をリセットします。`;
+    }
+
+    if (confirm(info + '\nよろしいですか？\n※現在の経費履歴はクリア（またはリセット）され、清算完了ログが意思決定として記録されます。')) {
+        // 意思決定ログに自動記録
+        addSystemDecision('経費清算完了の合意', `${info}（累計共同経費総額: ¥${totalExpense.toLocaleString()}）`);
+        
+        // 経費履歴をリセット
+        state.expenses = [];
+        saveState();
+        renderFinancials();
+    }
+}
+
+// ==========================================
+// 11. アイディアボード (Idea Board sticky notes)
+// ==========================================
+function renderIdeas() {
+    const grid = document.getElementById('ideas-board-grid');
+    grid.innerHTML = '';
+
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+
+    if (state.ideas.length > 0) {
+        state.ideas.forEach(idea => {
+            const card = document.createElement('div');
+            card.className = `idea-sticky ${idea.color || 'yellow'}`;
+            
+            const isLikedByMe = idea.likes.includes('partnerA'); // デモとして簡易的に自分はAとする
+            const likedClass = isLikedByMe ? 'liked' : '';
+            const authorLabel = idea.author === 'partnerA' ? pA : pB;
+
+            card.innerHTML = `
+                <div class="idea-meta-top">
+                    <span class="idea-date">${idea.date}</span>
+                    <button type="button" class="btn-icon-sm delete" onclick="deleteIdea('${idea.id}')" title="削除">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <h4>${idea.title}</h4>
+                <p>${idea.desc}</p>
+                <div class="idea-footer">
+                    <span class="idea-author">提案者: ${authorLabel}</span>
+                    <div class="idea-actions-flex">
+                        <button class="btn-reaction ${likedClass}" onclick="toggleIdeaLike('${idea.id}')" title="いいね！">
+                            <i data-lucide="heart" style="fill: ${isLikedByMe ? 'currentColor' : 'none'};"></i> 
+                            <span>${idea.likes.length}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    } else {
+        grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <i data-lucide="lightbulb"></i>
+                <p>アイデアがありません。上のボタンから最初のアイデアを投稿しましょう！</p>
+            </div>
+        `;
+    }
+    lucide.createIcons();
+}
+
+function addIdea() {
+    const title = document.getElementById('idea-title').value.trim();
+    const desc = document.getElementById('idea-desc').value.trim();
+    const color = document.querySelector('input[name="idea-color"]:checked').value;
+
+    if (!title || !desc) {
+        alert('タイトルと詳細を入力してください。');
+        return;
+    }
+
+    const newIdea = {
+        id: 'idea-' + Date.now(),
+        title: title,
+        desc: desc,
+        color: color,
+        author: 'partnerA', // アプリ使用者は基本パートナーA（アリス）として振る舞う
+        date: new Date().toISOString().split('T')[0],
+        likes: []
+    };
+
+    state.ideas.push(newIdea);
+    saveState();
+    renderIdeas();
+
+    // リセット
+    document.getElementById('idea-title').value = '';
+    document.getElementById('idea-desc').value = '';
+    closeModal('modal-add-idea');
+}
+
+function deleteIdea(id) {
+    const item = state.ideas.find(i => i.id === id);
+    const title = item ? item.title : 'アイデア';
+    state.ideas = state.ideas.filter(i => i.id !== id);
+    saveState();
+    renderIdeas();
+    showToast(`アイデア付箋「${title}」をはがしました`, 'danger');
+}
+
+function toggleIdeaLike(id) {
+    const idea = state.ideas.find(i => i.id === id);
+    if (idea) {
+        const idx = idea.likes.indexOf('partnerA');
+        if (idx > -1) {
+            idea.likes.splice(idx, 1);
+        } else {
+            idea.likes.push('partnerA');
+        }
+        saveState();
+        renderIdeas();
+    }
+}
+
+// ==========================================
+// 12. 意思決定ログ (Decision Log)
+// ==========================================
+function renderDecisions() {
+    const container = document.getElementById('decisions-timeline-list');
+    container.innerHTML = '';
+
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+
+    if (state.decisions.length > 0) {
+        // 新しい決定から表示
+        [...state.decisions].reverse().forEach((dec, idx) => {
+            const card = document.createElement('div');
+            card.className = 'decision-item';
+            card.innerHTML = `
+                <div class="decision-icon-marker">
+                    <i data-lucide="handshake"></i>
+                </div>
+                <div class="decision-card">
+                    <div class="decision-meta">
+                        <span class="decision-date-badge">${dec.date}</span>
+                        <span class="decision-signer-badge">
+                            <i data-lucide="check-circle-2"></i> ${pA} & ${pB} 署名合意済
+                        </span>
+                    </div>
+                    <h3>${dec.title}</h3>
+                    <div class="decision-body">
+                        <h4>決定理由 & 合意の背景</h4>
+                        <p>${dec.reason}</p>
+                    </div>
+                    <div class="decision-actions">
+                        <button type="button" class="btn-icon-sm delete" onclick="deleteDecision('${dec.id}')" title="削除">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    } else {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-lucide="book-open"></i>
+                <p>登録された意思決定はありません。上のボタンから追加してください。</p>
+            </div>
+        `;
+    }
+    lucide.createIcons();
+}
+
+function addDecision() {
+    const title = document.getElementById('dec-title').value.trim();
+    const reason = document.getElementById('dec-reason').value.trim();
+    const date = document.getElementById('dec-date').value;
+
+    if (!title || !reason || !date) {
+        alert('すべてのフィールドを入力してください。');
+        return;
+    }
+
+    const newDec = {
+        id: 'dec-' + Date.now(),
+        title: title,
+        reason: reason,
+        date: date
+    };
+
+    state.decisions.push(newDec);
+    saveState();
+    renderDecisions();
+
+    // リセット
+    document.getElementById('dec-title').value = '';
+    document.getElementById('dec-reason').value = '';
+    closeModal('modal-add-decision');
+}
+
+function deleteDecision(id) {
+    const item = state.decisions.find(d => d.id === id);
+    const title = item ? item.title : '決定事項';
+    state.decisions = state.decisions.filter(d => d.id !== id);
+    saveState();
+    renderDecisions();
+    showToast(`意思決定ログ「${title}」を削除しました`, 'danger');
+}
+
+// ==========================================
+// 13. データのエクスポート & インポート
+// ==========================================
+function exportData() {
+    const dataStr = JSON.stringify(state, null, 4);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${state.settings.projectName}_cofounder_hub_data_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function triggerImport() {
+    document.getElementById('import-file').click();
+}
+
+function handleImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        try {
+            const imported = JSON.parse(evt.target.result);
+            
+            // 簡単なデータ検証
+            if (imported.settings && imported.agreement && Array.isArray(imported.goals)) {
+                if (confirm('既存のデータがすべてインポートした内容に上書きされます。よろしいですか？')) {
+                    state = imported;
+                    saveState();
+                    
+                    // 表示全更新
+                    applyDynamicNames();
+                    const activeTab = document.querySelector('.nav-item.active').getAttribute('data-tab');
+                    switchTab(activeTab);
+                    
+                    alert('データのインポートに成功しました！');
+                }
+            } else {
+                alert('無効なデータ形式です。インポートできません。');
+            }
+        } catch (err) {
+            alert('ファイルの読み込みに失敗しました: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+}
+
+function resetState(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    openModal('modal-reset-confirm');
+}
+
+function executeResetState(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    
+    state = JSON.parse(JSON.stringify(EMPTY_STATE));
+    saveState();
+    
+    // 画面の表示を全更新
+    applyDynamicNames();
+    
+    // ダッシュボード等も含めタブを安全に再ロード
+    const activeTabEl = document.querySelector('.nav-item.active');
+    const activeTab = activeTabEl ? activeTabEl.getAttribute('data-tab') : 'dashboard';
+    switchTab(activeTab);
+    
+    closeModal('modal-reset-confirm');
+    
+    alert('すべてのデータを削除し、まっさらな状態のワークスペースを初期化しました！\n左下の「設定（歯車）」アイコンから、お二人の名前とプロジェクト名を入力して開始してください！');
+}
+
+
+
+// ==========================================
+// 14. 初期化処理 (Initialization)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    initStore();
+    initModals();
+    
+    // イベントバインディング
+    applyDynamicNames();
+    
+    // 設定
+    document.getElementById('btn-settings').addEventListener('click', () => {
+        loadSettings();
+        openModal('modal-settings');
+    });
+    document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
+    
+    // インポート/エクスポート
+    const exportBtn = document.getElementById('btn-export');
+    if (exportBtn) exportBtn.addEventListener('click', exportData);
+    
+    const importBtn = document.getElementById('btn-import');
+    if (importBtn) importBtn.addEventListener('click', triggerImport);
+    
+    const importFile = document.getElementById('import-file');
+    if (importFile) importFile.addEventListener('change', handleImport);
+    
+    const resetBtn = document.getElementById('btn-reset-data');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', (e) => {
+            resetState(e);
+        });
+    }
+    
+    const submitResetBtn = document.getElementById('btn-submit-reset-data');
+    if (submitResetBtn) {
+        submitResetBtn.addEventListener('click', (e) => {
+            executeResetState(e);
+        });
+    }
+
+
+
+    // ロードマップ
+    document.getElementById('btn-add-phase').addEventListener('click', () => openModal('modal-add-phase'));
+    document.getElementById('btn-submit-phase').addEventListener('click', addPhase);
+
+    // 目標
+    document.getElementById('btn-add-goal').addEventListener('click', () => {
+        document.getElementById('goal-deadline').value = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0]; // デフォルト1ヶ月後
+        openModal('modal-add-goal');
+    });
+    document.getElementById('btn-submit-goal').addEventListener('click', addGoal);
+
+    // 憲章
+    document.getElementById('btn-save-agreement').addEventListener('click', saveAgreementData);
+    document.getElementById('btn-sig-pA').addEventListener('click', () => toggleSignature('pA'));
+    document.getElementById('btn-sig-pB').addEventListener('click', () => toggleSignature('pB'));
+
+    // カレンダー
+    document.getElementById('btn-prev-month').addEventListener('click', prevMonth);
+    document.getElementById('btn-next-month').addEventListener('click', nextMonth);
+    document.getElementById('btn-add-event').addEventListener('click', () => {
+        document.getElementById('evt-date').value = new Date().toISOString().split('T')[0];
+        openModal('modal-add-event');
+    });
+    document.getElementById('btn-submit-event').addEventListener('click', addEvent);
+
+    // 経費
+    document.getElementById('form-add-expense').addEventListener('submit', handleAddExpense);
+    document.getElementById('btn-clear-settlement').addEventListener('click', clearSettlement);
+    document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+
+    // 収入
+    const formAddInc = document.getElementById('form-add-income');
+    if (formAddInc) formAddInc.addEventListener('submit', handleAddIncome);
+    const incDateEl = document.getElementById('inc-date');
+    if (incDateEl) incDateEl.value = new Date().toISOString().split('T')[0];
+
+    // アイディア
+    document.getElementById('btn-add-idea').addEventListener('click', () => openModal('modal-add-idea'));
+    document.getElementById('btn-submit-idea').addEventListener('click', addIdea);
+    
+    // アイディアのカラーピッカーのインタラクション
+    document.querySelectorAll('.color-opt').forEach(opt => {
+        opt.addEventListener('click', () => {
+            document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            opt.querySelector('input').checked = true;
+        });
+    });
+
+    // 意思決定
+    document.getElementById('btn-add-decision').addEventListener('click', () => {
+        document.getElementById('dec-date').value = new Date().toISOString().split('T')[0];
+        openModal('modal-add-decision');
+    });
+    document.getElementById('btn-submit-decision').addEventListener('click', addDecision);
+
+    // 進捗共有
+    const formAddUpd = document.getElementById('form-add-update');
+    if (formAddUpd) formAddUpd.addEventListener('submit', handleAddUpdate);
+    const updDateEl = document.getElementById('upd-date');
+    if (updDateEl) updDateEl.value = new Date().toISOString().split('T')[0];
+
+    // タブナビゲーション
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabId = item.getAttribute('data-tab');
+            switchTab(tabId);
+        });
+    });
+
+    // 創業憲章内のスクロール追従ナビゲーション
+    const agNavItems = document.querySelectorAll('.ag-nav-item');
+    agNavItems.forEach(nav => {
+        nav.addEventListener('click', (e) => {
+            e.preventDefault();
+            agNavItems.forEach(n => n.classList.remove('active'));
+            nav.classList.add('active');
+            
+            const targetId = nav.getAttribute('href');
+            const targetEl = document.querySelector(targetId);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // 最初のタブの読み込み
+    switchTab('dashboard');
+});
+
+// HTMLのonclick属性から確実に呼び出せるよう、関数を明示的にグローバル（window）スコープへエクスポート
+window.deleteExpense = deleteExpense;
+window.deleteIncome = deleteIncome;
+window.deletePhase = deletePhase;
+window.deleteGoal = deleteGoal;
+window.deleteEvent = deleteEvent;
+window.deleteIdea = deleteIdea;
+window.deleteDecision = deleteDecision;
+window.toggleIdeaLike = toggleIdeaLike;
+window.adjustGoalProgress = adjustGoalProgress;
+window.setGoalCompleted = setGoalCompleted;
+window.togglePhaseCompleted = togglePhaseCompleted;
+window.deleteUpdate = deleteUpdate;
+
+
