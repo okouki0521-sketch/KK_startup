@@ -311,7 +311,29 @@ function initStore() {
     saveState();
 }
 
+function syncSalesGoals() {
+    // 累計売上（categoryが 'sales' のもの）の計算
+    let totalSales = 0;
+    if (state.incomes) {
+        state.incomes.forEach(i => {
+            if (i.category === 'sales') {
+                totalSales += Number(i.amount) || 0;
+            }
+        });
+    }
+
+    // 目標の中でタイトルに「売上」または「撤退」を含むものの現在値を totalSales に同期する
+    if (state.goals) {
+        state.goals.forEach(g => {
+            if (g.title.includes('売上') || g.title.includes('撤退')) {
+                g.current = totalSales;
+            }
+        });
+    }
+}
+
 function saveState() {
+    syncSalesGoals(); // 保存前に売上目標の現在値と実際の売上合計を自動連動
     state.lastUpdated = Date.now();
     localStorage.setItem('cofounder_hub_state', JSON.stringify(state));
     updateDashboard(); // 状態変化時はダッシュボードを更新
