@@ -387,7 +387,10 @@ async function syncWithCloud() {
 
     isCurrentlySyncing = true;
     const bucketId = getBucketId(secretKey);
-    const url = `https://kvdb.io/${bucketId}/state`;
+    
+    // CORS制限を完全に回避するため、信頼性の高いCORSプロキシ (allorigins) を経由して最新データをフェッチします！
+    const targetUrl = `https://kvdb.io/${bucketId}/state`;
+    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
 
     try {
         const response = await fetch(url);
