@@ -508,6 +508,20 @@
                                     </div>
                                     <div class="form-grid">
                                         <div class="form-group">
+                                            <label>支払先・購入店舗</label>
+                                            <input type="text" id="exp-merchant" placeholder="例: AWS, Amazon, カフェ等" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>領収書ステータス</label>
+                                            <select id="exp-receipt">
+                                                <option value="yes">領収書・レシートあり</option>
+                                                <option value="no">なし (紛失/不発行)</option>
+                                                <option value="need">要提出・取り寄せ中</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
                                             <label>支払った人</label>
                                             <select id="exp-payer">
                                                 <option value="partnerA" id="exp-opt-pA">パートナーA</option>
@@ -527,7 +541,7 @@
                         </div>
 
                         <!-- 収入入力フォーム -->
-                        <div class="content-card" style="margin-top: 24px; border-top: 3px solid #10b981;">
+                        <div class="content-card" style="border-top: 3px solid #10b981;">
                             <div class="card-header">
                                 <h3 style="color: #10b981; display: flex; align-items: center; gap: 8px;">
                                     <i data-lucide="trending-up"></i> 収入・資金を入力する
@@ -556,6 +570,19 @@
                                     </div>
                                     <div class="form-grid">
                                         <div class="form-group">
+                                            <label>取引先・顧客名</label>
+                                            <input type="text" id="inc-client" placeholder="例: 〇〇株式会社, 煌記（出資）等" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>入金ステータス</label>
+                                            <select id="inc-status">
+                                                <option value="received">入金完了</option>
+                                                <option value="pending">未入金 (請求中)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
                                             <label>入金先・受取人</label>
                                             <select id="inc-receiver">
                                                 <option value="partnerA" id="inc-opt-pA">パートナーA</option>
@@ -575,57 +602,16 @@
                             </div>
                         </div>
 
-                        <!-- 支出一覧 -->
-                        <div class="content-card">
-                            <div class="card-header">
-                                <h3>支出履歴</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="finance-table">
-                                        <thead>
-                                            <tr>
-                                                <th>日付</th>
-                                                <th>経費名</th>
-                                                <th>カテゴリ</th>
-                                                <th>支払者</th>
-                                                <th>金額</th>
-                                                <th>操作</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="expense-list-rows">
-                                            <!-- 動的に挿入 -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 収入履歴一覧 -->
-                        <div class="content-card" style="margin-top: 24px; border-top: 3px solid #10b981;">
-                            <div class="card-header">
-                                <h3 style="color: #10b981; display: flex; align-items: center; gap: 8px;">
-                                    <i data-lucide="trending-up"></i> 共同収入の入金履歴
+                        <!-- 統合月別財務アコーディオン -->
+                        <div class="content-card" style="grid-column: 1 / -1; margin-top: 24px; border-top: 3px solid var(--color-primary);">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+                                <h3 style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="calendar" class="text-primary"></i> 月別財務履歴 (Ledger & Ledger Details)
                                 </h3>
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 550;">月カードをクリックすると詳細明細がスライド展開します</span>
                             </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="finance-table">
-                                        <thead>
-                                            <tr>
-                                                <th>日付</th>
-                                                <th>収入・出資名</th>
-                                                <th>カテゴリ</th>
-                                                <th>受取/入金先</th>
-                                                <th>金額</th>
-                                                <th>操作</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="income-list-rows">
-                                            <!-- 動的に挿入 -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <div class="card-body" id="monthly-ledger-container" style="padding-top: 20px;">
+                                <!-- JSで月別にグループ化された高機能アコーディオンが動的に挿入されます -->
                             </div>
                         </div>
                     </div>

@@ -99,7 +99,9 @@ const DEFAULT_STATE = {
             amount: 1980,
             category: 'infrastructure',
             payer: 'partnerB',
-            date: '2026-05-12'
+            date: '2026-05-12',
+            merchant: 'お名前.com',
+            receipt: 'yes'
         },
         {
             id: 'exp-2',
@@ -107,7 +109,9 @@ const DEFAULT_STATE = {
             amount: 5400,
             category: 'infrastructure',
             payer: 'partnerA',
-            date: '2026-05-15'
+            date: '2026-05-15',
+            merchant: 'AWS Amazon',
+            receipt: 'yes'
         },
         {
             id: 'exp-3',
@@ -115,7 +119,9 @@ const DEFAULT_STATE = {
             amount: 3200,
             category: 'supplies',
             payer: 'partnerB',
-            date: '2026-05-16'
+            date: '2026-05-16',
+            merchant: '丸善書店',
+            receipt: 'yes'
         }
     ],
     ideas: [
@@ -168,7 +174,9 @@ const DEFAULT_STATE = {
             amount: 5000,
             category: 'sales',
             receiver: 'common',
-            date: '2026-05-15'
+            date: '2026-05-15',
+            client: '初期テストユーザーA様',
+            status: 'received'
         }
     ],
     updates: [
@@ -1378,7 +1386,7 @@ function renderFinancials() {
     document.getElementById('fin-pA-total').textContent = `¥${pAPaid.toLocaleString()}`;
     document.getElementById('fin-pB-total').textContent = `¥${pBPaid.toLocaleString()}`;
 
-    // 【収入合計 & 事業残高の算出】
+    // 収入合計 & 事業残高の算出
     let totalIncome = 0;
     if (state.incomes) {
         state.incomes.forEach(i => {
@@ -1434,90 +1442,247 @@ function renderFinancials() {
         clearBtn.style.display = 'none';
     }
 
-    // 支出履歴テーブルの生成
-    const tbody = document.getElementById('expense-list-rows');
-    tbody.innerHTML = '';
+    // ==========================================
+    // 月別・統合財務アコーディオンの動的生成
+    // ==========================================
+    const monthlyData = {};
 
-    if (state.expenses.length > 0) {
-        // 新しいものから表示
-        [...state.expenses].reverse().forEach(e => {
-            const tr = document.createElement('tr');
-            const catBadgeText = getCategoryLabel(e.category);
-            const payerLabel = e.payer === 'partnerA' ? pA : pB;
-            const payerClass = e.payer === 'partnerA' ? 'pA' : 'pB';
+    // 経費のグループ化
+    state.expenses.forEach(e => {
+        const month = e.date ? e.date.substring(0, 7) : '日付不明'; // "YYYY-MM"
+        if (!monthlyData[month]) {
+            monthlyData[month] = { expenses: [], incomes: [], totalExp: 0, totalInc: 0 };
+        }
+        monthlyData[month].expenses.push(e);
+        monthlyData[month].totalExp += e.amount;
+    });
 
-            tr.innerHTML = `
-                <td>${e.date}</td>
-                <td style="font-weight: 500;">${e.title}</td>
-                <td><span class="badge-category ${e.category}">${catBadgeText}</span></td>
-                <td><span class="payer-span ${payerClass}">${payerLabel}</span></td>
-                <td style="font-weight: 600;">¥${e.amount.toLocaleString()}</td>
-                <td>
-                    <div style="display: flex; gap: 6px;">
-                        <button type="button" class="btn-icon-sm edit" onclick="openEditModal('expenses', '${e.id}')" title="編集">
-                            <i data-lucide="edit-3"></i>
-                        </button>
-                        <button type="button" class="btn-icon-sm delete" onclick="deleteExpense('${e.id}')" title="削除">
-                            <i data-lucide="trash-2"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
+    // 収入のグループ化
+    if (state.incomes) {
+        state.incomes.forEach(i => {
+            const month = i.date ? i.date.substring(0, 7) : '日付不明';
+            if (!monthlyData[month]) {
+                monthlyData[month] = { expenses: [], incomes: [], totalExp: 0, totalInc: 0 };
+            }
+            monthlyData[month].incomes.push(i);
+            monthlyData[month].totalInc += i.amount;
         });
-    } else {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                    経費履歴はありません。左のフォームから入力してください。
-                </td>
-            </tr>
-        `;
     }
 
-    // 収入履歴テーブルの生成
-    const tbodyInc = document.getElementById('income-list-rows');
-    if (tbodyInc) {
-        tbodyInc.innerHTML = '';
-        if (state.incomes && state.incomes.length > 0) {
-            [...state.incomes].reverse().forEach(inc => {
-                const tr = document.createElement('tr');
-                const catBadgeText = getIncomeCategoryLabel(inc.category);
-                let receiverLabel = '';
-                if (inc.receiver === 'partnerA') receiverLabel = pA;
-                else if (inc.receiver === 'partnerB') receiverLabel = pB;
-                else receiverLabel = '共同口座/プール';
-                
-                const recClass = inc.receiver === 'common' ? 'common' : (inc.receiver === 'partnerA' ? 'pA' : 'pB');
+    const monthKeys = Object.keys(monthlyData).sort().reverse();
+    const container = document.getElementById('monthly-ledger-container');
+    container.innerHTML = '';
 
-                tr.innerHTML = `
-                    <td>${inc.date}</td>
-                    <td style="font-weight: 500;">${inc.title}</td>
-                    <td><span class="badge-category income-${inc.category}">${catBadgeText}</span></td>
-                    <td><span class="receiver-span ${recClass}">${receiverLabel}</span></td>
-                    <td style="font-weight: 600; color: #10b981;">¥${inc.amount.toLocaleString()}</td>
-                    <td>
-                        <div style="display: flex; gap: 6px;">
-                            <button type="button" class="btn-icon-sm edit" onclick="openEditModal('incomes', '${inc.id}')" title="編集">
-                                <i data-lucide="edit-3"></i>
-                            </button>
-                            <button type="button" class="btn-icon-sm delete" onclick="deleteIncome('${inc.id}')" title="削除">
-                                <i data-lucide="trash-2"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbodyInc.appendChild(tr);
-            });
-        } else {
-            tbodyInc.innerHTML = `
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                        収入履歴はありません。左のフォームから入力してください。
-                    </td>
-                </tr>
+    if (monthKeys.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                財務データ（収入・経費）はありません。上のフォームから入力してください。
+            </div>
+        `;
+    } else {
+        monthKeys.forEach((month, index) => {
+            const data = monthlyData[month];
+            const net = data.totalInc - data.totalExp;
+            const netClass = net >= 0 ? 'text-green' : 'text-pink';
+            const netSign = net >= 0 ? '+' : '';
+            
+            const [year, mon] = month.split('-');
+            const formattedMonth = year && mon ? `${year}年${mon}月` : month;
+            
+            // デフォルトで最初の月（最新の月）を開く
+            const isDefaultOpen = index === 0;
+            const displayStyle = isDefaultOpen ? 'block' : 'none';
+            const activeClass = isDefaultOpen ? 'active' : '';
+            const arrowIcon = isDefaultOpen ? 'chevron-up' : 'chevron-down';
+
+            const div = document.createElement('div');
+            div.className = 'monthly-ledger-card';
+            div.style.cssText = `
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-lg);
+                margin-bottom: 16px;
+                background: var(--bg-card);
+                overflow: hidden;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                transition: all 0.2s ease;
             `;
-        }
+            
+            div.innerHTML = `
+                <!-- アコーディオンヘッダー -->
+                <div class="monthly-ledger-header ${activeClass}" data-month="${month}" style="
+                    padding: 16px 20px;
+                    background: rgba(255, 255, 255, 0.03);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    cursor: pointer;
+                    border-bottom: ${isDefaultOpen ? '1px solid var(--border-color)' : 'none'};
+                    user-select: none;
+                ">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-main);">${formattedMonth}</h4>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-left: 8px;">
+                            <span class="badge-category income-sales" style="font-size: 11px; padding: 2px 8px;">🟢 収入: ¥${data.totalInc.toLocaleString()}</span>
+                            <span class="badge-category infrastructure" style="font-size: 11px; padding: 2px 8px; background: rgba(239, 68, 68, 0.1); color: #ef4444;">🔴 支出: ¥${data.totalExp.toLocaleString()}</span>
+                            <span class="${netClass}" style="font-size: 11px; font-weight: 700; padding: 2px 8px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+                                ⚖️ 差引収支: ${netSign}¥${net.toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="accordion-arrow" data-lucide="${arrowIcon}" style="width: 18px; height: 18px; color: var(--text-muted); transition: transform 0.2s;"></i>
+                    </div>
+                </div>
+                
+                <!-- アコーディオンボディ -->
+                <div class="monthly-ledger-body" id="body-${month}" style="display: ${displayStyle}; padding: 20px; border-top: 1px solid var(--border-color);">
+                    <div class="monthly-grid-layout" style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+                        
+                        <!-- 収入セクション -->
+                        <div>
+                            <h5 style="color: #10b981; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; border-left: 3px solid #10b981; padding-left: 8px;">
+                                <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i> 収入明細
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="finance-table" style="font-size: 12.5px; width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th>日付</th>
+                                            <th>詳細内容 / 取引先・顧客</th>
+                                            <th>カテゴリ</th>
+                                            <th>受取/入金先</th>
+                                            <th>入金状況</th>
+                                            <th>金額</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.incomes.length === 0 ? `
+                                            <tr>
+                                                <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">この月の収入データはありません</td>
+                                            </tr>
+                                        ` : [...data.incomes].reverse().map(inc => {
+                                            const catLabel = getIncomeCategoryLabel(inc.category);
+                                            let receiverLabel = inc.receiver === 'partnerA' ? pA : (inc.receiver === 'partnerB' ? pB : '共同プール');
+                                            const recClass = inc.receiver === 'common' ? 'common' : (inc.receiver === 'partnerA' ? 'pA' : 'pB');
+                                            const clientVal = inc.client ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">取引先: ${inc.client}</div>` : '';
+                                            const statusText = inc.status === 'pending' ? '未入金 (請求中)' : '入金完了';
+                                            const statusClass = inc.status === 'pending' ? 'badge-category office' : 'badge-category income-sales';
+                                            
+                                            return `
+                                                <tr>
+                                                    <td>${inc.date}</td>
+                                                    <td>
+                                                        <div style="font-weight: 600;">${inc.title}</div>
+                                                        ${clientVal}
+                                                    </td>
+                                                    <td><span class="badge-category income-${inc.category}">${catLabel}</span></td>
+                                                    <td><span class="receiver-span ${recClass}">${receiverLabel}</span></td>
+                                                    <td><span class="${statusClass}">${statusText}</span></td>
+                                                    <td style="font-weight: 700; color: #10b981; font-size: 13.5px;">¥${inc.amount.toLocaleString()}</td>
+                                                    <td>
+                                                        <div style="display: flex; gap: 6px;">
+                                                            <button type="button" class="btn-icon-sm edit" onclick="openEditModal('incomes', '${inc.id}')" title="編集"><i data-lucide="edit-3"></i></button>
+                                                            <button type="button" class="btn-icon-sm delete" onclick="deleteIncome('${inc.id}')" title="削除"><i data-lucide="trash-2"></i></button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- 経費セクション -->
+                        <div style="margin-top: 8px;">
+                            <h5 style="color: #ef4444; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; border-left: 3px solid #ef4444; padding-left: 8px;">
+                                <i data-lucide="trending-down" style="width: 16px; height: 16px;"></i> 経費・支出明細
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="finance-table" style="font-size: 12.5px; width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th>日付</th>
+                                            <th>詳細内容 / 支払先店舗</th>
+                                            <th>カテゴリ</th>
+                                            <th>支払者</th>
+                                            <th>領収書</th>
+                                            <th>金額</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.expenses.length === 0 ? `
+                                            <tr>
+                                                <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">この月の経費支出データはありません</td>
+                                            </tr>
+                                        ` : [...data.expenses].reverse().map(e => {
+                                            const catLabel = getCategoryLabel(e.category);
+                                            let payerLabel = e.payer === 'partnerA' ? pA : pB;
+                                            const payerClass = e.payer === 'partnerA' ? 'pA' : 'pB';
+                                            const merchantVal = e.merchant ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">支払先: ${e.merchant}</div>` : '';
+                                            
+                                            let receiptText = 'レシート有';
+                                            let receiptClass = 'badge-category income-sales';
+                                            if (e.receipt === 'no') { receiptText = 'レシート無'; receiptClass = 'badge-category office'; }
+                                            else if (e.receipt === 'need') { receiptText = '要提出'; receiptClass = 'badge-category travel'; }
+
+                                            return `
+                                                <tr>
+                                                    <td>${e.date}</td>
+                                                    <td>
+                                                        <div style="font-weight: 600;">${e.title}</div>
+                                                        ${merchantVal}
+                                                    </td>
+                                                    <td><span class="badge-category ${e.category}">${catLabel}</span></td>
+                                                    <td><span class="payer-span ${payerClass}">${payerLabel}</span></td>
+                                                    <td><span class="${receiptClass}">${receiptText}</span></td>
+                                                    <td style="font-weight: 700; color: #ef4444; font-size: 13.5px;">¥${e.amount.toLocaleString()}</td>
+                                                    <td>
+                                                        <div style="display: flex; gap: 6px;">
+                                                            <button type="button" class="btn-icon-sm edit" onclick="openEditModal('expenses', '${e.id}')" title="編集"><i data-lucide="edit-3"></i></button>
+                                                            <button type="button" class="btn-icon-sm delete" onclick="deleteExpense('${e.id}')" title="削除"><i data-lucide="trash-2"></i></button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        // アコーディオンのクリックリスナー登録
+        document.querySelectorAll('.monthly-ledger-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const month = this.getAttribute('data-month');
+                const body = document.getElementById(`body-${month}`);
+                const isVisible = body.style.display === 'block';
+                
+                body.style.display = isVisible ? 'none' : 'block';
+                
+                // アイコンの向きをトグル
+                const arrow = this.querySelector('.accordion-arrow');
+                
+                if (isVisible) {
+                    this.classList.remove('active');
+                    this.style.borderBottom = 'none';
+                    if (arrow) arrow.setAttribute('data-lucide', 'chevron-down');
+                } else {
+                    this.classList.add('active');
+                    this.style.borderBottom = '1px solid var(--border-color)';
+                    if (arrow) arrow.setAttribute('data-lucide', 'chevron-up');
+                }
+                
+                lucide.createIcons();
+            });
+        });
     }
 
     renderFinanceChart();
@@ -1554,6 +1719,8 @@ function handleAddExpense(e) {
     const category = document.getElementById('exp-category').value;
     const payer = document.getElementById('exp-payer').value;
     const date = document.getElementById('exp-date').value;
+    const merchant = document.getElementById('exp-merchant').value.trim();
+    const receipt = document.getElementById('exp-receipt').value;
 
     if (!title || amount <= 0 || !date) {
         alert('必要なフィールドを入力してください。');
@@ -1566,7 +1733,9 @@ function handleAddExpense(e) {
         amount: amount,
         category: category,
         payer: payer,
-        date: date
+        date: date,
+        merchant: merchant || 'その他店舗',
+        receipt: receipt
     };
 
     state.expenses.push(newExpense);
@@ -1576,6 +1745,7 @@ function handleAddExpense(e) {
     // リセット
     document.getElementById('exp-title').value = '';
     document.getElementById('exp-amount').value = '';
+    document.getElementById('exp-merchant').value = '';
     document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
 }
 
@@ -1596,6 +1766,8 @@ function handleAddIncome(e) {
     const category = document.getElementById('inc-category').value;
     const receiver = document.getElementById('inc-receiver').value;
     const date = document.getElementById('inc-date').value;
+    const client = document.getElementById('inc-client').value.trim();
+    const status = document.getElementById('inc-status').value;
 
     if (!title || amount <= 0 || !date) {
         alert('必要なフィールドを入力してください。');
@@ -1608,17 +1780,26 @@ function handleAddIncome(e) {
         amount: amount,
         category: category,
         receiver: receiver,
-        date: date
+        date: date,
+        client: client || 'その他顧客',
+        status: status
     };
 
     if (!state.incomes) state.incomes = [];
     state.incomes.push(newIncome);
     saveState();
+    
+    // 売上目標と動的に自動同期
+    if (category === 'sales') {
+        syncSalesGoals();
+    }
+
     renderFinancials();
 
     // リセット
     document.getElementById('inc-title').value = '';
     document.getElementById('inc-amount').value = '';
+    document.getElementById('inc-client').value = '';
     document.getElementById('inc-date').value = new Date().toISOString().split('T')[0];
 }
 
@@ -2457,6 +2638,20 @@ function openEditModal(type, id) {
             </div>
             <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div class="form-group">
+                    <label>支払先・購入店舗</label>
+                    <input type="text" id="edit-exp-merchant" value="${(item.merchant || '').replace(/"/g, '&quot;')}" placeholder="例: AWS, Amazon" style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>領収書ステータス</label>
+                    <select id="edit-exp-receipt" style="width: 100%;">
+                        <option value="yes" ${item.receipt === 'yes' ? 'selected' : ''}>領収書・レシートあり</option>
+                        <option value="no" ${item.receipt === 'no' ? 'selected' : ''}>なし (紛失/不発行)</option>
+                        <option value="need" ${item.receipt === 'need' ? 'selected' : ''}>要提出・取り寄せ中</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
                     <label>支払った人</label>
                     <select id="edit-exp-payer" style="width: 100%;">
                         <option value="partnerA" ${item.payer === 'partnerA' ? 'selected' : ''}>${state.settings.partnerAName}</option>
@@ -2487,6 +2682,19 @@ function openEditModal(type, id) {
                         <option value="investment" ${item.category === 'investment' ? 'selected' : ''}>自己資金・出資</option>
                         <option value="subsidy" ${item.category === 'subsidy' ? 'selected' : ''}>助成金・補助金</option>
                         <option value="other" ${item.category === 'other' ? 'selected' : ''}>その他収入</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>取引先・顧客名</label>
+                    <input type="text" id="edit-inc-client" value="${(item.client || '').replace(/"/g, '&quot;')}" placeholder="例: 〇〇株式会社, 煌記（出資）" style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>入金ステータス</label>
+                    <select id="edit-inc-status" style="width: 100%;">
+                        <option value="received" ${item.status === 'received' ? 'selected' : ''}>入金完了</option>
+                        <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>未入金 (請求中)</option>
                     </select>
                 </div>
             </div>
@@ -2618,6 +2826,8 @@ function saveEditItem(type, id) {
         item.category = document.getElementById('edit-exp-category').value;
         item.payer = document.getElementById('edit-exp-payer').value;
         item.date = document.getElementById('edit-exp-date').value;
+        item.merchant = document.getElementById('edit-exp-merchant').value.trim() || 'その他店舗';
+        item.receipt = document.getElementById('edit-exp-receipt').value;
         if (!item.title || item.amount <= 0 || !item.date) {
             alert('正しい金額と支払日を入力してください。');
             return;
@@ -2628,9 +2838,15 @@ function saveEditItem(type, id) {
         item.category = document.getElementById('edit-inc-category').value;
         item.receiver = document.getElementById('edit-inc-receiver').value;
         item.date = document.getElementById('edit-inc-date').value;
+        item.client = document.getElementById('edit-inc-client').value.trim() || 'その他顧客';
+        item.status = document.getElementById('edit-inc-status').value;
         if (!item.title || item.amount <= 0 || !item.date) {
             alert('正しい金額と入金日を入力してください。');
             return;
+        }
+        // 売上目標と動的に自動同期
+        if (item.category === 'sales') {
+            syncSalesGoals();
         }
     } else if (type === 'ideas') {
         item.title = document.getElementById('edit-idea-title').value.trim();
