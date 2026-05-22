@@ -2012,7 +2012,7 @@ function renderIdeas() {
     if (state.ideas.length > 0) {
         state.ideas.forEach(idea => {
             const card = document.createElement('div');
-            card.className = `idea-sticky ${idea.color || 'yellow'}`;
+            card.className = `idea-sticky`;
             card.setAttribute('data-idea-id', idea.id);
             
             const isLikedByMe = idea.likes.includes('partnerA');
@@ -2022,31 +2022,32 @@ function renderIdeas() {
             card.innerHTML = `
                 <div class="idea-header-clickable" onclick="toggleIdeaAccordion('${idea.id}')">
                     <div class="idea-header-title-section">
-                        <i data-lucide="chevron-down" class="idea-chevron-icon" style="width: 18px; height: 18px; flex-shrink: 0; color: inherit; opacity: 0.8;"></i>
+                        <i data-lucide="chevron-down" class="idea-chevron-icon" style="width: 16px; height: 16px; flex-shrink: 0; color: var(--text-muted);"></i>
+                        <span class="idea-color-dot ${idea.color || 'yellow'}"></span>
                         <h4>${idea.title}</h4>
                     </div>
                     <div class="idea-header-meta">
                         <span class="idea-author">提案者: ${authorLabel}</span>
                         <span class="idea-date">${idea.date}</span>
-                        <span class="badge-likes" style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                        <span class="badge-likes" style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: var(--color-pink);">
                             <i data-lucide="heart" style="width: 12px; height: 12px; fill: ${isLikedByMe ? 'currentColor' : 'none'};"></i>
                             ${idea.likes.length}
                         </span>
                     </div>
                 </div>
                 <div class="idea-body-collapse">
-                    <div style="padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.05); margin-bottom: 16px;">
-                        <p style="font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; margin: 0; color: inherit; opacity: 0.95; font-weight: 500;">${idea.desc}</p>
+                    <div style="padding-top: 10px; border-top: 1px solid #f1f5f9; margin-bottom: 12px;">
+                        <p style="font-size: 13px; line-height: 1.6; white-space: pre-wrap; margin: 0; color: var(--text-secondary); font-weight: 550;">${idea.desc}</p>
                     </div>
-                    <div class="idea-footer" style="margin-top: 0; padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="idea-footer" style="margin-top: 0; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
                         <div class="idea-actions-flex">
-                            <button class="btn-reaction ${likedClass}" onclick="event.stopPropagation(); toggleIdeaLike('${idea.id}')" title="いいね！">
-                                <i data-lucide="heart" style="width: 14px; height: 14px; fill: ${isLikedByMe ? 'currentColor' : 'none'};"></i> 
+                            <button class="btn-reaction ${likedClass}" onclick="event.stopPropagation(); toggleIdeaLike('${idea.id}')" title="いいね！" style="padding: 3px 8px; font-size: 11px;">
+                                <i data-lucide="heart" style="width: 12px; height: 12px; fill: ${isLikedByMe ? 'currentColor' : 'none'};"></i> 
                                 <span>${idea.likes.length} 人がいいね！</span>
                             </button>
                         </div>
-                        <button type="button" class="btn-icon-sm delete" onclick="event.stopPropagation(); deleteIdea('${idea.id}')" title="削除" style="width: 32px; height: 32px; border-radius: 50%; color: inherit;">
-                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        <button type="button" class="btn-icon-sm delete" onclick="event.stopPropagation(); deleteIdea('${idea.id}')" title="削除" style="width: 28px; height: 28px; border-radius: 50%; color: var(--text-muted);">
+                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                         </button>
                     </div>
                 </div>
@@ -2055,8 +2056,8 @@ function renderIdeas() {
         });
     } else {
         grid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1 / -1; width: 100%;">
-                <i data-lucide="lightbulb" style="width: 48px; height: 48px;"></i>
+            <div class="empty-state" style="grid-column: 1 / -1; width: 100%; padding: 40px 20px;">
+                <i data-lucide="lightbulb" style="width: 40px; height: 40px;"></i>
                 <p>アイデアがありません。上のボタンから最初のアイデアを投稿しましょう！</p>
             </div>
         `;
