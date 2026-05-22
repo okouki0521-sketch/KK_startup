@@ -1440,79 +1440,108 @@ body {
 }
 
 .ideas-board {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 .idea-sticky {
     background-color: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: var(--border-radius-lg);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04);
-    padding: 28px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
     display: flex;
     flex-direction: column;
-    min-height: 240px;
-    position: relative;
-    transition: var(--transition-smooth);
+    min-height: auto;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* パステル調の明るい付箋デザイン */
-.idea-sticky.yellow { background-color: #fef9c3; border-top: 5px solid var(--color-yellow); color: #854d0e; }
-.idea-sticky.blue { background-color: #e0f2fe; border-top: 5px solid var(--color-blue); color: #0369a1; }
-.idea-sticky.green { background-color: #ccfbf1; border-top: 5px solid var(--color-green); color: #0f766e; }
-.idea-sticky.pink { background-color: #fce7f3; border-top: 5px solid var(--color-pink); color: #be185d; }
-.idea-sticky.purple { background-color: #f3e8ff; border-top: 5px solid var(--color-purple); color: #6b21a8; }
+.idea-sticky.yellow { background-color: #fefef2; border-left: 6px solid var(--color-yellow); color: #854d0e; }
+.idea-sticky.blue { background-color: #f0f9ff; border-left: 6px solid var(--color-blue); color: #0369a1; }
+.idea-sticky.green { background-color: #f0fdfa; border-left: 6px solid var(--color-green); color: #0f766e; }
+.idea-sticky.pink { background-color: #fdf2f8; border-left: 6px solid var(--color-pink); color: #be185d; }
+.idea-sticky.purple { background-color: #faf5ff; border-left: 6px solid var(--color-purple); color: #6b21a8; }
 
 .idea-sticky:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.06);
 }
 
-.idea-meta-top {
+.idea-header-clickable {
+    padding: 16px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    gap: 16px;
+    user-select: none;
 }
 
-.idea-date {
-    font-size: 11px;
-    opacity: 0.8;
-    font-weight: 600;
+.idea-header-title-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.idea-chevron-icon {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.idea-sticky.active .idea-chevron-icon {
+    transform: rotate(180deg);
 }
 
 .idea-sticky h4 {
-    font-size: 16px;
-    font-weight: 800;
-    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 750;
+    margin: 0;
     line-height: 1.4;
     color: inherit;
 }
 
-.idea-sticky p {
-    font-size: 13px;
-    line-height: 1.6;
-    flex: 1;
-    color: inherit;
-    opacity: 0.9;
+.idea-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.idea-author {
+    opacity: 0.85;
+}
+
+.idea-date {
+    opacity: 0.75;
     font-weight: 500;
+}
+
+.idea-body-collapse {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 24px;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.3s ease;
+}
+
+.idea-sticky.active .idea-body-collapse {
+    max-height: 800px;
+    opacity: 1;
+    padding: 0 24px 20px 24px;
 }
 
 .idea-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 20px;
+    margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.idea-author {
-    font-size: 11px;
-    opacity: 0.8;
-    font-weight: 600;
 }
 
 .idea-actions-flex {

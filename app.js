@@ -308,7 +308,16 @@ function initStore() {
     
     // クラウド同期のインターバルを開始
     startSyncInterval();
-    saveState();
+    
+    // 起動時はローカルデータの保存（上書き）を行わず、即座に画面全体を最新の state に基づいて初期描画する
+    updateDashboard();
+    
+    // アクティブなタブを安全に再描画
+    const activeTab = document.querySelector('.nav-item.active');
+    if (activeTab) {
+        const tabId = activeTab.getAttribute('data-tab');
+        switchTabQuietly(tabId);
+    }
 }
 
 function syncSalesGoals() {
@@ -2004,26 +2013,40 @@ function renderIdeas() {
         state.ideas.forEach(idea => {
             const card = document.createElement('div');
             card.className = `idea-sticky ${idea.color || 'yellow'}`;
+            card.setAttribute('data-idea-id', idea.id);
             
-            const isLikedByMe = idea.likes.includes('partnerA'); // デモとして簡易的に自分はAとする
+            const isLikedByMe = idea.likes.includes('partnerA');
             const likedClass = isLikedByMe ? 'liked' : '';
             const authorLabel = idea.author === 'partnerA' ? pA : pB;
 
             card.innerHTML = `
-                <div class="idea-meta-top">
-                    <span class="idea-date">${idea.date}</span>
-                    <button type="button" class="btn-icon-sm delete" onclick="deleteIdea('${idea.id}')" title="削除">
-                        <i data-lucide="x"></i>
-                    </button>
+                <div class="idea-header-clickable" onclick="toggleIdeaAccordion('${idea.id}')">
+                    <div class="idea-header-title-section">
+                        <i data-lucide="chevron-down" class="idea-chevron-icon" style="width: 18px; height: 18px; flex-shrink: 0; color: inherit; opacity: 0.8;"></i>
+                        <h4>${idea.title}</h4>
+                    </div>
+                    <div class="idea-header-meta">
+                        <span class="idea-author">提案者: ${authorLabel}</span>
+                        <span class="idea-date">${idea.date}</span>
+                        <span class="badge-likes" style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                            <i data-lucide="heart" style="width: 12px; height: 12px; fill: ${isLikedByMe ? 'currentColor' : 'none'};"></i>
+                            ${idea.likes.length}
+                        </span>
+                    </div>
                 </div>
-                <h4>${idea.title}</h4>
-                <p>${idea.desc}</p>
-                <div class="idea-footer">
-                    <span class="idea-author">提案者: ${authorLabel}</span>
-                    <div class="idea-actions-flex">
-                        <button class="btn-reaction ${likedClass}" onclick="toggleIdeaLike('${idea.id}')" title="いいね！">
-                            <i data-lucide="heart" style="fill: ${isLikedByMe ? 'currentColor' : 'none'};"></i> 
-                            <span>${idea.likes.length}</span>
+                <div class="idea-body-collapse">
+                    <div style="padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.05); margin-bottom: 16px;">
+                        <p style="font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; margin: 0; color: inherit; opacity: 0.95; font-weight: 500;">${idea.desc}</p>
+                    </div>
+                    <div class="idea-footer" style="margin-top: 0; padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;">
+                        <div class="idea-actions-flex">
+                            <button class="btn-reaction ${likedClass}" onclick="event.stopPropagation(); toggleIdeaLike('${idea.id}')" title="いいね！">
+                                <i data-lucide="heart" style="width: 14px; height: 14px; fill: ${isLikedByMe ? 'currentColor' : 'none'};"></i> 
+                                <span>${idea.likes.length} 人がいいね！</span>
+                            </button>
+                        </div>
+                        <button type="button" class="btn-icon-sm delete" onclick="event.stopPropagation(); deleteIdea('${idea.id}')" title="削除" style="width: 32px; height: 32px; border-radius: 50%; color: inherit;">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                         </button>
                     </div>
                 </div>
@@ -2032,13 +2055,20 @@ function renderIdeas() {
         });
     } else {
         grid.innerHTML = `
-            <div class="empty-state" style="grid-column: 1 / -1;">
-                <i data-lucide="lightbulb"></i>
+            <div class="empty-state" style="grid-column: 1 / -1; width: 100%;">
+                <i data-lucide="lightbulb" style="width: 48px; height: 48px;"></i>
                 <p>アイデアがありません。上のボタンから最初のアイデアを投稿しましょう！</p>
             </div>
         `;
     }
     lucide.createIcons();
+}
+
+function toggleIdeaAccordion(id) {
+    const card = document.querySelector(`.idea-sticky[data-idea-id="${id}"]`);
+    if (card) {
+        card.classList.toggle('active');
+    }
 }
 
 function addIdea() {
