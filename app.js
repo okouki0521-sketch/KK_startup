@@ -81,7 +81,7 @@ const DEFAULT_STATE = {
             date: '2026-05-25',
             time: '18:00',
             type: 'deadline',
-            notes: 'アリスが実装するためのデザインカンプをボブが共有'
+            notes: '煌記が実装するためのデザインカンプを和弥に共有'
         },
         {
             id: 'evt-3',
@@ -95,7 +95,7 @@ const DEFAULT_STATE = {
     expenses: [
         {
             id: 'exp-1',
-            title: 'ドメイン取得費用 (neonway.app)',
+            title: 'ドメイン取得費用 ( neonway.app )',
             amount: 1980,
             category: 'infrastructure',
             payer: 'partnerB',
@@ -151,13 +151,13 @@ const DEFAULT_STATE = {
         {
             id: 'dec-1',
             title: '初期開発インフラとしてAWSの採用合意',
-            reason: 'アリス（技術担当）が得意であり、初期スケーラビリティに優れるため。またスタートアップ向け無料枠を活用し、当初1年間はサーバー費用を最小化できる見込み。',
+            reason: '和弥（技術・事業開発担当）が得意であり、初期スケーラビリティに優れるため。またスタートアップ向け無料枠を活用し、当初1年間はサーバー費用を最小化できる見込み。',
             date: '2026-05-14'
         },
         {
             id: 'dec-2',
             title: 'プロジェクトロゴデザインの最終決定',
-            reason: 'ボブが提案した3つのパターンのうち、モダンで洗練されたネオンブルーとパープルのグラデーションエンブレムに決定。商標調査も完了。',
+            reason: '煌記が提案した3つのパターンのうち、モダンで洗練されたネオンブルーとパープルのグラデーションエンブレムに決定。商標調査も完了。',
             date: '2026-05-17'
         }
     ],
@@ -177,7 +177,7 @@ const DEFAULT_STATE = {
             author: 'partnerA',
             date: '2026-05-19',
             done: '現在の事業残高（収支）の計算モジュールと、カレンダー同期機構のベースライン設計を完了しました。煌記と共同で撤退ライン3万円、目標8万円の設定をFIXしました。',
-            todo: '事業開発の一環として、初期ターゲット層へのインタビュー項目のFIXと、LP公開用インフラの整備。'
+            todo: '事業開発の一慢として、初期ターゲット層へのインタビュー項目のFIXと、LP公開用インフラの整備。'
         },
         {
             id: 'upd-2',
@@ -226,7 +226,6 @@ const EMPTY_STATE = {
     updates: []
 };
 
-
 // ==========================================
 // 2. アプリケーションの状態管理 (State Store)
 // ==========================================
@@ -238,7 +237,7 @@ function initStore() {
         try {
             state = JSON.parse(saved);
             
-            // 旧デモデータ（アリスやボブ、パートナーAなど）を検知した場合、またはまだリアルな創業状況に自動コンバートされていない場合
+            // 旧デモデータを検知した場合、またはまだリアルな創業状況に自動コンバートされていない場合
             if (!state.settings || !state.settings.migratedToRealNames) {
                 console.log('Force migrating to real co-founder names (Kazuya & Koki)...');
                 if (!state.settings) state.settings = {};
@@ -763,7 +762,7 @@ function updateDashboard() {
 function renderDashboard() {
     updateDashboard();
 
-    // 1. 直近のマイルストーン (ロードマップフェーズと目標を日付順に整理)
+    // 1. 直近のマイルストーン
     const listContainer = document.getElementById('dash-milestones-list');
     listContainer.innerHTML = '';
 
@@ -988,7 +987,10 @@ function renderRoadmapAndGoals() {
                         <span class="timeline-period">${p.period}</span>
                     </div>
                     <p>${p.description}</p>
-                    <div class="timeline-actions">
+                    <div class="timeline-actions" style="display: flex; gap: 6px; margin-top: 10px;">
+                        <button type="button" class="btn-icon-sm edit" onclick="openEditModal('phases', '${p.id}')" title="編集">
+                            <i data-lucide="edit-3"></i>
+                        </button>
                         <button type="button" class="btn-icon-sm delete" onclick="deletePhase('${p.id}')" title="フェーズを削除">
                             <i data-lucide="trash-2"></i>
                         </button>
@@ -1028,7 +1030,10 @@ function renderRoadmapAndGoals() {
                             <span class="goal-deadline-badge">期限: ${g.deadline}</span>
                         </div>
                     </div>
-                    <div class="goal-actions">
+                    <div class="goal-actions" style="display: flex; gap: 6px;">
+                        <button type="button" class="btn-icon-sm edit" onclick="openEditModal('goals', '${g.id}')" title="編集">
+                            <i data-lucide="edit-3"></i>
+                        </button>
                         <button type="button" class="btn-icon-sm delete" onclick="deleteGoal('${g.id}')" title="目標を削除">
                             <i data-lucide="trash-2"></i>
                         </button>
@@ -1246,7 +1251,7 @@ function renderCalendar() {
         // セルクリックでその日付のイベント追加をスムーズにする
         const finalDate = cellDateStr;
         cell.addEventListener('click', (e) => {
-            if (e.target.className.includes('btn-delete-event') || e.target.closest('.btn-delete-event')) return;
+            if (e.target.className.includes('btn-delete-event') || e.target.closest('.btn-delete-event') || e.target.className.includes('btn-edit-event') || e.target.closest('.btn-edit-event')) return;
             document.getElementById('evt-date').value = finalDate;
             openModal('modal-add-event');
         });
@@ -1276,9 +1281,14 @@ function renderUpcomingEventsList() {
                 <div class="upcoming-event-time">${e.date} ${e.time || ''}</div>
                 <div class="upcoming-event-title">${e.title}</div>
                 ${e.notes ? `<div class="upcoming-event-desc">${e.notes}</div>` : ''}
-                <button type="button" class="btn-delete-event" onclick="deleteEvent('${e.id}')" title="イベントを削除">
-                    <i data-lucide="trash-2"></i>
-                </button>
+                <div style="position: absolute; right: 12px; top: 12px; display: flex; gap: 6px;">
+                    <button type="button" class="btn-delete-event btn-edit-event" onclick="openEditModal('events', '${e.id}')" title="編集" style="position: static; background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                        <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                    </button>
+                    <button type="button" class="btn-delete-event" onclick="deleteEvent('${e.id}')" title="削除" style="position: static; background: none; border: none; cursor: pointer; color: var(--text-muted);">
+                        <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
             `;
             list.appendChild(item);
         });
@@ -1443,9 +1453,14 @@ function renderFinancials() {
                 <td><span class="payer-span ${payerClass}">${payerLabel}</span></td>
                 <td style="font-weight: 600;">¥${e.amount.toLocaleString()}</td>
                 <td>
-                    <button type="button" class="btn-icon-sm delete" onclick="deleteExpense('${e.id}')" title="削除">
-                        <i data-lucide="trash-2"></i>
-                    </button>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn-icon-sm edit" onclick="openEditModal('expenses', '${e.id}')" title="編集">
+                            <i data-lucide="edit-3"></i>
+                        </button>
+                        <button type="button" class="btn-icon-sm delete" onclick="deleteExpense('${e.id}')" title="削除">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -1482,9 +1497,14 @@ function renderFinancials() {
                     <td><span class="receiver-span ${recClass}">${receiverLabel}</span></td>
                     <td style="font-weight: 600; color: #10b981;">¥${inc.amount.toLocaleString()}</td>
                     <td>
-                        <button type="button" class="btn-icon-sm delete" onclick="deleteIncome('${inc.id}')" title="削除">
-                            <i data-lucide="trash-2"></i>
-                        </button>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-icon-sm edit" onclick="openEditModal('incomes', '${inc.id}')" title="編集">
+                                <i data-lucide="edit-3"></i>
+                            </button>
+                            <button type="button" class="btn-icon-sm delete" onclick="deleteIncome('${inc.id}')" title="削除">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbodyInc.appendChild(tr);
@@ -1507,7 +1527,7 @@ function renderFinancials() {
 function getIncomeCategoryLabel(cat) {
     const labels = {
         sales: '売上・収益',
-        investment: '自己自己資金・出資',
+        investment: '自己資金・出資',
         subsidy: '助成金・補助金',
         other: 'その他収入'
     };
@@ -1891,9 +1911,14 @@ function renderUpdates() {
                             <span style="font-weight: 700; color: var(--text-main); font-size: 15px; margin-right: 8px;">${authorName}</span>
                             <span style="color: var(--text-muted); font-size: 12px; font-weight: 500;">${upd.date}</span>
                         </div>
-                        <button type="button" class="btn-icon-sm delete" onclick="deleteUpdate('${upd.id}')" title="削除" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s;">
-                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-                        </button>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <button type="button" class="btn-icon-sm edit" onclick="openEditModal('updates', '${upd.id}')" title="編集" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s;">
+                                <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
+                            </button>
+                            <button type="button" class="btn-icon-sm delete" onclick="deleteUpdate('${upd.id}')" title="削除" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; transition: all 0.2s;">
+                                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                            </button>
+                        </div>
                     </div>
                     
                     <div style="margin-bottom: 12px;">
@@ -2049,9 +2074,14 @@ function renderIdeas() {
                                 <span>${idea.likes.length} 人がいいね！</span>
                             </button>
                         </div>
-                        <button type="button" class="btn-icon-sm delete" onclick="event.stopPropagation(); deleteIdea('${idea.id}')" title="削除" style="width: 28px; height: 28px; border-radius: 50%; color: var(--text-muted);">
-                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                        </button>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-icon-sm edit" onclick="event.stopPropagation(); openEditModal('ideas', '${idea.id}')" title="編集" style="width: 28px; height: 28px; border-radius: 50%; color: var(--text-muted);">
+                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            <button type="button" class="btn-icon-sm delete" onclick="event.stopPropagation(); deleteIdea('${idea.id}')" title="削除" style="width: 28px; height: 28px; border-radius: 50%; color: var(--text-muted);">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -2159,7 +2189,10 @@ function renderDecisions() {
                         <h4>決定理由 & 合意の背景</h4>
                         <p>${dec.reason}</p>
                     </div>
-                    <div class="decision-actions">
+                    <div class="decision-actions" style="display: flex; gap: 6px;">
+                        <button type="button" class="btn-icon-sm edit" onclick="openEditModal('decisions', '${dec.id}')" title="編集">
+                            <i data-lucide="edit-3"></i>
+                        </button>
                         <button type="button" class="btn-icon-sm delete" onclick="deleteDecision('${dec.id}')" title="削除">
                             <i data-lucide="trash-2"></i>
                         </button>
@@ -2293,10 +2326,350 @@ function executeResetState(e) {
     alert('すべてのデータを削除し、まっさらな状態のワークスペースを初期化しました！\n左下の「設定（歯車）」アイコンから、お二人の名前とプロジェクト名を入力して開始してください！');
 }
 
+// ==========================================
+// 15. 汎用項目編集ロジック (Generic Item Edit)
+// ==========================================
+function openEditModal(type, id) {
+    const list = state[type];
+    if (!list) return;
+    const item = list.find(x => x.id === id);
+    if (!item) return;
 
+    const modalTitle = document.getElementById('edit-modal-title');
+    const modalBody = document.getElementById('edit-modal-body-content');
+    const saveBtn = document.getElementById('btn-save-edit');
+
+    // タイトル設定
+    const typeLabels = {
+        phases: 'フェーズの編集',
+        goals: '目標の編集',
+        events: '予定の編集',
+        expenses: '経費・支出の編集',
+        incomes: '収入の編集',
+        ideas: 'アイデアの編集',
+        decisions: '意思決定事項の編集',
+        updates: '進捗日報の編集'
+    };
+    if (modalTitle) modalTitle.textContent = typeLabels[type] || '項目の編集';
+
+    // フォームの動的生成
+    let html = '';
+    if (type === 'phases') {
+        html = `
+            <div class="form-group">
+                <label>フェーズ名</label>
+                <input type="text" id="edit-phase-title" value="${item.title.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-group">
+                <label>期間・期限</label>
+                <input type="text" id="edit-phase-period" value="${item.period.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-group">
+                <label>主な注力テーマ・説明</label>
+                <textarea id="edit-phase-description" rows="3" required style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.description}</textarea>
+            </div>
+        `;
+    } else if (type === 'goals') {
+        html = `
+            <div class="form-group">
+                <label>目標タイトル</label>
+                <input type="text" id="edit-goal-title" value="${item.title.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-group">
+                <label>担当者</label>
+                <select id="edit-goal-assignee" style="width: 100%;">
+                    <option value="both" ${item.assignee === 'both' ? 'selected' : ''}>2人共同</option>
+                    <option value="partnerA" ${item.assignee === 'partnerA' ? 'selected' : ''}>${state.settings.partnerAName}</option>
+                    <option value="partnerB" ${item.assignee === 'partnerB' ? 'selected' : ''}>${state.settings.partnerBName}</option>
+                </select>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>現在値</label>
+                    <input type="number" id="edit-goal-current" value="${item.current}" min="0" required style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>目標値</label>
+                    <input type="number" id="edit-goal-target" value="${item.target}" min="1" required style="width: 100%;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>単位</label>
+                <input type="text" id="edit-goal-unit" value="${item.unit.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-group">
+                <label>期限</label>
+                <input type="date" id="edit-goal-deadline" value="${item.deadline}" required style="width: 100%;">
+            </div>
+        `;
+    } else if (type === 'events') {
+        html = `
+            <div class="form-group">
+                <label>イベント名</label>
+                <input type="text" id="edit-evt-title" value="${item.title.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>日付</label>
+                    <input type="date" id="edit-evt-date" value="${item.date}" required style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>時間</label>
+                    <input type="time" id="edit-evt-time" value="${item.time || '10:00'}" style="width: 100%;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>タイプ</label>
+                <select id="edit-evt-type" style="width: 100%;">
+                    <option value="meeting" ${item.type === 'meeting' ? 'selected' : ''}>ミーティング / 打合せ</option>
+                    <option value="deadline" ${item.type === 'deadline' ? 'selected' : ''}>デッドライン / 締切</option>
+                    <option value="milestone" ${item.type === 'milestone' ? 'selected' : ''}>マイルストーン / 節目</option>
+                    <option value="other" ${item.type === 'other' ? 'selected' : ''}>その他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>メモ・場所</label>
+                <input type="text" id="edit-evt-notes" value="${(item.notes || '').replace(/"/g, '&quot;')}" style="width: 100%;">
+            </div>
+        `;
+    } else if (type === 'expenses') {
+        html = `
+            <div class="form-group">
+                <label>経費名・購入品</label>
+                <input type="text" id="edit-exp-title" value="${item.title.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>金額 (円)</label>
+                    <input type="number" id="edit-exp-amount" value="${item.amount}" min="1" required style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>カテゴリ</label>
+                    <select id="edit-exp-category" style="width: 100%;">
+                        <option value="infrastructure" ${item.category === 'infrastructure' ? 'selected' : ''}>インフラ・システム</option>
+                        <option value="marketing" ${item.category === 'marketing' ? 'selected' : ''}>広告・マーケティング</option>
+                        <option value="office" ${item.category === 'office' ? 'selected' : ''}>オフィス・スペース</option>
+                        <option value="supplies" ${item.category === 'supplies' ? 'selected' : ''}>備品・デバイス</option>
+                        <option value="travel" ${item.category === 'travel' ? 'selected' : ''}>移動・交通費</option>
+                        <option value="other" ${item.category === 'other' ? 'selected' : ''}>その他</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>支払った人</label>
+                    <select id="edit-exp-payer" style="width: 100%;">
+                        <option value="partnerA" ${item.payer === 'partnerA' ? 'selected' : ''}>${state.settings.partnerAName}</option>
+                        <option value="partnerB" ${item.payer === 'partnerB' ? 'selected' : ''}>${state.settings.partnerBName}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>日付</label>
+                    <input type="date" id="edit-exp-date" value="${item.date}" required style="width: 100%;">
+                </div>
+            </div>
+        `;
+    } else if (type === 'incomes') {
+        html = `
+            <div class="form-group">
+                <label>収入名・自己資金出資</label>
+                <input type="text" id="edit-inc-title" value="${item.title.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>金額 (円)</label>
+                    <input type="number" id="edit-inc-amount" value="${item.amount}" min="1" required style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>カテゴリ</label>
+                    <select id="edit-inc-category" style="width: 100%;">
+                        <option value="sales" ${item.category === 'sales' ? 'selected' : ''}>売上・収益</option>
+                        <option value="investment" ${item.category === 'investment' ? 'selected' : ''}>自己資金・出資</option>
+                        <option value="subsidy" ${item.category === 'subsidy' ? 'selected' : ''}>助成金・補助金</option>
+                        <option value="other" ${item.category === 'other' ? 'selected' : ''}>その他収入</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>入金先・受取人</label>
+                    <select id="edit-inc-receiver" style="width: 100%;">
+                        <option value="partnerA" ${item.receiver === 'partnerA' ? 'selected' : ''}>${state.settings.partnerAName}</option>
+                        <option value="partnerB" ${item.receiver === 'partnerB' ? 'selected' : ''}>${state.settings.partnerBName}</option>
+                        <option value="common" ${item.receiver === 'common' ? 'selected' : ''}>共同口座/プール</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>入金日</label>
+                    <input type="date" id="edit-inc-date" value="${item.date}" required style="width: 100%;">
+                </div>
+            </div>
+        `;
+    } else if (type === 'ideas') {
+        html = `
+            <div class="form-group">
+                <label>アイデアのタイトル</label>
+                <input type="text" id="edit-idea-title" value="${item.title.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-group">
+                <label>詳細・メモ</label>
+                <textarea id="edit-idea-desc" rows="4" required style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.desc}</textarea>
+            </div>
+            <div class="form-group">
+                <label>付箋のカラー</label>
+                <div class="color-picker-grid" style="display: flex; gap: 8px;">
+                    ${['yellow', 'blue', 'green', 'pink', 'purple'].map(c => `
+                        <label class="color-opt ${c} ${item.color === c ? 'active' : ''}" style="width: 24px; height: 24px; border-radius: 50%; display: inline-block; cursor: pointer; border: 2px solid transparent; position: relative;">
+                            <input type="radio" name="edit-idea-color" value="${c}" ${item.color === c ? 'checked' : ''} style="display: none;">
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } else if (type === 'decisions') {
+        html = `
+            <div class="form-group">
+                <label>決定された事項</label>
+                <input type="text" id="edit-dec-title" value="${item.title.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-group">
+                <label>決定の背景・理由</label>
+                <textarea id="edit-dec-reason" rows="3" required style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.reason}</textarea>
+            </div>
+            <div class="form-group">
+                <label>合意日</label>
+                <input type="date" id="edit-dec-date" value="${item.date}" required style="width: 100%;">
+            </div>
+        `;
+    } else if (type === 'updates') {
+        html = `
+            <div class="form-group">
+                <label>報告日付</label>
+                <input type="date" id="edit-upd-date" value="${item.date}" required style="width: 100%;">
+            </div>
+            <div class="form-group">
+                <label style="color: var(--color-green); font-weight: 600;">今日取り組んだこと (Done)</label>
+                <textarea id="edit-upd-done" rows="4" required style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.done}</textarea>
+            </div>
+            <div class="form-group">
+                <label style="color: var(--color-primary); font-weight: 600;">今後取り組むこと (To Do)</label>
+                <textarea id="edit-upd-todo" rows="4" required style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.todo}</textarea>
+            </div>
+        `;
+    }
+
+    if (modalBody) modalBody.innerHTML = html;
+    
+    // アイデア編集のカラーピッカーイベントバインド
+    if (type === 'ideas') {
+        modalBody.querySelectorAll('.color-opt').forEach(opt => {
+            opt.addEventListener('click', () => {
+                modalBody.querySelectorAll('.color-opt').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                opt.querySelector('input').checked = true;
+            });
+        });
+    }
+
+    // 保存ボタンの onclick イベント割り当て
+    if (saveBtn) saveBtn.onclick = () => saveEditItem(type, id);
+
+    openModal('modal-edit-item');
+}
+
+function saveEditItem(type, id) {
+    const list = state[type];
+    if (!list) return;
+    const item = list.find(x => x.id === id);
+    if (!item) return;
+
+    if (type === 'phases') {
+        item.title = document.getElementById('edit-phase-title').value.trim();
+        item.period = document.getElementById('edit-phase-period').value.trim();
+        item.description = document.getElementById('edit-phase-description').value.trim();
+        if (!item.title || !item.period || !item.description) {
+            alert('すべてのフィールドを入力してください。');
+            return;
+        }
+    } else if (type === 'goals') {
+        item.title = document.getElementById('edit-goal-title').value.trim();
+        item.assignee = document.getElementById('edit-goal-assignee').value;
+        item.current = parseInt(document.getElementById('edit-goal-current').value) || 0;
+        item.target = parseInt(document.getElementById('edit-goal-target').value) || 1;
+        item.unit = document.getElementById('edit-goal-unit').value.trim();
+        item.deadline = document.getElementById('edit-goal-deadline').value;
+        if (!item.title || !item.deadline || !item.unit) {
+            alert('すべてのフィールドを入力してください。');
+            return;
+        }
+    } else if (type === 'events') {
+        item.title = document.getElementById('edit-evt-title').value.trim();
+        item.date = document.getElementById('edit-evt-date').value;
+        item.time = document.getElementById('edit-evt-time').value;
+        item.type = document.getElementById('edit-evt-type').value;
+        item.notes = document.getElementById('edit-evt-notes').value.trim();
+        if (!item.title || !item.date) {
+            alert('イベント名と日付を入力してください。');
+            return;
+        }
+    } else if (type === 'expenses') {
+        item.title = document.getElementById('edit-exp-title').value.trim();
+        item.amount = parseInt(document.getElementById('edit-exp-amount').value) || 0;
+        item.category = document.getElementById('edit-exp-category').value;
+        item.payer = document.getElementById('edit-exp-payer').value;
+        item.date = document.getElementById('edit-exp-date').value;
+        if (!item.title || item.amount <= 0 || !item.date) {
+            alert('正しい金額と支払日を入力してください。');
+            return;
+        }
+    } else if (type === 'incomes') {
+        item.title = document.getElementById('edit-inc-title').value.trim();
+        item.amount = parseInt(document.getElementById('edit-inc-amount').value) || 0;
+        item.category = document.getElementById('edit-inc-category').value;
+        item.receiver = document.getElementById('edit-inc-receiver').value;
+        item.date = document.getElementById('edit-inc-date').value;
+        if (!item.title || item.amount <= 0 || !item.date) {
+            alert('正しい金額と入金日を入力してください。');
+            return;
+        }
+    } else if (type === 'ideas') {
+        item.title = document.getElementById('edit-idea-title').value.trim();
+        item.desc = document.getElementById('edit-idea-desc').value.trim();
+        item.color = document.querySelector('input[name="edit-idea-color"]:checked').value;
+        if (!item.title || !item.desc) {
+            alert('タイトルと詳細を入力してください。');
+            return;
+        }
+    } else if (type === 'decisions') {
+        item.title = document.getElementById('edit-dec-title').value.trim();
+        item.reason = document.getElementById('edit-dec-reason').value.trim();
+        item.date = document.getElementById('edit-dec-date').value;
+        if (!item.title || !item.reason || !item.date) {
+            alert('すべてのフィールドを入力してください。');
+            return;
+        }
+    } else if (type === 'updates') {
+        item.date = document.getElementById('edit-upd-date').value;
+        item.done = document.getElementById('edit-upd-done').value.trim();
+        item.todo = document.getElementById('edit-upd-todo').value.trim();
+        if (!item.date || !item.done || !item.todo) {
+            alert('すべての項目を入力してください。');
+            return;
+        }
+    }
+
+    saveState();
+    closeModal('modal-edit-item');
+    showToast('変更内容を保存し、同期しました');
+
+    // 現在アクティブなタブを安全に再描画
+    const activeTabEl = document.querySelector('.nav-item.active');
+    const activeTab = activeTabEl ? activeTabEl.getAttribute('data-tab') : 'dashboard';
+    switchTabQuietly(activeTab);
+}
 
 // ==========================================
-// 14. 初期化処理 (Initialization)
+// 16. 初期化処理 (Initialization)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     initStore();
@@ -2335,8 +2708,6 @@ document.addEventListener('DOMContentLoaded', () => {
             executeResetState(e);
         });
     }
-
-
 
     // ロードマップ
     document.getElementById('btn-add-phase').addEventListener('click', () => openModal('modal-add-phase'));
@@ -2429,7 +2800,7 @@ document.addEventListener('DOMContentLoaded', () => {
     switchTab('dashboard');
 });
 
-// HTMLのonclick属性から確実に呼び出せるよう、関数を明示的にグローバル（window）スコープへエクスポート
+// HTMLのonclick属性から確実に呼び出せるよう、関数を明示的にグローバルスコープへエクスポート
 window.deleteExpense = deleteExpense;
 window.deleteIncome = deleteIncome;
 window.deletePhase = deletePhase;
@@ -2442,5 +2813,5 @@ window.adjustGoalProgress = adjustGoalProgress;
 window.setGoalCompleted = setGoalCompleted;
 window.togglePhaseCompleted = togglePhaseCompleted;
 window.deleteUpdate = deleteUpdate;
-
-
+window.openEditModal = openEditModal;
+window.saveEditItem = saveEditItem;

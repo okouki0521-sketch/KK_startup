@@ -703,7 +703,7 @@
                                         <label style="display: flex; align-items: center; gap: 6px; color: var(--color-primary);">
                                             <i data-lucide="arrow-right-circle" style="width: 16px; height: 16px;"></i> 今後取り組むこと (To Do)
                                         </label>
-                                        <textarea id="upd-todo" rows="4" placeholder="例: LPデザインの第一弾FIX、インタビューフォームのテスト送付と集計計画の作成。" required style="width: 100%; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px; font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
+                                        <textarea id="upd-todo" rows="4" placeholder="例: LPデザインの第一弾FIX、インタビューフォーム of テスト送付と集計計画の作成。" required style="width: 100%; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px; font-family: inherit; font-size: 13px; resize: vertical;"></textarea>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 mt-2">
                                         <i data-lucide="send"></i> 進捗を共有する
@@ -976,6 +976,23 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary btn-close-modal">キャンセル</button>
                 <button class="btn btn-primary" id="btn-submit-decision">ログに記録</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 汎用編集ダイアログ -->
+    <div class="modal-overlay" id="modal-edit-item">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="edit-modal-title">項目の編集</h3>
+                <button class="btn-close-modal" onclick="closeModal('modal-edit-item')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" id="edit-modal-body-content">
+                <!-- 動的にフォーム要素が差し込まれます -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal-edit-item')">キャンセル</button>
+                <button class="btn btn-primary" id="btn-save-edit">変更を保存</button>
             </div>
         </div>
     </div>
