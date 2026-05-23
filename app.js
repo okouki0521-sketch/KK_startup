@@ -395,12 +395,20 @@ async function syncWithCloud() {
     isCurrentlySyncing = true;
     const bucketId = getBucketId(secretKey);
     
-    // CORS制限を完全に回避するため、信頼性の高いCORSプロキシ (allorigins) を経由して最新データをフェッチします！
-    const targetUrl = `https://kvdb.io/${bucketId}/state`;
-    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    // プロキシのキャッシュ対策としてタイムスタンプを付与し、常に最新の生データを取得します！
+    const targetUrl = `https://kvdb.io/${bucketId}/state?t=${Date.now()}`;
+    
+    // corsproxy.io をプライマリとして使い、フォールバックに allorigins を使用する超堅牢設計！
+    const primaryUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+    const fallbackUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
 
     try {
-        const response = await fetch(url);
+        let response = await fetch(primaryUrl);
+        if (!response.ok) {
+            // プライマリがダメならセカンダリのプロキシを試す
+            response = await fetch(fallbackUrl);
+        }
+        
         if (response.ok) {
             const cloudData = await response.json();
             
@@ -457,11 +465,11 @@ async function uploadToCloud() {
     const url = `https://kvdb.io/${bucketId}/state`;
 
     try {
+        // Content-Type ヘッダーを意図的に指定しないことで、ブラウザによる CORS OPTIONS (Preflight) を完全に回避します。
+        // kvdb.io 側は単純なPOSTリクエスト（プレーンテキスト）でもJSONの中身をそのまま正しく保存します。
         await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            mode: 'cors',
             body: JSON.stringify(state)
         });
         console.log('Successfully uploaded latest changes to cloud.');
