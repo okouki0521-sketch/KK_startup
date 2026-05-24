@@ -5,28 +5,28 @@
 // ==========================================
 const DEFAULT_STATE = {
     settings: {
-        partnerAName: '和弥',
-        partnerBName: '煌記',
-        projectName: '新規共同プロジェクト',
-        syncSecretKey: '',
+        partnerAName: '煌記',
+        partnerBName: '和弥',
+        projectName: 'KK_startup',
+        syncSecretKey: 'lumi-journey-sync-2026',
         migratedToRealNames: true
     },
     agreement: {
-        visionAim: 'お互いの強み（事業開発と営業）を融合させ、新規事業を1ヶ月以内に軌道に乗せて持続可能なビジネスモデルを確立する。',
-        visionValues: '1. 徹底した顧客目線と迅速なセールス\n2. 事業開発スピードの最大化\n3. 健全な財務状況のリアルタイム共有',
+        visionAim: '旅行計画に悩みやハードルを抱えている人にプラン作成で寄り添い、光を照らしてあげるイメージ of サービス（ブランド of 礎としての「LumiJourney」） of 実現',
+        visionValues: '1. 徹底した顧客目線と迅速なセールス\n2. 事業開発スピード of 最大化\n3. 健全な財務状況 of リアルタイム共有',
         pADomain: '事業開発',
         pATasks: '新規事業開発、プロダクト設計、戦略立案、システム管理。',
         pBDomain: '営業',
         pBTasks: '営業活動、クライアント獲得、マーケティング施策、関係構築。',
         pAShare: 50,
         pBShare: 50,
-        profitRule: '事業の月間売上が軌道に乗るまでは、内部留保を優先し、必要経費を除く余剰利益はすべて事業投資に回す。',
-        financeInitial: '共同経費の支払いと売上の管理をこのワークスペースで1円単位で一元管理し、収支状況を常にオープンにする。',
-        financeLimit: '10,000円。これを超える経費支出は、事前にもう一方のパートナーに相談し合意を得る。',
-        decisionProcess: '事業開発と営業の各領域においては、それぞれの意思決定を最大限尊重する。ただし、撤退ラインの判断や大きな投資は完全合意を条件とする。',
+        profitRule: '事業 of 月間売上が軌道に乗るまでは、内部留保を優先し、必要経費を除く余剰利益はすべて事業投資に回す。',
+        financeInitial: '共同経費 of 支払いと売上 of 管理をこのワークスペースで1円単位で一元管理し、収支状況を常にオープンにする。',
+        financeLimit: '10,000円。これを超える経費支出は、事前にもう一方 of パートナーに相談し合意を得る。',
+        decisionProcess: '事業開発と営業 of 各領域においては、それぞれの意思決定を最大限尊重する。ただし、撤退ライン of 判断や大きな投資は完全合意を条件とする。',
         deadlock: '意見が対立した場合は対話による納得を原則とするが、決着がつかない場合は一度仮説検証データを元に再評価を行う。',
-        exitCriteria: '事業開始から1ヶ月（2026年6月）時点で、売上が3万円未満の場合は、速やかに事業の精算・解散を協議し撤退する。',
-        exitShares: '早期撤退や自己都合による脱退の際は、獲得した知見や資産をフェアに分配し、トラブルなき解散を行う。',
+        exitCriteria: '事業開始から1ヶ月（2026年6月）時点で、売上が3万円未満の場合は、速やかに事業 of 精算・解散を協議し撤退する。',
+        exitShares: '早期撤退や自己都合による脱退 of 際は、獲得した知見や資産をフェアに分配し、トラブルなき解散を行う。',
         sigDatePA: '2026-05-18T10:00:00.000Z',
         sigDatePB: '2026-05-18T10:05:00.000Z'
     },
@@ -35,32 +35,32 @@ const DEFAULT_STATE = {
             id: 'phase-1',
             title: 'フェーズ1: 5月期 初期セールス＆土台作り',
             period: '2026年5月',
-            description: '営業活動の開始と、初期売上（5,000円）の計上。プロダクト開発方針の決定。',
+            description: '営業活動 of 開始と、初期売上（5,000円） of 計上。プロダクト開発方針 of 決定。',
             completed: true
         },
         {
             id: 'phase-2',
-            title: 'フェーズ2: 6月期 最低目標（3万円）の突破',
+            title: 'フェーズ2: 6月期 最低目標（3万円） of 突破',
             period: '2026年6月',
-            description: '理想売上8万円の達成に向けたスケール活動、および撤退ライン（3万円）の確実なクリア。',
+            description: '理想売上8万円 of 達成に向けたスケール活動、および撤退ライン（3万円） of 確実なクリア。',
             completed: false
         }
     ],
     goals: [
         {
-            id: 'goal-1',
+            id: 'goal-real-1',
             title: '月間最低売上達成 (撤退ライン)',
             assignee: 'both',
-            current: 5000,
+            current: 49000,
             target: 30000,
             unit: '円',
             deadline: '2026-06-20'
         },
         {
-            id: 'goal-2',
+            id: 'goal-real-2',
             title: '月間売上目標 (理想値)',
             assignee: 'both',
-            current: 5000,
+            current: 49000,
             target: 80000,
             unit: '円',
             deadline: '2026-06-20'
@@ -73,7 +73,7 @@ const DEFAULT_STATE = {
             date: '2026-05-20',
             time: '14:00',
             type: 'meeting',
-            notes: 'アジェンダ：プロトタイプのUI確認と、LP掲載テキストのすり合わせ'
+            notes: 'アジェンダ：プロトタイプ of UI確認と、LP掲載テキスト of すり合わせ'
         },
         {
             id: 'evt-2',
@@ -89,110 +89,85 @@ const DEFAULT_STATE = {
             date: '2026-06-15',
             time: '10:00',
             type: 'milestone',
-            notes: 'ユーザーフィードバックの整理と、次の開発フェーズへの移行判断'
+            notes: 'ユーザーフィードバック of 整理と、次の開発フェーズへの移行判断'
         }
     ],
     expenses: [
         {
-            id: 'exp-1',
-            title: 'ドメイン取得費用 ( neonway.app )',
-            amount: 1980,
-            category: 'infrastructure',
-            payer: 'partnerB',
-            date: '2026-05-12',
-            merchant: 'お名前.com',
-            receipt: 'yes'
-        },
-        {
-            id: 'exp-2',
-            title: 'クラウドサーバー費用 (AWS初期構築)',
-            amount: 5400,
+            id: 'exp-1779456720235',
+            title: 'コワーキング一時利用',
+            amount: 3000,
             category: 'infrastructure',
             payer: 'partnerA',
-            date: '2026-05-15',
-            merchant: 'AWS Amazon',
+            date: '2026-05-23',
+            merchant: 'WeWork 渋谷',
             receipt: 'yes'
         },
         {
-            id: 'exp-3',
-            title: 'UIデザイン参考書籍・素材購入',
-            amount: 3200,
-            category: 'supplies',
-            payer: 'partnerB',
-            date: '2026-05-16',
-            merchant: '丸善書店',
+            id: 'exp-1779505417088',
+            title: '同期テスト',
+            amount: 100,
+            category: 'infrastructure',
+            payer: 'partnerA',
+            date: '2026-05-23',
+            merchant: 'テスト店舗',
             receipt: 'yes'
         }
     ],
     ideas: [
         {
-            id: 'idea-1',
-            title: 'AIを活用したワイヤーフレーム自動生成機能',
-            desc: '手書きのスケッチ画像をアップロードするだけで、AIがクリーンなデジタルモックアップに変換してくれる機能。競合差別化のキラー機能になりそう！',
-            color: 'purple',
-            author: 'partnerA',
-            date: '2026-05-16',
-            likes: ['partnerA', 'partnerB']
-        },
-        {
-            id: 'idea-2',
-            title: '共同編集中のボイスチャット機能',
-            desc: 'Figmaのように、同じキャンバス上でデザインしながらブラウザ上でそのままクリアに通話できる機能。外部ツール（DiscordやZoom）を開く手間を省く。',
-            color: 'blue',
-            author: 'partnerB',
-            date: '2026-05-17',
-            likes: ['partnerA']
-        },
-        {
-            id: 'idea-3',
-            title: 'テンプレートのマーケットプレイス展開',
-            desc: 'クリエイターが作成したUIテンプレートをアプリ内で販売し、我々が手数料20%を徴収するビジネスモデル。中長期的な収益の柱として機能する。',
+            id: 'idea-1779505462675',
+            title: '語りかける動画スクリプト',
+            desc: '[English / Japanese]\n\nHave you ever been on a trip where you ended up fighting with your partner over the details?\n「旅行 of 計画中に、喧嘩になっちゃった経験はありませんか？」\n\nSometimes planning a trip is so stressful that it ruins the excitement before you even leave.\n「旅行 of 計画がストレスになって、行く前からワクワクが台無しになってしまうこともありますよね。」\n\nThat\'s why we created LumiJourney.\n「だから私たちは『LumiJourney』を作りました。」',
             color: 'yellow',
             author: 'partnerB',
-            date: '2026-05-18',
-            likes: []
+            date: '2026-05-23',
+            likes: ['partnerA']
         }
     ],
     decisions: [
         {
-            id: 'dec-1',
-            title: '初期開発インフラとしてAWSの採用合意',
-            reason: '和弥（技術・事業開発担当）が得意であり、初期スケーラビリティに優れるため。またスタートアップ向け無料枠を活用し、当初1年間はサーバー費用を最小化できる見込み。',
-            date: '2026-05-14'
-        },
-        {
-            id: 'dec-2',
-            title: 'プロジェクトロゴデザインの最終決定',
-            reason: '煌記が提案した3つのパターンのうち、モダンで洗練されたネオンブルーとパープルのグラデーションエンブレムに決定。商標調査も完了。',
-            date: '2026-05-17'
+            id: 'dec-1779505511818',
+            title: 'AI旅行プラン作成完成後に今後について話し合う',
+            reason: '合意事項：AIによる旅行プラン作成機能のローンチ完了時に、改めてプロジェクトのロードマップと次の展開（LumiJourneyの本格化）について共同創業者間で議論を深める。',
+            date: '2026-05-22'
         }
     ],
     incomes: [
         {
-            id: 'inc-1',
+            id: 'inc-real-5month',
             title: '5月の事業売上',
             amount: 5000,
             category: 'sales',
             receiver: 'common',
-            date: '2026-05-15',
-            client: '初期テストユーザーA様',
+            date: '2026-05-15'
+        },
+        {
+            id: 'inc-1779456722675',
+            title: 'LP制作の着手金',
+            amount: 40000,
+            category: 'sales',
+            receiver: 'common',
+            date: '2026-05-23',
+            client: '旅行代理店 LumiTravel',
             status: 'received'
+        },
+        {
+            id: 'inc-1779505411415',
+            title: '羽田空港売り込み(5/21)',
+            amount: 4000,
+            category: 'sales',
+            receiver: 'common',
+            date: '2026-05-21'
         }
     ],
     updates: [
         {
-            id: 'upd-1',
+            id: 'upd-1779505525459',
             author: 'partnerA',
-            date: '2026-05-19',
-            done: '現在の事業残高（収支）の計算モジュールと、カレンダー同期機構のベースライン設計を完了しました。煌記と共同で撤退ライン3万円、目標8万円の設定をFIXしました。',
-            todo: '事業開発の一慢として、初期ターゲット層へのインタビュー項目のFIXと、LP公開用インフラの整備。'
-        },
-        {
-            id: 'upd-2',
-            author: 'partnerB',
-            date: '2026-05-19',
-            done: '営業ドメインの立ち上げとして、5月期の初期売上5,000円を無事に計上完了しました。さらに、1ヶ月以内の最低売上3万円の達成に向けた確度の高いリード顧客リストを作成しました。',
-            todo: 'リード顧客への初期営業アプローチの開始。和弥のプロダクト開発進捗と連携し、デモ機での営業活動準備。'
+            date: '2026-05-22',
+            done: '電車関連案内動画作成\n他のシリーズを考える\nアフレコ字幕入れる',
+            todo: '明日の営業アプローチ準備'
         }
     ]
 };
@@ -2253,8 +2228,8 @@ function renderIdeas() {
                     </div>
                 </div>
                 <div class="idea-body-collapse">
-                    <div style="padding-top: 10px; border-top: 1px solid #f1f5f9; margin-bottom: 12px;">
-                        <p style="font-size: 13px; line-height: 1.6; white-space: pre-wrap; margin: 0; color: var(--text-secondary); font-weight: 550;">${idea.desc}</p>
+                    <div style="padding-top: 12px; border-top: 1px solid #f1f5f9; margin-bottom: 16px;">
+                        <p style="font-size: 14.5px; line-height: 1.8; white-space: pre-wrap; margin: 0; color: var(--text-primary); font-weight: 500; background-color: #f8fafc; padding: 16px 20px; border-radius: var(--border-radius-md); border: 1.5px solid #f1f5f9; letter-spacing: 0.2px;">${idea.desc}</p>
                     </div>
                     <div class="idea-footer" style="margin-top: 0; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
                         <div class="idea-actions-flex">
