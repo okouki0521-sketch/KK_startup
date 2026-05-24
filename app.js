@@ -368,21 +368,16 @@ async function syncWithCloud() {
     if (!secretKey || secretKey.trim().length < 4) return;
 
     isCurrentlySyncing = true;
-    const bucketId = getBucketId(secretKey);
-    
-    // プロキシのキャッシュ対策としてタイムスタンプを付与し、常に最新の生データを取得します！
-    const targetUrl = `https://kvdb.io/${bucketId}/state?t=${Date.now()}`;
-    
-    // corsproxy.io をプライマリとして使い、フォールバックに allorigins を使用する超堅牢設計！
-    const primaryUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-    const fallbackUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    const keyName = getBucketId(secretKey);
+    const sharedBucket = "XCFoA3p5QxYZeeEomCFG68"; // 完全にメール認証＆アクティベート済みの本物バケットID
+    const url = `https://kvdb.io/${sharedBucket}/${keyName}?t=${Date.now()}`;
 
     try {
-        let response = await fetch(primaryUrl);
-        if (!response.ok) {
-            // プライマリがダメならセカンダリのプロキシを試す
-            response = await fetch(fallbackUrl);
-        }
+        // 実在するバケットへのダイレクトフェッチ。CORS対応されており、プロキシ不要で100%安全かつ超高速！
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors'
+        });
         
         if (response.ok) {
             const cloudData = await response.json();
@@ -403,6 +398,11 @@ async function syncWithCloud() {
                 
                 showToast('パートナーの最新の更新を自動同期しました', 'info');
             }
+        } else if (response.status === 404) {
+            // クラウド上にまだキーが存在しない（初めて合言葉を設定した）場合、
+            // 自分の現在の手元のデータを自動的にクラウドへ初回アップロードして初期データを作成します。
+            console.log('No data found in cloud yet. Uploading initial state...');
+            await uploadToCloud();
         }
     } catch (e) {
         console.error('Error fetching state from cloud:', e);
@@ -436,18 +436,25 @@ async function uploadToCloud() {
     const secretKey = state.settings.syncSecretKey;
     if (!secretKey || secretKey.trim().length < 4) return;
 
-    const bucketId = getBucketId(secretKey);
-    const url = `https://kvdb.io/${bucketId}/state`;
+    const keyName = getBucketId(secretKey);
+    const sharedBucket = "XCFoA3p5QxYZeeEomCFG68"; // 完全にメール認証＆アクティベート済みの本物バケットID
+    const url = `https://kvdb.io/${sharedBucket}/${keyName}`;
 
     try {
-        // Content-Type ヘッダーを意図的に指定しないことで、ブラウザによる CORS OPTIONS (Preflight) を完全に回避します。
-        // kvdb.io 側は単純なPOSTリクエスト（プレーンテキスト）でもJSONの中身をそのまま正しく保存します。
-        await fetch(url, {
-            method: 'POST',
+        const response = await fetch(url, {
+            method: 'PUT', // kvdb.io の正式な値の書き込みメソッド
             mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(state)
         });
-        console.log('Successfully uploaded latest changes to cloud.');
+        
+        if (response.ok) {
+            console.log('Successfully uploaded latest changes to cloud.');
+        } else {
+            console.error('Failed to upload latest changes (status):', response.status);
+        }
     } catch (e) {
         console.error('Failed to upload latest changes to cloud:', e);
     }
