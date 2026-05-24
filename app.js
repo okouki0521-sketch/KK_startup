@@ -3006,6 +3006,68 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ==========================================
+    // 📱 スマホ専用インタラクション制御
+    // ==========================================
+    // 1. 創業憲章のアコーディオン開閉
+    document.querySelectorAll('.doc-section h3').forEach(h3 => {
+        h3.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                const parent = h3.closest('.doc-section');
+                if (parent) {
+                    parent.classList.toggle('open');
+                }
+            }
+        });
+    });
+
+    // 2. モバイル「もっと」メニューの開閉
+    const moreBtn = document.getElementById('btn-mobile-more');
+    const moreOverlay = document.getElementById('mobile-more-overlay');
+    const closeMoreBtn = document.getElementById('btn-close-more-sheet');
+
+    if (moreBtn && moreOverlay) {
+        moreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            moreOverlay.classList.add('active');
+        });
+    }
+
+    if (closeMoreBtn && moreOverlay) {
+        closeMoreBtn.addEventListener('click', () => {
+            moreOverlay.classList.remove('active');
+        });
+    }
+
+    if (moreOverlay) {
+        moreOverlay.addEventListener('click', (e) => {
+            if (e.target === moreOverlay) {
+                moreOverlay.classList.remove('active');
+            }
+        });
+    }
+
+    // 3. ハーフモーダル内のメニュー切り替え
+    document.querySelectorAll('.sheet-item[data-tab]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabId = item.getAttribute('data-tab');
+            switchTab(tabId);
+            if (moreOverlay) moreOverlay.classList.remove('active');
+        });
+    });
+
+    // 4. ハーフモーダル内の設定起動
+    const mobileSettingsTrigger = document.getElementById('btn-mobile-settings-trigger');
+    if (mobileSettingsTrigger) {
+        mobileSettingsTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            loadSettings();
+            openModal('modal-settings');
+            if (moreOverlay) moreOverlay.classList.remove('active');
+        });
+    }
+
     // 最初のタブの読み込み
     switchTab('dashboard');
 });

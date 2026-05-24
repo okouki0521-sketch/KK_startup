@@ -62,6 +62,10 @@
                     <i data-lucide="clipboard-list"></i>
                     <span>進捗共有・日報</span>
                 </a>
+                <a href="#" class="nav-item" id="btn-mobile-more" style="display: none;">
+                    <i data-lucide="menu"></i>
+                    <span>メニュー</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
@@ -985,6 +989,43 @@
 
     <!-- トースト通知用コンテナ -->
     <div id="toast-container" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
+
+    <!-- スマホ版専用: 「メニュー（もっと）」ハーフモーダルドロワー -->
+    <div class="mobile-more-overlay" id="mobile-more-overlay">
+        <div class="mobile-more-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-header">
+                <h3>すべてのメニュー</h3>
+                <button class="btn-close-sheet" id="btn-close-more-sheet"><i data-lucide="x"></i></button>
+            </div>
+            <div class="sheet-grid">
+                <a href="#" class="sheet-item" data-tab="calendar">
+                    <div class="sheet-icon-wrapper calendar">
+                        <i data-lucide="calendar"></i>
+                    </div>
+                    <span>カレンダー共有</span>
+                </a>
+                <a href="#" class="sheet-item" data-tab="decisions">
+                    <div class="sheet-icon-wrapper decisions">
+                        <i data-lucide="book-open"></i>
+                    </div>
+                    <span>意思決定ログ</span>
+                </a>
+                <a href="#" class="sheet-item" data-tab="updates">
+                    <div class="sheet-icon-wrapper updates">
+                        <i data-lucide="clipboard-list"></i>
+                    </div>
+                    <span>進捗共有・日報</span>
+                </a>
+                <a href="#" class="sheet-item" id="btn-mobile-settings-trigger">
+                    <div class="sheet-icon-wrapper settings">
+                        <i data-lucide="settings"></i>
+                    </div>
+                    <span>ワークスペース設定</span>
+                </a>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
