@@ -8,7 +8,7 @@ const DEFAULT_STATE = {
         partnerAName: '煌記',
         partnerBName: '和弥',
         projectName: 'KK_startup',
-        syncSecretKey: 'lumi-journey-sync-2026',
+        syncSecretKey: 'KK_startup',
         migratedToRealNames: true
     },
     agreement: {
