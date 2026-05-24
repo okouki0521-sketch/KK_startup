@@ -1877,3 +1877,309 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.2);
 }
+
+/* ==================================================== */
+/* 📱 SMARTPHONE & TABLET ULTRA-RESPONSIVE STYLING      */
+/* ==================================================== */
+@media (max-width: 768px) {
+    /* 1. アプリ風ボトムナビゲーションへのサイドバーの再構成 */
+    .sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        top: auto;
+        width: 100vw;
+        height: 72px;
+        flex-direction: row;
+        padding: 0;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(20px) saturate(190%);
+        -webkit-backdrop-filter: blur(20px) saturate(190%);
+        border-right: none;
+        border-top: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.08);
+        border-radius: 24px 24px 0 0;
+        overflow: hidden;
+    }
+
+    /* ボトムバーでは不要なブランディングとフッターを完全非表示 */
+    .sidebar-brand, .sidebar-footer {
+        display: none !important;
+    }
+
+    /* タブメニューを水平の美しいスクロールバー（親指スワイプ可能）に */
+    .sidebar-nav {
+        flex-direction: row !important;
+        width: 100%;
+        height: 100%;
+        justify-content: flex-start;
+        align-items: center;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        padding: 0 16px;
+        gap: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox用 */
+    }
+    
+    .sidebar-nav::-webkit-scrollbar {
+        display: none; /* Chrome/Safari用スクロールバー隠し */
+    }
+
+    /* 各ナビアイテムをスマホネイティブアプリ風にリサイズ */
+    .nav-item {
+        flex-direction: column !important;
+        justify-content: center;
+        align-items: center;
+        font-size: 10px !important;
+        padding: 6px 12px !important;
+        gap: 4px !important;
+        background: none !important;
+        border: none !important;
+        color: var(--text-muted) !important;
+        height: 100%;
+        min-width: 72px;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .nav-item i {
+        font-size: 20px !important;
+        margin: 0 !important;
+        opacity: 0.75;
+    }
+
+    .nav-item:active {
+        transform: scale(0.92);
+    }
+
+    /* アクティブなタブを目立たせる */
+    .nav-item.active {
+        color: var(--color-primary) !important;
+        font-weight: 800 !important;
+        background: none !important;
+    }
+
+    .nav-item.active i {
+        opacity: 1;
+        color: var(--color-primary) !important;
+        transform: translateY(-2px);
+        transition: transform 0.3s ease;
+    }
+    
+    .nav-item.active::before {
+        display: none;
+    }
+
+    /* 2. メインビューの全幅化と余白の最適化 */
+    .main-content {
+        margin-left: 0 !important;
+        padding: 16px 16px 100px 16px !important; /* ボトムバーと被らないよう広めの余白 */
+    }
+
+    /* ヘッダー構成をスマホ向けにコンパクト化 */
+    .main-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 8px 0 16px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        margin-bottom: 20px;
+    }
+
+    .header-title h2 {
+        font-size: 22px !important;
+    }
+
+    .header-title p {
+        font-size: 11px !important;
+    }
+
+    /* ヘッダー右側のアクションボタンの横スクロール化 */
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding: 4px 0 8px 0;
+        gap: 8px;
+        white-space: nowrap;
+        scrollbar-width: none;
+    }
+
+    .header-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .header-actions button {
+        padding: 8px 14px !important;
+        font-size: 12px !important;
+    }
+
+    /* 3. 各種グリッド＆カードレイアウトの1列縦積み化（横スクロール撲滅） */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .stat-card {
+        padding: 16px !important;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* 4. 創業憲章（Agreement）タブのモバイル最適化 */
+    .agreement-layout {
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+
+    .agreement-nav {
+        width: 100% !important;
+        position: static !important;
+        display: flex;
+        overflow-x: auto;
+        padding: 4px 0 12px 0;
+        gap: 8px;
+        white-space: nowrap;
+        scrollbar-width: none;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .agreement-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ag-nav-item {
+        margin-bottom: 0 !important;
+        padding: 8px 16px !important;
+        border-radius: 20px !important;
+        font-size: 12px !important;
+        background-color: #f1f5f9 !important;
+        border: 1px solid rgba(0, 0, 0, 0.02) !important;
+    }
+
+    .ag-nav-item.active {
+        background-color: rgba(79, 70, 229, 0.1) !important;
+        color: var(--color-primary) !important;
+        border-color: rgba(79, 70, 229, 0.2) !important;
+    }
+
+    .agreement-content {
+        width: 100% !important;
+    }
+
+    .agreement-doc {
+        padding: 20px 16px !important;
+        border-radius: var(--border-radius-md) !important;
+    }
+
+    .agreement-doc h2 {
+        font-size: 20px !important;
+    }
+
+    .roles-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .role-box {
+        padding: 16px !important;
+    }
+
+    .shares-flex {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    .share-input-group {
+        width: 100% !important;
+    }
+
+    .sig-flex {
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+
+    .sig-box {
+        width: 100% !important;
+    }
+
+    /* 5. ロードマップ & 目標（Roadmap）のモバイル最適化 */
+    .roadmap-layout {
+        grid-template-columns: 1fr !important;
+        gap: 24px !important;
+    }
+
+    /* 6. カレンダー共有のモバイル最適化 */
+    .calendar-layout {
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+
+    .calendar-main-panel {
+        width: 100% !important;
+        padding: 16px !important;
+    }
+
+    .calendar-side-panel {
+        width: 100% !important;
+        margin-top: 0 !important;
+    }
+
+    .weekday {
+        font-size: 11px !important;
+        padding: 6px 0 !important;
+    }
+
+    .calendar-day {
+        min-height: 50px !important;
+        padding: 4px !important;
+    }
+
+    .day-number {
+        font-size: 10px !important;
+    }
+
+    .calendar-event-dot {
+        width: 5px !important;
+        height: 5px !important;
+    }
+
+    /* 7. マネーマネージャーのモバイル最適化 */
+    .finance-summary-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .finance-main-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0 !important;
+    }
+
+    /* 8. モーダル・ダイアログのスマホ最適化 */
+    .modal-box {
+        width: 95% !important;
+        max-height: 90vh !important;
+    }
+
+    .modal-header {
+        padding: 16px 20px !important;
+    }
+
+    .modal-body {
+        padding: 20px !important;
+    }
+
+    .modal-footer {
+        padding: 16px 20px !important;
+    }
+}

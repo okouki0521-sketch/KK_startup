@@ -215,78 +215,63 @@ const EMPTY_STATE = {
 let state = {};
 
 function initStore() {
-    const saved = localStorage.getItem('cofounder_hub_state');
+    let saved = localStorage.getItem('cofounder_hub_state');
+    let backupSaved = localStorage.getItem('cofounder_hub_state_backup');
+    
+    // 自動修復: 万が一メインデータが消えているか破損しており、バックアップがある場合は完全復元！
+    if (!saved && backupSaved) {
+        console.warn('Main data missing. Restoring from redundant backup...');
+        saved = backupSaved;
+        localStorage.setItem('cofounder_hub_state', saved);
+    }
+
     if (saved) {
         try {
-            state = JSON.parse(saved);
-            
-            // 旧デモデータを検知した場合、またはまだリアルな創業状況に自動コンバートされていない場合
-            if (!state.settings || !state.settings.migratedToRealNames) {
-                console.log('Force migrating to real co-founder names (Kazuya & Koki)...');
-                if (!state.settings) state.settings = {};
-                state.settings.partnerAName = '和弥';
-                state.settings.partnerBName = '煌記';
-                state.settings.projectName = '新規共同プロジェクト';
-                state.settings.migratedToRealNames = true; // マイグレーション完了フラグ
+            const parsed = JSON.parse(saved);
+            if (parsed && typeof parsed === 'object') {
+                // 既存のユーザーデータを100%最優先でそのまま採用！
+                state = parsed;
                 
-                if (!state.agreement) state.agreement = {};
-                state.agreement.pADomain = '事業開発';
-                state.agreement.pATasks = '新規事業開発、プロダクト設計、戦略立案、システム管理。';
-                state.agreement.pBDomain = '営業';
-                state.agreement.pBTasks = '営業活動、クライアント獲得、マーケティング施策、関係構築。';
-                state.agreement.exitCriteria = '事業開始から1ヶ月（2026年6月）時点で、売上が3万円未満の場合は、速やかに事業の精算・解散を協議し撤退する。';
-
-                state.goals = [
-                    {
-                        id: 'goal-real-1',
-                        title: '月間最低売上達成 (撤退ライン)',
-                        assignee: 'both',
-                        current: 5000,
-                        target: 30000,
-                        unit: '円',
-                        deadline: '2026-06-20'
-                    },
-                    {
-                        id: 'goal-real-2',
-                        title: '月間売上目標 (理想値)',
-                        assignee: 'both',
-                        current: 5000,
-                        target: 80000,
-                        unit: '円',
-                        deadline: '2026-06-20'
+                // 新機能や今後のアップデートで増えたキー（DEFAULT_STATEにあるが現在のstateに存在しないもの）のみ安全に追加
+                const defaultKeys = Object.keys(DEFAULT_STATE);
+                defaultKeys.forEach(k => {
+                    if (!(k in state)) {
+                        state[k] = JSON.parse(JSON.stringify(DEFAULT_STATE[k]));
                     }
-                ];
+                });
 
-                state.incomes = [
-                    {
-                        id: 'inc-real-5month',
-                        title: '5月の事業売上',
-                        amount: 5000,
-                        category: 'sales',
-                        receiver: 'common',
-                        date: '2026-05-15'
-                    }
-                ];
-                
-                if (state.expenses) {
-                    state.expenses.forEach(e => {
-                        if (e.payer === 'partnerA') e.payer = 'partnerA'; // 和弥
-                        else e.payer = 'partnerB'; // 煌記
-                    });
+                // ネストされたオブジェクト（settingsやagreement）の内部キーの不足も安全にマージ
+                if (DEFAULT_STATE.settings) {
+                    state.settings = { ...DEFAULT_STATE.settings, ...state.settings };
                 }
-            }
+                if (DEFAULT_STATE.agreement) {
+                    state.agreement = { ...DEFAULT_STATE.agreement, ...state.agreement };
+                }
 
-            // 欠損キーがある場合の補完
-            state = { ...DEFAULT_STATE, ...state };
-            state.settings = { ...DEFAULT_STATE.settings, ...state.settings };
-            state.agreement = { ...DEFAULT_STATE.agreement, ...state.agreement };
+                // すでにリアルデータに移行済みの場合はマイグレーションフラグを強制保護
+                state.settings.migratedToRealNames = true;
+            } else {
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            }
         } catch (e) {
-            console.error('Error loading state, restoring defaults', e);
-            state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            console.error('Error loading state, recovering from backup...', e);
+            if (backupSaved) {
+                try {
+                    state = JSON.parse(backupSaved);
+                } catch(err) {
+                    state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                }
+            } else {
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            }
         }
     } else {
+        // まっさらな最初の初期状態でのみDEFAULT_STATE（KK_startupリアル初期値）をコピー
         state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
+    
+    // 即時バックアップを保存して同期
+    localStorage.setItem('cofounder_hub_state_backup', JSON.stringify(state));
     
     // クラウド同期のインターバルを開始
     startSyncInterval();
@@ -326,7 +311,9 @@ function syncSalesGoals() {
 function saveState() {
     syncSalesGoals(); // 保存前に売上目標の現在値と実際の売上合計を自動連動
     state.lastUpdated = Date.now();
-    localStorage.setItem('cofounder_hub_state', JSON.stringify(state));
+    const serialized = JSON.stringify(state);
+    localStorage.setItem('cofounder_hub_state', serialized);
+    localStorage.setItem('cofounder_hub_state_backup', serialized); // 二重バックアップでデータを完全死守！
     updateDashboard(); // 状態変化時はダッシュボードを更新
     uploadToCloud();   // 非同期でクラウドへ上書き送信
 }
