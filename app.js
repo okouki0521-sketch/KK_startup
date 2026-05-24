@@ -843,21 +843,38 @@ function renderDashboard() {
 function loadAgreementData() {
     const ag = state.agreement;
 
-    document.getElementById('agree-vision-aim').value = ag.visionAim;
-    document.getElementById('agree-vision-values').value = ag.visionValues;
-    document.getElementById('agree-pA-domain').value = ag.pADomain;
-    document.getElementById('agree-pA-tasks').value = ag.pATasks;
-    document.getElementById('agree-pB-domain').value = ag.pBDomain;
-    document.getElementById('agree-pB-tasks').value = ag.pBTasks;
-    document.getElementById('agree-pA-share').value = ag.pAShare;
-    document.getElementById('agree-pB-share').value = ag.pBShare;
-    document.getElementById('agree-profit-rule').value = ag.profitRule;
-    document.getElementById('agree-finance-initial').value = ag.financeInitial;
-    document.getElementById('agree-finance-limit').value = ag.financeLimit;
-    document.getElementById('agree-decision-process').value = ag.decisionProcess;
-    document.getElementById('agree-deadlock').value = ag.deadlock;
-    document.getElementById('agree-exit-criteria').value = ag.exitCriteria;
-    document.getElementById('agree-exit-shares').value = ag.exitShares;
+    const visionAimEl = document.getElementById('agree-vision-aim');
+    const visionValuesEl = document.getElementById('agree-vision-values');
+    const pADomainEl = document.getElementById('agree-pA-domain');
+    const pATasksEl = document.getElementById('agree-pA-tasks');
+    const pBDomainEl = document.getElementById('agree-pB-domain');
+    const pBTasksEl = document.getElementById('agree-pB-tasks');
+    const pAShareEl = document.getElementById('agree-pA-share');
+    const pBShareEl = document.getElementById('agree-pB-share');
+    const profitRuleEl = document.getElementById('agree-profit-rule');
+    const financeInitialEl = document.getElementById('agree-finance-initial');
+    const financeLimitEl = document.getElementById('agree-finance-limit');
+    const decisionProcessEl = document.getElementById('agree-decision-process');
+    const deadlockEl = document.getElementById('agree-deadlock');
+    const exitCriteriaEl = document.getElementById('agree-exit-criteria');
+    const exitSharesEl = document.getElementById('agree-exit-shares');
+
+    // フォーカスガード: ユーザーが現在入力中のインプット・テキストエリアは自動同期で上書きしない！
+    if (document.activeElement !== visionAimEl) visionAimEl.value = ag.visionAim;
+    if (document.activeElement !== visionValuesEl) visionValuesEl.value = ag.visionValues;
+    if (document.activeElement !== pADomainEl) pADomainEl.value = ag.pADomain;
+    if (document.activeElement !== pATasksEl) pATasksEl.value = ag.pATasks;
+    if (document.activeElement !== pBDomainEl) pBDomainEl.value = ag.pBDomain;
+    if (document.activeElement !== pBTasksEl) pBTasksEl.value = ag.pBTasks;
+    if (document.activeElement !== pAShareEl) pAShareEl.value = ag.pAShare;
+    if (document.activeElement !== pBShareEl) pBShareEl.value = ag.pBShare;
+    if (document.activeElement !== profitRuleEl) profitRuleEl.value = ag.profitRule;
+    if (document.activeElement !== financeInitialEl) financeInitialEl.value = ag.financeInitial;
+    if (document.activeElement !== financeLimitEl) financeLimitEl.value = ag.financeLimit;
+    if (document.activeElement !== decisionProcessEl) decisionProcessEl.value = ag.decisionProcess;
+    if (document.activeElement !== deadlockEl) deadlockEl.value = ag.deadlock;
+    if (document.activeElement !== exitCriteriaEl) exitCriteriaEl.value = ag.exitCriteria;
+    if (document.activeElement !== exitSharesEl) exitSharesEl.value = ag.exitShares;
 
     renderSignatures();
 }
@@ -867,7 +884,7 @@ function saveAgreementData() {
     const pBShare = parseFloat(document.getElementById('agree-pB-share').value) || 0;
 
     if (pAShare + pBShare !== 100) {
-        alert('警告: パートナーAとBの株式比率の合計が100%になっていません！ (現在は ' + (pAShare + pBShare) + '%)');
+        showToast(`警告: 株式比率の合計が100%になっていません！ (現在は ${pAShare + pBShare}%)`, 'danger');
     }
 
     state.agreement.visionAim = document.getElementById('agree-vision-aim').value;
@@ -887,7 +904,7 @@ function saveAgreementData() {
     state.agreement.exitShares = document.getElementById('agree-exit-shares').value;
 
     saveState();
-    alert('憲章の内容を保存しました。');
+    showToast('創業憲章を保存し、クラウド同期しました！');
 }
 
 function renderSignatures() {
