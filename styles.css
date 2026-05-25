@@ -1876,47 +1876,144 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.2);
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 14px;
-        background-color: #f8fafc;
-        border: 1px solid rgba(0, 0, 0, 0.02);
-        border-radius: 12px;
-        color: var(--text-primary);
-        text-decoration: none;
-        transition: background-color 0.2s ease, transform 0.1s ease;
-    }
-
-    .sheet-item:active {
-        background-color: #f1f5f9;
-        transform: scale(0.97);
-    }
-
-    .sheet-icon-wrapper {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #ffffff;
-    }
-
-    .sheet-icon-wrapper.calendar { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-    .sheet-icon-wrapper.decisions { background: linear-gradient(135deg, #a855f7, #8b5cf6); }
-    .sheet-icon-wrapper.updates { background: linear-gradient(135deg, #10b981, #059669); }
-    .sheet-icon-wrapper.settings { background: linear-gradient(135deg, #64748b, #475569); }
-
-    .sheet-item i {
-        font-size: 18px !important;
-        stroke-width: 2.2px;
-    }
-
-    .sheet-item span {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--text-secondary);
-    }
 }
+
+/* ==================================================== */
+/* 👥 顧客＆売上管理 (CRM) 用プレミアムスタイリング      */
+/* ==================================================== */
+.premium-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.premium-table th {
+    font-weight: 700;
+    color: var(--text-secondary);
+    background-color: #f8fafc;
+    border-bottom: 2px solid #f1f5f9;
+    padding: 12px 8px;
+    font-size: 12px;
+}
+
+.premium-table td {
+    padding: 14px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.premium-table tr {
+    transition: background-color 0.15s ease;
+}
+
+.premium-table tr:hover {
+    background-color: #fafcfd;
+}
+
+/* 分析用バーグラフ */
+.crm-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.crm-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.crm-bar-bg {
+    width: 100%;
+    height: 10px;
+    background-color: #f1f5f9;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.crm-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* プラン別カラーテーマ */
+.crm-bar-fill.standard { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.crm-bar-fill.pro { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.crm-bar-fill.premium { background: linear-gradient(90deg, #ec4899, #f472b6); }
+.crm-bar-fill.other { background: linear-gradient(90deg, #64748b, #94a3b8); }
+
+/* 国籍バッジやプランバッジ */
+.badge-plan {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.badge-plan.standard { background-color: rgba(59, 130, 246, 0.1); color: #2563eb; }
+.badge-plan.pro { background-color: rgba(139, 92, 246, 0.1); color: #7c3aed; }
+.badge-plan.premium { background-color: rgba(236, 72, 153, 0.1); color: #db2777; }
+
+.badge-country {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    border-radius: 8px;
+    background-color: #f1f5f9;
+    color: var(--text-secondary);
+}
+
+/* 👥 CRM専用 プレミアム統計カードスタイル */
+.crm-stat-card {
+    background-color: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: var(--border-radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: var(--card-shadow);
+    backdrop-filter: var(--glass-blur);
+    transition: var(--transition-smooth);
+}
+
+.crm-stat-card:hover {
+    transform: translateY(-4px);
+    background-color: var(--bg-card-hover);
+    border-color: var(--border-color-active);
+    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.08);
+}
+
+.crm-stat-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+}
+
+.crm-stat-card-value {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: 'Outfit', sans-serif;
+    color: #1e1b4b;
+    line-height: 1.2;
+}
+
+.crm-stat-card-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+
 

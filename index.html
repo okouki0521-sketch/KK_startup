@@ -54,6 +54,10 @@
                     <i data-lucide="lightbulb"></i>
                     <span>アイディアボード</span>
                 </a>
+                <a href="#" class="nav-item" data-tab="customers">
+                    <i data-lucide="users"></i>
+                    <span>顧客＆売上管理</span>
+                </a>
                 <a href="#" class="nav-item" data-tab="decisions">
                     <i data-lucide="book-open"></i>
                     <span>意思決定ログ</span>
@@ -715,6 +719,94 @@
                 </section>
 
             </div>
+            
+            <!-- 9. 顧客＆売上管理タブ -->
+            <section class="tab-pane" id="tab-customers">
+                <div class="main-header">
+                    <div class="header-title">
+                        <h2>顧客＆売上管理</h2>
+                        <p>サービス利用顧客の属性と売上比率を分析・管理します</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" id="btn-add-customer-modal">
+                            <i data-lucide="user-plus"></i>顧客を追加
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 統計サマリー -->
+                <div class="stats-grid">
+                    <div class="crm-stat-card" style="border-left: 4px solid var(--color-primary);">
+                        <div class="crm-stat-card-title">総顧客数</div>
+                        <div class="crm-stat-card-value" id="crm-total-customers">0 名</div>
+                        <div class="crm-stat-card-desc">累計獲得したユニーク顧客数</div>
+                    </div>
+                    <div class="crm-stat-card" style="border-left: 4px solid var(--color-success);">
+                        <div class="crm-stat-card-title">総売上高</div>
+                        <div class="crm-stat-card-value" id="crm-total-sales" style="color: var(--color-success);">¥0</div>
+                        <div class="crm-stat-card-desc">プラン販売による累計売上高</div>
+                    </div>
+                    <div class="crm-stat-card" style="border-left: 4px solid #a855f7;">
+                        <div class="crm-stat-card-title">平均顧客単価 (客単価)</div>
+                        <div class="crm-stat-card-value" id="crm-arpu">¥0</div>
+                        <div class="crm-stat-card-desc">1人あたりの平均お支払額</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- 左側: 顧客リスト -->
+                    <div class="card" style="grid-column: span 8; min-height: 400px;">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="database" class="text-primary"></i> 顧客データベース
+                            </h3>
+                            <div class="search-box" style="position: relative;">
+                                <input type="text" id="crm-search" placeholder="名前・国籍・プランで検索..." style="padding: 8px 12px 8px 32px; font-size: 13px; border-radius: 8px; border: 1px solid #e2e8f0; width: 220px; outline: none; transition: border-color 0.2s;">
+                                <i data-lucide="search" style="position: absolute; left: 10px; top: 10px; width: 14px; height: 14px; color: var(--text-muted);"></i>
+                            </div>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #f1f5f9; color: var(--text-secondary); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        <th style="padding: 12px 8px;">顧客名</th>
+                                        <th style="padding: 12px 8px;">年齢</th>
+                                        <th style="padding: 12px 8px;">国籍</th>
+                                        <th style="padding: 12px 8px;">プラン & 期間</th>
+                                        <th style="padding: 12px 8px;">売上金額</th>
+                                        <th style="padding: 12px 8px;">購入日</th>
+                                        <th style="padding: 12px 8px; text-align: right;">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="crm-customer-tbody" style="font-size: 13.5px; color: var(--text-primary);">
+                                    <!-- 動的にレンダリング -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 右側: 分析パネル -->
+                    <div class="card" style="grid-column: span 4;">
+                        <div class="card-header" style="margin-bottom: 20px;">
+                            <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="pie-chart" class="text-primary"></i> プラン別シェア・売上
+                            </h3>
+                        </div>
+                        <div id="crm-plan-bars" style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- 動的にバーグラフが生成 -->
+                        </div>
+
+                        <div class="card-header" style="margin-top: 36px; margin-bottom: 20px; border-top: 1px dashed var(--border-color); padding-top: 24px;">
+                            <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="globe" class="text-primary"></i> 国籍別インバウンド比率
+                            </h3>
+                        </div>
+                        <div id="crm-country-bars" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- 動的に国籍比率が生成 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -979,6 +1071,91 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('modal-edit-item')">キャンセル</button>
                 <button class="btn btn-primary" id="btn-save-edit">変更を保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 顧客追加 -->
+    <div class="modal-overlay" id="modal-add-customer">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>顧客情報の登録</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>顧客名 / 団体名</label>
+                    <input type="text" id="cust-name" placeholder="例: John Smith" required>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>年齢・世代</label>
+                        <select id="cust-age" required>
+                            <option value="20代">20代</option>
+                            <option value="30代">30代</option>
+                            <option value="40代">40代</option>
+                            <option value="50代">50代</option>
+                            <option value="60代以上">60代以上</option>
+                            <option value="10代以下">10代以下</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>国籍</label>
+                        <select id="cust-country" required>
+                            <option value="日本">🇯🇵 日本</option>
+                            <option value="アメリカ">🇺🇸 アメリカ</option>
+                            <option value="イギリス">🇬🇧 イギリス</option>
+                            <option value="フランス">🇫🇷 フランス</option>
+                            <option value="ドイツ">🇩🇪 ドイツ</option>
+                            <option value="イタリア">🇮🇹 イタリア</option>
+                            <option value="オーストラリア">🇦🇺 オーストラリア</option>
+                            <option value="台湾">🇹🇼 台湾</option>
+                            <option value="韓国">🇰🇷 韓国</option>
+                            <option value="中国">🇨🇳 中国</option>
+                            <option value="その他">🏳️ その他</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="cust-country-other-group" style="display: none; margin-top: 12px;">
+                    <label>国籍名を入力</label>
+                    <input type="text" id="cust-country-other" placeholder="例: カナダ">
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; margin-top: 16px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>購入プラン</label>
+                        <select id="cust-plan" required>
+                            <option value="スタンダード">スタンダード</option>
+                            <option value="プロ">プロ</option>
+                            <option value="プレミアム">プレミアム</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>契約期間</label>
+                        <select id="cust-duration" required>
+                            <option value="1週間">1週間</option>
+                            <option value="2週間">2週間</option>
+                            <option value="1ヶ月">1ヶ月</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>売上金額 (円)</label>
+                        <input type="number" id="cust-amount" placeholder="金額" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>購入日</label>
+                        <input type="date" id="cust-date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>顧客メモ・特記事項</label>
+                    <textarea id="cust-memo" rows="3" placeholder="例: 桜の時期の京都ガイドツアーを希望。英語でのフルサポート付き。"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-customer">顧客を登録</button>
             </div>
         </div>
     </div>

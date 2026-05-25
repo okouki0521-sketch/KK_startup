@@ -169,7 +169,8 @@ const DEFAULT_STATE = {
             done: '電車関連案内動画作成\n他のシリーズを考える\nアフレコ字幕入れる',
             todo: '明日の営業アプローチ準備'
         }
-    ]
+    ],
+    customers: []
 };
 
 // まっさらな状態から開始するための空のスケルトンデータ
@@ -206,7 +207,8 @@ const EMPTY_STATE = {
     ideas: [],
     decisions: [],
     incomes: [],
-    updates: []
+    updates: [],
+    customers: []
 };
 
 // ==========================================
@@ -416,6 +418,8 @@ function switchTabQuietly(tabId) {
         renderDecisions();
     } else if (tabId === 'updates') {
         renderUpdates();
+    } else if (tabId === 'customers') {
+        renderCRM();
     }
 }
 
@@ -510,7 +514,8 @@ const TAB_INFO = {
     financials: { title: 'マネーマネージャー', subtitle: '共同経費の支払い状況と割り勘をクリアに保ちます' },
     ideas: { title: 'アイディアボード', subtitle: 'ブレインストーミングとインスピレーションの保管庫' },
     decisions: { title: '意思決定ログ', subtitle: '「言った・言わない」を防ぐための決定事項の公式アーカイブ' },
-    updates: { title: '進捗共有・日報', subtitle: '今日取り組んだことと今後取り組むことをお互いに可視化します' }
+    updates: { title: '進捗共有・日報', subtitle: '今日取り組んだことと今後取り組むことをお互いに可視化します' },
+    customers: { title: '顧客＆売上管理', subtitle: 'サービス利用顧客の属性と売上比率を分析・管理します' }
 };
 
 function switchTab(tabId) {
@@ -551,6 +556,8 @@ function switchTab(tabId) {
         renderDecisions();
     } else if (tabId === 'updates') {
         renderUpdates();
+    } else if (tabId === 'customers') {
+        renderCRM();
     }
 
     // スクロールをトップに戻す
@@ -2523,7 +2530,8 @@ function openEditModal(type, id) {
         incomes: '収入の編集',
         ideas: 'アイデアの編集',
         decisions: '意思決定事項の編集',
-        updates: '進捗日報の編集'
+        updates: '進捗日報の編集',
+        customers: '顧客情報の編集'
     };
     if (modalTitle) modalTitle.textContent = typeLabels[type] || '項目の編集';
 
@@ -2758,6 +2766,62 @@ function openEditModal(type, id) {
                 <textarea id="edit-upd-todo" rows="4" required style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.todo}</textarea>
             </div>
         `;
+    } else if (type === 'customers') {
+        html = `
+            <div class="form-group">
+                <label>顧客名 / 団体名</label>
+                <input type="text" id="edit-cust-name" value="${item.name.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>年齢・世代</label>
+                    <select id="edit-cust-age" style="width: 100%;">
+                        <option value="20代" ${item.age === '20代' ? 'selected' : ''}>20代</option>
+                        <option value="30代" ${item.age === '30代' ? 'selected' : ''}>30代</option>
+                        <option value="40代" ${item.age === '40代' ? 'selected' : ''}>40代</option>
+                        <option value="50代" ${item.age === '50代' ? 'selected' : ''}>50代</option>
+                        <option value="60代以上" ${item.age === '60代以上' ? 'selected' : ''}>60代以上</option>
+                        <option value="10代以下" ${item.age === '10代以下' ? 'selected' : ''}>10代以下</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>国籍</label>
+                    <input type="text" id="edit-cust-country" value="${item.country.replace(/"/g, '&quot;')}" required style="width: 100%;">
+                </div>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>購入プラン</label>
+                    <select id="edit-cust-plan" style="width: 100%;">
+                        <option value="スタンダード" ${item.plan === 'スタンダード' ? 'selected' : ''}>スタンダード</option>
+                        <option value="プロ" ${item.plan === 'プロ' ? 'selected' : ''}>プロ</option>
+                        <option value="プレミアム" ${item.plan === 'プレミアム' ? 'selected' : ''}>プレミアム</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>契約期間</label>
+                    <select id="edit-cust-duration" style="width: 100%;">
+                        <option value="1週間" ${item.duration === '1週間' ? 'selected' : ''}>1週間</option>
+                        <option value="2週間" ${item.duration === '2週間' ? 'selected' : ''}>2週間</option>
+                        <option value="1ヶ月" ${item.duration === '1ヶ月' ? 'selected' : ''}>1ヶ月</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>売上金額 (円)</label>
+                    <input type="number" id="edit-cust-amount" value="${item.amount}" min="1" required style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>購入日</label>
+                    <input type="date" id="edit-cust-date" value="${item.date}" required style="width: 100%;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>顧客メモ・特記事項</label>
+                <textarea id="edit-cust-memo" rows="3" style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.memo || ''}</textarea>
+            </div>
+        `;
     }
 
     if (modalBody) modalBody.innerHTML = html;
@@ -2865,6 +2929,44 @@ function saveEditItem(type, id) {
         if (!item.date || !item.done || !item.todo) {
             alert('すべての項目を入力してください。');
             return;
+        }
+    } else if (type === 'customers') {
+        item.name = document.getElementById('edit-cust-name').value.trim();
+        item.age = document.getElementById('edit-cust-age').value;
+        item.country = document.getElementById('edit-cust-country').value.trim();
+        item.plan = document.getElementById('edit-cust-plan').value;
+        item.duration = document.getElementById('edit-cust-duration').value;
+        item.amount = parseInt(document.getElementById('edit-cust-amount').value) || 0;
+        item.date = document.getElementById('edit-cust-date').value;
+        item.memo = document.getElementById('edit-cust-memo').value.trim();
+
+        if (!item.name || item.amount <= 0 || !item.date) {
+            alert('すべての必要事項を入力してください。');
+            return;
+        }
+
+        // 【自動財務連動更新】マネーマネージャー側の収入履歴も全自動で連動更新！
+        if (!state.incomes) state.incomes = [];
+        const associatedIncome = state.incomes.find(inc => inc.refCrmCustomerId === item.id || inc.id === 'inc_crm_' + item.id);
+        if (associatedIncome) {
+            associatedIncome.title = `【売上】${item.name} 様 (${item.plan}/${item.duration})`;
+            associatedIncome.amount = item.amount;
+            associatedIncome.date = item.date;
+            associatedIncome.client = flagDisplayCountryName(item.country) + '顧客';
+        } else {
+            // 万が一連動収入レコードが消失していた場合は自動で再生成して整合性を保護
+            const newIncome = {
+                id: 'inc_crm_' + item.id,
+                title: `【売上】${item.name} 様 (${item.plan}/${item.duration})`,
+                amount: item.amount,
+                category: 'sales',
+                receiver: 'common',
+                date: item.date,
+                client: flagDisplayCountryName(item.country) + '顧客',
+                status: 'received',
+                refCrmCustomerId: item.id
+            };
+            state.incomes.push(newIncome);
         }
     }
 
@@ -3006,9 +3108,365 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ==========================================
+    // 👥 顧客＆売上管理 (CRM) のイベント紐付け
+    // ==========================================
+    const addCustModalBtn = document.getElementById('btn-add-customer-modal');
+    if (addCustModalBtn) {
+        addCustModalBtn.addEventListener('click', () => {
+            // 入力リセット
+            document.getElementById('cust-name').value = '';
+            document.getElementById('cust-memo').value = '';
+            document.getElementById('cust-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('cust-plan').value = 'スタンダード';
+            document.getElementById('cust-duration').value = '1週間';
+            document.getElementById('cust-age').value = '20代';
+            document.getElementById('cust-country').value = '日本';
+            document.getElementById('cust-country-other-group').style.display = 'none';
+            document.getElementById('cust-country-other').value = '';
+            
+            // 金額初期計算
+            calculateCrmAmount();
+            
+            openModal('modal-add-customer');
+        });
+    }
+
+    const custCountrySelect = document.getElementById('cust-country');
+    if (custCountrySelect) {
+        custCountrySelect.addEventListener('change', () => {
+            const otherGroup = document.getElementById('cust-country-other-group');
+            if (custCountrySelect.value === 'その他') {
+                otherGroup.style.display = 'block';
+            } else {
+                otherGroup.style.display = 'none';
+            }
+        });
+    }
+
+    // プラン・期間が変更されたら売上金額を自動更新
+    const custPlanSelect = document.getElementById('cust-plan');
+    const custDurationSelect = document.getElementById('cust-duration');
+    if (custPlanSelect) custPlanSelect.addEventListener('change', calculateCrmAmount);
+    if (custDurationSelect) custDurationSelect.addEventListener('change', calculateCrmAmount);
+
+    const submitCustomerBtn = document.getElementById('btn-submit-customer');
+    if (submitCustomerBtn) {
+        submitCustomerBtn.addEventListener('click', addCustomer);
+    }
+
+    const crmSearchInput = document.getElementById('crm-search');
+    if (crmSearchInput) {
+        crmSearchInput.addEventListener('input', renderCRM);
+    }
+
     // 最初のタブの読み込み
     switchTab('dashboard');
 });
+
+// ==========================================
+// 17. 顧客＆売上管理 (CRM) コアロジック
+// ==========================================
+function calculateCrmAmount() {
+    const plan = document.getElementById('cust-plan').value;
+    const duration = document.getElementById('cust-duration').value;
+    const amountInput = document.getElementById('cust-amount');
+    
+    // 料金テーブル設計 (9つの料金パターン)
+    // スタンダード: 1週間=1980円, 2週間=2480円, 1ヶ月=2980円
+    // プロ: 1週間=2980円, 2週間=3480円, 1ヶ月=3980円
+    // プレミアム: 1週間=3980円, 2週間=4480円, 1ヶ月=4980円
+    let base = 1980;
+    if (plan === 'プロ') base = 2980;
+    if (plan === 'プレミアム') base = 3980;
+    
+    let add = 0;
+    if (duration === '2週間') add = 500;
+    if (duration === '1ヶ月') add = 1000;
+    
+    amountInput.value = base + add;
+}
+
+function renderCRM() {
+    const tbody = document.getElementById('crm-customer-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    const searchQuery = (document.getElementById('crm-search')?.value || '').toLowerCase().trim();
+    
+    let totalCustomers = 0;
+    let totalSales = 0;
+    
+    // 国籍に応じたフラグ絵文字の自動判別用マップ
+    const countryFlags = {
+        '日本': '🇯🇵 日本',
+        'アメリカ': '🇺🇸 アメリカ',
+        'イギリス': '🇬🇧 イギリス',
+        'フランス': '🇫🇷 フランス',
+        'ドイツ': '🇩🇪 ドイツ',
+        'イタリア': '🇮🇹 イタリア',
+        'オーストラリア': '🇦🇺 オーストラリア',
+        '台湾': '🇹🇼 台湾',
+        '韓国': '🇰🇷 韓国',
+        '中国': '🇨🇳 中国',
+        '香港': '🇭🇰 香港',
+        'タイ': '🇹🇭 タイ'
+    };
+
+    // 分析用データ集計
+    const planCounts = { 'スタンダード': 0, 'プロ': 0, 'プレミアム': 0 };
+    const planSales = { 'スタンダード': 0, 'プロ': 0, 'プレミアム': 0 };
+    const countryCounts = {};
+
+    const filteredCustomers = (state.customers || []).filter(c => {
+        const nameMatch = c.name.toLowerCase().includes(searchQuery);
+        const countryMatch = c.country.toLowerCase().includes(searchQuery);
+        const planMatch = c.plan.toLowerCase().includes(searchQuery);
+        return nameMatch || countryMatch || planMatch;
+    });
+
+    // データベース描画と統計集計
+    if ((state.customers || []).length > 0) {
+        // 全体の集計
+        state.customers.forEach(c => {
+            totalCustomers++;
+            totalSales += Number(c.amount) || 0;
+            
+            // プラン集計
+            if (c.plan in planCounts) {
+                planCounts[c.plan]++;
+                planSales[c.plan] += Number(c.amount) || 0;
+            }
+            
+            // 国籍集計
+            countryCounts[c.country] = (countryCounts[c.country] || 0) + 1;
+        });
+
+        // フィルタされた結果を描画
+        if (filteredCustomers.length > 0) {
+            filteredCustomers.forEach(c => {
+                const tr = document.createElement('tr');
+                
+                // 国籍の表示整形
+                let flagDisplay = c.country;
+                if (c.country in countryFlags) {
+                    flagDisplay = countryFlags[c.country];
+                } else {
+                    flagDisplay = `🏳️ ${c.country}`;
+                }
+                
+                // プランクラスの決定
+                let planClass = 'standard';
+                if (c.plan === 'プロ') planClass = 'pro';
+                if (c.plan === 'プレミアム') planClass = 'premium';
+                
+                tr.innerHTML = `
+                    <td style="padding: 12px 8px; font-weight: 700;">${c.name}</td>
+                    <td style="padding: 12px 8px; color: var(--text-muted); font-size: 13px;">${c.age}</td>
+                    <td style="padding: 12px 8px;"><span class="badge-country">${flagDisplay}</span></td>
+                    <td style="padding: 12px 8px;">
+                        <span class="badge-plan ${planClass}">${c.plan}</span>
+                        <span style="font-size: 11px; color: var(--text-muted); margin-left: 4px;">(${c.duration})</span>
+                    </td>
+                    <td style="padding: 12px 8px; font-weight: 700; color: var(--color-success);">¥${Number(c.amount).toLocaleString()}</td>
+                    <td style="padding: 12px 8px; font-size: 13px; color: var(--text-secondary);">${c.date}</td>
+                    <td style="padding: 12px 8px; text-align: right;">
+                        <button type="button" class="btn-icon-sm edit" onclick="openEditModal('customers', '${c.id}')" title="編集">
+                            <i data-lucide="edit-3"></i>
+                        </button>
+                        <button type="button" class="btn-icon-sm delete" onclick="deleteCustomer('${c.id}')" title="顧客を削除">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">
+                        検索条件に一致する顧客が見つかりません。
+                    </td>
+                </tr>
+            `;
+        }
+    } else {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                    <div style="font-size: 24px; margin-bottom: 8px;">👥</div>
+                    まだ利用顧客が登録されていません。<br>右上から顧客を追加して売上を管理しましょう！
+                </td>
+            </tr>
+        `;
+    }
+
+    // KPI更新
+    document.getElementById('crm-total-customers').textContent = `${totalCustomers} 名`;
+    document.getElementById('crm-total-sales').textContent = `¥${totalSales.toLocaleString()}`;
+    
+    const arpu = totalCustomers > 0 ? Math.round(totalSales / totalCustomers) : 0;
+    document.getElementById('crm-arpu').textContent = `¥${arpu.toLocaleString()}`;
+
+    // プラン別シェアの横棒グラフ描画
+    const planBars = document.getElementById('crm-plan-bars');
+    if (planBars) {
+        planBars.innerHTML = '';
+        const plans = ['スタンダード', 'プロ', 'プレミアム'];
+        plans.forEach(p => {
+            const count = planCounts[p];
+            const sales = planSales[p];
+            const pct = totalCustomers > 0 ? Math.round((count / totalCustomers) * 100) : 0;
+            
+            let barClass = 'standard';
+            if (p === 'プロ') barClass = 'pro';
+            if (p === 'プレミアム') barClass = 'premium';
+
+            const container = document.createElement('div');
+            container.className = 'crm-bar-container';
+            container.innerHTML = `
+                <div class="crm-bar-label">
+                    <span>${p} プラン</span>
+                    <span>${count}件 (¥${sales.toLocaleString()}) - ${pct}%</span>
+                </div>
+                <div class="crm-bar-bg">
+                    <div class="crm-bar-fill ${barClass}" style="width: ${pct}%"></div>
+                </div>
+            `;
+            planBars.appendChild(container);
+        });
+    }
+
+    // 国籍別インバウンド比率の描画 (上位3カ国＋その他)
+    const countryBars = document.getElementById('crm-country-bars');
+    if (countryBars) {
+        countryBars.innerHTML = '';
+        const sortedCountries = Object.entries(countryCounts)
+            .sort((a, b) => b[1] - a[1]);
+        
+        if (sortedCountries.length > 0) {
+            sortedCountries.slice(0, 4).forEach(([country, count]) => {
+                const pct = totalCustomers > 0 ? Math.round((count / totalCustomers) * 100) : 0;
+                
+                let flagDisplay = country;
+                if (country in countryFlags) {
+                    flagDisplay = countryFlags[country];
+                } else {
+                    flagDisplay = `🏳️ ${country}`;
+                }
+
+                const container = document.createElement('div');
+                container.className = 'crm-bar-container';
+                container.innerHTML = `
+                    <div class="crm-bar-label" style="font-size: 12px;">
+                        <span>${flagDisplay}</span>
+                        <span>${count}名 (${pct}%)</span>
+                    </div>
+                    <div class="crm-bar-bg" style="height: 8px;">
+                        <div class="crm-bar-fill other" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                countryBars.appendChild(container);
+            });
+        } else {
+            countryBars.innerHTML = '<p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 12px 0;">データなし</p>';
+        }
+    }
+
+    lucide.createIcons();
+}
+
+function addCustomer() {
+    const name = document.getElementById('cust-name').value.trim();
+    const age = document.getElementById('cust-age').value;
+    
+    let country = document.getElementById('cust-country').value;
+    if (country === 'その他') {
+        country = document.getElementById('cust-country-other').value.trim() || 'その他';
+    }
+    
+    const plan = document.getElementById('cust-plan').value;
+    const duration = document.getElementById('cust-duration').value;
+    const amount = parseInt(document.getElementById('cust-amount').value) || 0;
+    const date = document.getElementById('cust-date').value;
+    const memo = document.getElementById('cust-memo').value.trim();
+
+    if (!name || amount <= 0 || !date) {
+        alert('名前、金額、購入日を正しく入力してください。');
+        return;
+    }
+
+    const newCustomer = {
+        id: 'cust_' + Date.now(),
+        name: name,
+        age: age,
+        country: country,
+        plan: plan,
+        duration: duration,
+        amount: amount,
+        date: date,
+        memo: memo
+    };
+
+    if (!state.customers) state.customers = [];
+    state.customers.push(newCustomer);
+
+    // 【自動連動】マネーマネージャー（財務）の収入履歴へ全自動で売上を登録！
+    if (!state.incomes) state.incomes = [];
+    
+    const incomeItem = {
+        id: 'inc_crm_' + newCustomer.id, // CRM顧客と1対1で強固に紐付くID
+        title: `【売上】${newCustomer.name} 様 (${newCustomer.plan}/${newCustomer.duration})`,
+        amount: newCustomer.amount,
+        category: 'sales',
+        receiver: 'common',
+        date: newCustomer.date,
+        client: flagDisplayCountryName(newCustomer.country) + '顧客',
+        status: 'received',
+        refCrmCustomerId: newCustomer.id // 連動キー
+    };
+
+    state.incomes.push(incomeItem);
+
+    saveState();
+    closeModal('modal-add-customer');
+    renderCRM();
+    
+    showToast(`顧客「${newCustomer.name}」を登録し、売上 ¥${newCustomer.amount.toLocaleString()} を財務に自動反映しました！`);
+}
+
+// 国籍名にフラグをくっつけるシンプルなヘルパー
+function flagDisplayCountryName(name) {
+    const flags = { 
+        '日本': '🇯🇵 日本', 
+        'アメリカ': '🇺🇸 アメリカ', 
+        'イギリス': '🇬🇧 イギリス', 
+        'フランス': '🇫🇷 フランス', 
+        'ドイツ': '🇩🇪 ドイツ', 
+        'イタリア': '🇮🇹 イタリア', 
+        'オーストラリア': '🇦🇺 オーストラリア',
+        '台湾': '🇹🇼 台湾', 
+        '韓国': '🇰🇷 韓国', 
+        '中国': '🇨🇳 中国' 
+    };
+    return flags[name] || name;
+}
+
+function deleteCustomer(id) {
+    const customer = state.customers.find(c => c.id === id);
+    if (!customer) return;
+    
+    if (confirm(`本当に顧客「${customer.name}」のデータを削除しますか？\n(※この顧客に連動して登録された財務の売上収入も自動で削除されます。)`)) {
+        state.customers = state.customers.filter(c => c.id !== id);
+        
+        // 【自動連動削除】連動する収入データを安全に全自動で削除！
+        state.incomes = state.incomes.filter(inc => inc.refCrmCustomerId !== id);
+        
+        saveState();
+        renderCRM();
+        showToast(`顧客「${customer.name}」のデータと連動売上を削除しました`, 'danger');
+    }
+}
 
 // HTMLのonclick属性から確実に呼び出せるよう、関数を明示的にグローバルスコープへエクスポート
 window.deleteExpense = deleteExpense;
@@ -3025,3 +3483,5 @@ window.togglePhaseCompleted = togglePhaseCompleted;
 window.deleteUpdate = deleteUpdate;
 window.openEditModal = openEditModal;
 window.saveEditItem = saveEditItem;
+window.deleteCustomer = deleteCustomer;
+
