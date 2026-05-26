@@ -170,7 +170,37 @@ const DEFAULT_STATE = {
             todo: '明日の営業アプローチ準備'
         }
     ],
-    customers: []
+    customers: [],
+    changelogs: [
+        {
+            id: 'chg_1',
+            date: '2026-05-26',
+            title: '📊 統計UIの改善 ＆ グローバル国籍対応',
+            content: '・顧客＆売上管理の統計指標カードを縦積み表示にし、視認性を大幅に改善。\n・インバウンド国籍オプションにイギリス、フランス、ドイツ、イタリア、オーストラリア等のグローバル国を追加。\n・国旗自動バッジング機能のアップデート。',
+            isSystem: true
+        },
+        {
+            id: 'chg_2',
+            date: '2026-05-25',
+            title: '👥 顧客＆売上管理 (CRM) 機能の新規リリース',
+            content: '・サービス利用顧客の詳細（名前、年齢、国籍、プラン、期間等）を管理できる顧客データベースをリリース。\n・プラン選択による料金自動算出機能（9つの価格マトリックス）の実装。\n・マネーマネージャー（財務）との双方向リアルタイム自動連携（売上記帳・連動削除）のサポート。',
+            isSystem: true
+        },
+        {
+            id: 'chg_3',
+            date: '2026-05-22',
+            title: '💻 PC専用プレミアムUIの再最適化',
+            content: '・PC画面での作業効率を最大化するため、以前の最高品質プレミアム2ペイン表示に復旧。\n・サイドドロワーおよびスマホ用トグルのクリーンアップ。',
+            isSystem: true
+        },
+        {
+            id: 'chg_4',
+            date: '2026-05-19',
+            title: '🚀 共同創業コラボレーションツールの初回デプロイ',
+            content: '・共同創業者の信頼を強固にする「デジタルワークスペース」を開設。\n・創業憲章の明文化、ロードマップ＆目標管理、カレンダー共有、割り勘マネーマネージャー、アイデアボード、意思決定ログ、日報報告ボードなど主要モジュールをすべて統合。',
+            isSystem: true
+        }
+    ]
 };
 
 // まっさらな状態から開始するための空のスケルトンデータ
@@ -208,7 +238,8 @@ const EMPTY_STATE = {
     decisions: [],
     incomes: [],
     updates: [],
-    customers: []
+    customers: [],
+    changelogs: []
 };
 
 // ==========================================
@@ -3160,6 +3191,34 @@ document.addEventListener('DOMContentLoaded', () => {
         crmSearchInput.addEventListener('input', renderCRM);
     }
 
+    // ==========================================
+    // ⏳ 変更履歴 (Changelog) のイベント紐付け
+    // ==========================================
+    const changelogBtn = document.getElementById('btn-changelog');
+    if (changelogBtn) {
+        changelogBtn.addEventListener('click', () => {
+            // 追加フォーム初期リセット
+            const dateInput = document.getElementById('changelog-input-date');
+            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+            const titleInput = document.getElementById('changelog-input-title');
+            if (titleInput) titleInput.value = '';
+            const contentInput = document.getElementById('changelog-input-content');
+            if (contentInput) contentInput.value = '';
+            
+            // アコーディオンを閉じた状態にする
+            const detailsEl = document.querySelector('#modal-changelog details');
+            if (detailsEl) detailsEl.removeAttribute('open');
+            
+            renderChangelogs();
+            openModal('modal-changelog');
+        });
+    }
+
+    const submitChangelogBtn = document.getElementById('btn-submit-changelog');
+    if (submitChangelogBtn) {
+        submitChangelogBtn.addEventListener('click', addChangelog);
+    }
+
     // 最初のタブの読み込み
     switchTab('dashboard');
 });
@@ -3484,4 +3543,117 @@ window.deleteUpdate = deleteUpdate;
 window.openEditModal = openEditModal;
 window.saveEditItem = saveEditItem;
 window.deleteCustomer = deleteCustomer;
+
+// ==========================================
+// 18. システム変更・更新履歴 (Changelog) コアロジック
+// ==========================================
+function renderChangelogs() {
+    const timeline = document.getElementById('changelog-timeline');
+    if (!timeline) return;
+
+    timeline.innerHTML = '';
+    
+    // システムリリース履歴とユーザー手動履歴をマージして、日付の新しい順にソートして表示
+    if (!state.changelogs) state.changelogs = [];
+    
+    const allChangelogs = [...state.changelogs];
+    allChangelogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (allChangelogs.length === 0) {
+        timeline.innerHTML = '<p style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 20px 0;">まだ変更履歴が登録されていません。</p>';
+        return;
+    }
+
+    allChangelogs.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'changelog-item';
+        
+        const isSystem = item.isSystem ? 'system' : '';
+        const badgeText = item.isSystem ? '💻 システム更新' : '👥 共同経営ノート';
+        
+        // ユーザー追加分には削除ボタンを付与
+        const deleteBtnHtml = !item.isSystem ? `
+            <button onclick="deleteChangelog('${item.id}')" style="background: none; border: none; color: var(--color-pink); cursor: pointer; padding: 2px 6px; font-size: 11px; display: flex; align-items: center; gap: 2px; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(219,39,119,0.06)'" onmouseout="this.style.background='none'" title="この履歴を削除します">
+                <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>削除
+            </button>
+        ` : '';
+
+        itemEl.innerHTML = `
+            <div class="changelog-dot ${isSystem}"></div>
+            <div class="changelog-header">
+                <span class="changelog-date-badge ${isSystem}">
+                    ${item.date} &nbsp;•&nbsp; ${badgeText}
+                </span>
+                ${deleteBtnHtml}
+            </div>
+            <div class="changelog-title">${item.title}</div>
+            <div class="changelog-content">${item.content}</div>
+        `;
+        
+        timeline.appendChild(itemEl);
+    });
+
+    // 動的にアイコンをレンダリング（Lucideアイコンの適用）
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function addChangelog() {
+    const dateInput = document.getElementById('changelog-input-date');
+    const titleInput = document.getElementById('changelog-input-title');
+    const contentInput = document.getElementById('changelog-input-content');
+
+    if (!dateInput || !titleInput || !contentInput) return;
+
+    const date = dateInput.value;
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+
+    if (!date || !title || !content) {
+        alert('変更履歴の日付、タイトル、内容をすべて入力してください。');
+        return;
+    }
+
+    if (!state.changelogs) state.changelogs = [];
+
+    const newChangelog = {
+        id: 'chg_' + Date.now(),
+        date: date,
+        title: title,
+        content: content,
+        isSystem: false // ユーザー手動追加
+    };
+
+    state.changelogs.push(newChangelog);
+    saveState();
+    
+    // フォームリセット
+    titleInput.value = '';
+    contentInput.value = '';
+    
+    // アコーディオンを閉じる
+    const detailsEl = document.querySelector('#modal-changelog details');
+    if (detailsEl) detailsEl.removeAttribute('open');
+
+    renderChangelogs();
+    showToast('変更・更新履歴を登録しました！');
+}
+
+function deleteChangelog(id) {
+    if (!state.changelogs) return;
+    
+    const item = state.changelogs.find(c => c.id === id);
+    if (!item || item.isSystem) return; // システム公式履歴は削除不可
+
+    if (confirm(`本当にこの変更履歴（「${item.title}」）を削除しますか？`)) {
+        state.changelogs = state.changelogs.filter(c => c.id !== id);
+        saveState();
+        renderChangelogs();
+        showToast('変更履歴を削除しました', 'danger');
+    }
+}
+
+window.deleteChangelog = deleteChangelog;
+
 

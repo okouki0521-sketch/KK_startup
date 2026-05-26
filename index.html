@@ -92,6 +92,10 @@
                     <p id="current-tab-subtitle">プロジェクトの全体状況を一覧します</p>
                 </div>
                 <div class="header-actions">
+                    <button class="btn btn-secondary" id="btn-changelog" style="border-color: rgba(79, 70, 229, 0.15); color: var(--color-primary);" title="システムのアップデート・変更履歴を確認します">
+                        <i data-lucide="history"></i>
+                        <span>変更履歴</span>
+                    </button>
                     <button type="button" class="btn btn-secondary" id="btn-reset-data" style="border-color: rgba(219, 39, 119, 0.2); color: var(--color-pink); background-color: rgba(219, 39, 119, 0.03);" title="データを完全に消去して最初から開始します">
                         <i data-lucide="trash-2"></i>
                         <span>初期化</span>
@@ -1156,6 +1160,55 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary btn-close-modal">キャンセル</button>
                 <button class="btn btn-primary" id="btn-submit-customer">顧客を登録</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 変更・更新履歴 -->
+    <div class="modal-overlay" id="modal-changelog">
+        <div class="modal-box" style="max-width: 600px; width: 90%;">
+            <div class="modal-header">
+                <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="history" class="text-primary"></i>システム変更・更新履歴
+                </h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" style="max-height: 480px; overflow-y: auto; padding-right: 8px;">
+                
+                <!-- 新規履歴追加アコーディオン（お二人が自由に手動追加できるフォーム） -->
+                <details style="margin-bottom: 20px; border: 1px dashed var(--color-primary-light); border-radius: 8px; padding: 12px; background: rgba(79, 70, 229, 0.02);">
+                    <summary style="font-weight: 700; font-size: 13px; color: var(--color-primary); cursor: pointer; display: flex; align-items: center; gap: 6px; outline: none;">
+                        <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>新しい変更履歴を手動で追加する
+                    </summary>
+                    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 11px;">日付</label>
+                                <input type="date" id="changelog-input-date" style="font-size: 12px; padding: 6px 10px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 11px;">タイトル・要約</label>
+                                <input type="text" id="changelog-input-title" placeholder="例: プラン価格の改定" style="font-size: 12px; padding: 6px 10px;">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 11px;">変更の詳細内容 (箇条書きや文章)</label>
+                            <textarea id="changelog-input-content" rows="2" placeholder="例: スタンダードプランの1週間料金を1,980円から2,200円に改定しました。" style="font-size: 12px; padding: 6px 10px; font-family: inherit;"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btn-submit-changelog" style="align-self: flex-end; padding: 6px 14px; font-size: 12px;">
+                            履歴を追加して保存
+                        </button>
+                    </div>
+                </details>
+
+                <!-- タイムライン描画エリア -->
+                <div id="changelog-timeline" class="changelog-timeline" style="position: relative; padding-left: 24px; margin-top: 16px;">
+                    <!-- JavaScriptで動的に生成 -->
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">閉じる</button>
             </div>
         </div>
     </div>
