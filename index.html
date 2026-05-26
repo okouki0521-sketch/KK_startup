@@ -1213,6 +1213,28 @@
         </div>
     </div>
 
+    <!-- モーダル: 日付詳細 (クリックしたら大きくなる機能) -->
+    <div class="modal-overlay" id="modal-day-details">
+        <div class="modal-box" style="max-width: 480px; width: 90%;">
+            <div class="modal-header">
+                <h3 id="day-details-title" style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; font-weight: 700; color: #1e1b4b;">
+                    <i data-lucide="calendar" class="text-primary" style="width: 20px; height: 20px;"></i> 予定の詳細
+                </h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                <div id="day-details-events-list" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <!-- JavaScriptで動的に生成 -->
+                </div>
+                <div style="display: flex; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                    <button class="btn btn-primary" id="btn-add-event-from-details" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
+                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i>新しい予定を追加
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- トースト通知用コンテナ -->
     <div id="toast-container" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
 

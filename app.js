@@ -1121,6 +1121,10 @@ function deletePhase(id) {
     state.phases = state.phases.filter(p => p.id !== id);
     saveState();
     renderRoadmapAndGoals();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🗑️ ロードマップフェーズの削除', `開発ロードマップからフェーズ「${title}」を削除しました。`);
+    
     showToast(`フェーズ「${title}」を削除しました`, 'danger');
 }
 
@@ -1146,6 +1150,9 @@ function addPhase() {
     saveState();
     renderRoadmapAndGoals();
     
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🚀 新しいフェーズの追加', `ロードマップにフェーズ「${title}」(${period}) を追加しました。\n注力テーマ: ${desc}`);
+
     // 入力リセット＆モーダルクローズ
     document.getElementById('phase-title').value = '';
     document.getElementById('phase-period').value = '';
@@ -1159,6 +1166,10 @@ function deleteGoal(id) {
     state.goals = state.goals.filter(g => g.id !== id);
     saveState();
     renderRoadmapAndGoals();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🗑️ 目標の削除', `マイルストーン目標「${title}」を削除しました。`);
+    
     showToast(`目標「${title}」を削除しました`, 'danger');
 }
 
@@ -1189,6 +1200,12 @@ function addGoal() {
     saveState();
     renderRoadmapAndGoals();
 
+    // 変更履歴への自動記帳
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+    const assigneeLabel = assignee === 'both' ? 'お二人共同' : (assignee === 'partnerA' ? pA : pB);
+    recordChangelogAuto('🎯 新しいマイルストーン目標の設定', `目標「${title}」を設定しました。\n担当: ${assigneeLabel}、目標値: ${target}${unit}、期限: ${deadline}`);
+
     // リセット＆クローズ
     document.getElementById('goal-title').value = '';
     document.getElementById('goal-target').value = 100;
@@ -1202,6 +1219,9 @@ function adjustGoalProgress(id, amt) {
         goal.current = Math.max(0, Math.min(goal.target, goal.current + amt));
         saveState();
         renderRoadmapAndGoals();
+        
+        // 変更履歴への自動記帳
+        recordChangelogAuto('📈 目標進捗の更新', `目標「${goal.title}」の進捗を更新しました。\n現在値: ${goal.current}${goal.unit} (目標値: ${goal.target}${goal.unit})`);
     }
 }
 
@@ -1211,6 +1231,9 @@ function setGoalCompleted(id) {
         goal.current = goal.target;
         saveState();
         renderRoadmapAndGoals();
+        
+        // 変更履歴への自動記帳
+        recordChangelogAuto('🎉 マイルストーン目標の達成', `目標「${goal.title}」を達成しました！ (実績: ${goal.current}${goal.unit} / 目標: ${goal.target}${goal.unit})`);
     }
 }
 
@@ -1276,24 +1299,37 @@ function renderCalendar() {
             dayCounter++;
         }
 
-        // イベントバッジのマッチング
+        // イベントバッジのマッチング (最大2件まで表示し、3件以上は '+他N件' で集約してUIをスッキリ保つ)
         const dayEvents = state.events.filter(e => e.date === cellDateStr);
         if (dayEvents.length > 0) {
-            dayEvents.forEach(evt => {
+            // 時間順に並び替え
+            const sortedDayEvents = [...dayEvents].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+            const maxVisibleEvents = 2;
+            
+            sortedDayEvents.slice(0, maxVisibleEvents).forEach(evt => {
                 const badge = document.createElement('span');
                 badge.className = `calendar-event-dot ${evt.type}`;
+                badge.style.fontSize = '8px'; // マスの中で綺麗に収まる極小サイズ
+                badge.style.padding = '1px 4px';
                 badge.textContent = `${evt.time || ''} ${evt.title}`;
                 badge.title = `${evt.title}\n時間: ${evt.time || '未指定'}\nメモ: ${evt.notes || 'なし'}`;
                 cell.appendChild(badge);
             });
+            
+            if (dayEvents.length > maxVisibleEvents) {
+                const moreBadge = document.createElement('span');
+                moreBadge.className = 'calendar-event-dot other';
+                moreBadge.style.cssText = 'font-size: 8px; padding: 1px 4px; text-align: center; font-weight: 700; background: rgba(0,0,0,0.04); border-left: 3px solid var(--text-muted); color: var(--text-secondary);';
+                moreBadge.textContent = `+他 ${dayEvents.length - maxVisibleEvents} 件`;
+                cell.appendChild(moreBadge);
+            }
         }
 
-        // セルクリックでその日付のイベント追加をスムーズにする
+        // セルクリックで「日付詳細モーダル（クリックしたら大きくなる）」を開く！
         const finalDate = cellDateStr;
         cell.addEventListener('click', (e) => {
             if (e.target.className.includes('btn-delete-event') || e.target.closest('.btn-delete-event') || e.target.className.includes('btn-edit-event') || e.target.closest('.btn-edit-event')) return;
-            document.getElementById('evt-date').value = finalDate;
-            openModal('modal-add-event');
+            openDayDetails(finalDate);
         });
 
         daysGrid.appendChild(cell);
@@ -1373,6 +1409,10 @@ function addEvent() {
     saveState();
     renderCalendar();
 
+    // 変更履歴への自動記帳
+    const typeLabel = newEvt.type === 'meeting' ? '👥 ミーティング' : (newEvt.type === 'deadline' ? '🚨 締切' : (newEvt.type === 'milestone' ? '🎉 節目の目標' : '📅 予定'));
+    recordChangelogAuto('📅 新しい予定の追加', `予定「${newEvt.title}」(${typeLabel}) を ${newEvt.date} ${newEvt.time || ''} に追加しました。${newEvt.notes ? '\n詳細・メモ: ' + newEvt.notes : ''}`);
+
     // リセット
     document.getElementById('evt-title').value = '';
     document.getElementById('evt-notes').value = '';
@@ -1385,6 +1425,10 @@ function deleteEvent(id) {
     state.events = state.events.filter(e => e.id !== id);
     saveState();
     renderCalendar();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🗑️ 予定の削除', `予定「${title}」をカレンダーから削除しました。`);
+    
     showToast(`予定「${title}」を削除しました`, 'danger');
 }
 
@@ -1774,6 +1818,11 @@ function handleAddExpense(e) {
     saveState();
     renderFinancials();
 
+    // 変更履歴への自動記帳
+    const payerLabel = payer === 'partnerA' ? state.settings.partnerAName : state.settings.partnerBName;
+    const catLabel = getCategoryLabel(category);
+    recordChangelogAuto('💸 経費・支出の登録', `購入品「${newExpense.title}」の経費 ¥${newExpense.amount.toLocaleString()} を登録しました。 (支払者: ${payerLabel}、カテゴリ: ${catLabel}${merchant ? '、店舗: ' + merchant : ''})`);
+
     // リセット
     document.getElementById('exp-title').value = '';
     document.getElementById('exp-amount').value = '';
@@ -1787,6 +1836,10 @@ function deleteExpense(id) {
     state.expenses = state.expenses.filter(e => e.id !== id);
     saveState();
     renderFinancials();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🗑️ 経費・支出の削除', `経費支出「${title}」の記録を削除しました。`);
+    
     showToast(`経費「${title}」を削除しました`, 'danger');
 }
 
@@ -1828,6 +1881,11 @@ function handleAddIncome(e) {
 
     renderFinancials();
 
+    // 変更履歴への自動記帳
+    const receiverLabel = receiver === 'common' ? '共同プール' : (receiver === 'partnerA' ? state.settings.partnerAName : state.settings.partnerBName);
+    const catLabel = getIncomeCategoryLabel(category);
+    recordChangelogAuto('💵 収入・自己資金の登録', `項目「${newIncome.title}」の収入 ¥${newIncome.amount.toLocaleString()} を登録しました。 (受取先: ${receiverLabel}、カテゴリ: ${catLabel}${client ? '、取引先: ' + client : ''})`);
+
     // リセット
     document.getElementById('inc-title').value = '';
     document.getElementById('inc-amount').value = '';
@@ -1841,6 +1899,10 @@ function deleteIncome(id) {
     state.incomes = state.incomes.filter(i => i.id !== id);
     saveState();
     renderFinancials();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🗑️ 収入データの削除', `収入項目「${title}」の記録を削除しました。`);
+    
     showToast(`収入「${title}」を削除しました`, 'danger');
 }
 
@@ -2188,6 +2250,10 @@ function handleAddUpdate(e) {
     saveState();
     renderUpdates();
 
+    // 変更履歴への自動記帳
+    const authorName = author === 'partnerA' ? state.settings.partnerAName : state.settings.partnerBName;
+    recordChangelogAuto('📝 進捗共有・日報の提出', `${authorName} が進捗日報(${date})を共有しました。\n取り組んだこと: ${done}`);
+
     document.getElementById('upd-done').value = '';
     document.getElementById('upd-todo').value = '';
     document.getElementById('upd-date').value = new Date().toISOString().split('T')[0];
@@ -2196,9 +2262,17 @@ function handleAddUpdate(e) {
 }
 
 function deleteUpdate(id) {
+    const item = state.updates.find(u => u.id === id);
+    const date = item ? item.date : '';
+    const author = item ? (item.author === 'partnerA' ? state.settings.partnerAName : state.settings.partnerBName) : '';
+    
     state.updates = state.updates.filter(u => u.id !== id);
     saveState();
     renderUpdates();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🗑️ 進捗報告・日報の削除', `${author} の進捗日報(${date})の記録を削除しました。`);
+    
     showToast('進捗共有ログを削除しました', 'danger');
 }
 
@@ -2342,6 +2416,9 @@ function addIdea() {
     saveState();
     renderIdeas();
 
+    // 変更履歴への自動記帳
+    recordChangelogAuto('💡 新規アイデアの提案', `アイデア付箋「${newIdea.title}」をボードに投稿しました。\n内容: ${newIdea.desc}`);
+
     // リセット
     document.getElementById('idea-title').value = '';
     document.getElementById('idea-desc').value = '';
@@ -2354,6 +2431,10 @@ function deleteIdea(id) {
     state.ideas = state.ideas.filter(i => i.id !== id);
     saveState();
     renderIdeas();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🗑️ アイデアの削除', `アイデア付箋「${title}」をはがしました。`);
+    
     showToast(`アイデア付箋「${title}」をはがしました`, 'danger');
 }
 
@@ -2446,6 +2527,9 @@ function addDecision() {
     saveState();
     renderDecisions();
 
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🤝 共同経営合意の記録', `決定事項「${newDec.title}」を記録しました。\n理由・詳細: ${newDec.reason}`);
+
     // リセット
     document.getElementById('dec-title').value = '';
     document.getElementById('dec-reason').value = '';
@@ -2458,6 +2542,10 @@ function deleteDecision(id) {
     state.decisions = state.decisions.filter(d => d.id !== id);
     saveState();
     renderDecisions();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🗑️ 経営合意ログの削除', `決定事項「${title}」の記録を削除しました。`);
+    
     showToast(`意思決定ログ「${title}」を削除しました`, 'danger');
 }
 
@@ -3002,6 +3090,23 @@ function saveEditItem(type, id) {
     }
 
     saveState();
+    
+    // 変更履歴への自動記帳
+    const typeLabelMap = {
+        phases: '🚀 ロードマップフェーズ',
+        goals: '🎯 目標・マイルストーン',
+        events: '📅 カレンダー予定',
+        expenses: '💸 経費・支出データ',
+        incomes: '💵 収入・自己資金データ',
+        ideas: '💡 アイデア付箋',
+        decisions: '🤝 共同経営合意ログ',
+        updates: '📝 進捗日報・報告',
+        customers: '💰 顧客情報および売上'
+    };
+    const label = typeLabelMap[type] || '登録データ';
+    const nameOrTitle = item.title || item.name || '項目';
+    recordChangelogAuto('✏️ 登録データの編集更新', `${label}「${nameOrTitle}」の登録情報を変更・更新しました。`);
+
     closeModal('modal-edit-item');
     showToast('変更内容を保存し、同期しました');
 
@@ -3488,6 +3593,10 @@ function addCustomer() {
     state.incomes.push(incomeItem);
 
     saveState();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('💰 顧客登録＆売上発生', `顧客「${newCustomer.name}」様(${flagDisplayCountryName(newCustomer.country)}) を新規登録し、売上 ¥${newCustomer.amount.toLocaleString()} が財務売上へ自動記帳されました。 (プラン: ${newCustomer.plan} / ${newCustomer.duration})`);
+
     closeModal('modal-add-customer');
     renderCRM();
     
@@ -3522,6 +3631,10 @@ function deleteCustomer(id) {
         state.incomes = state.incomes.filter(inc => inc.refCrmCustomerId !== id);
         
         saveState();
+        
+        // 変更履歴への自動記帳
+        recordChangelogAuto('🗑️ 顧客および売上の削除', `顧客「${customer.name}」様の登録情報と、連動する売上 ¥${customer.amount.toLocaleString()} の記録を削除しました。`);
+
         renderCRM();
         showToast(`顧客「${customer.name}」のデータと連動売上を削除しました`, 'danger');
     }
@@ -3655,5 +3768,110 @@ function deleteChangelog(id) {
 }
 
 window.deleteChangelog = deleteChangelog;
+
+// ==========================================
+// 19. 自動変更・履歴記帳システム & 日付詳細ズーム
+// ==========================================
+function recordChangelogAuto(title, content) {
+    if (!state.changelogs) state.changelogs = [];
+    
+    const newLog = {
+        id: 'chg_auto_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        date: new Date().toISOString().split('T')[0],
+        title: title,
+        content: content,
+        isSystem: false // 手動追加と同じなので削除可能
+    };
+    
+    state.changelogs.push(newLog);
+    saveState();
+}
+
+function openDayDetails(dateStr) {
+    const listContainer = document.getElementById('day-details-events-list');
+    const titleEl = document.getElementById('day-details-title');
+    const addEventBtn = document.getElementById('btn-add-event-from-details');
+    
+    if (!listContainer || !titleEl) return;
+    
+    // 年月日の日本語整形
+    const [y, m, d] = dateStr.split('-');
+    const formattedDate = `${y}年${parseInt(m)}月${parseInt(d)}日`;
+    titleEl.innerHTML = `<i data-lucide="calendar" class="text-primary" style="width: 20px; height: 20px;"></i> ${formattedDate} の予定・詳細`;
+    
+    listContainer.innerHTML = '';
+    
+    // その日のイベント抽出
+    const dayEvents = state.events.filter(e => e.date === dateStr);
+    
+    if (dayEvents.length === 0) {
+        listContainer.innerHTML = `
+            <div style="text-align: center; padding: 24px 0; color: var(--text-muted); font-size: 13px;">
+                <i data-lucide="calendar-range" style="width: 32px; height: 32px; margin-bottom: 8px; opacity: 0.5;"></i>
+                <p style="margin: 0;">この日の登録予定はありません</p>
+            </div>
+        `;
+    } else {
+        dayEvents.forEach(evt => {
+            const item = document.createElement('div');
+            item.className = `upcoming-event-item ${evt.type}`;
+            item.style.cssText = 'position: relative; padding: 12px; border-radius: var(--radius-md); border-left: 4px solid var(--color-primary); background: #f8fafc; margin-bottom: 8px;';
+            
+            if (evt.type === 'meeting') item.style.borderLeftColor = 'var(--color-blue)';
+            else if (evt.type === 'deadline') item.style.borderLeftColor = 'var(--color-pink)';
+            else if (evt.type === 'milestone') item.style.borderLeftColor = 'var(--color-purple)';
+            
+            item.innerHTML = `
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 2px;">⏰ ${evt.time || '時間指定なし'}</div>
+                <div style="font-size: 13.5px; font-weight: 700; color: #1e1b4b; margin-bottom: 4px;">${evt.title}</div>
+                ${evt.notes ? `<div style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">📝 ${evt.notes}</div>` : ''}
+                <div style="position: absolute; right: 12px; top: 12px; display: flex; gap: 6px;">
+                    <button type="button" class="btn-icon-sm edit" onclick="closeModal('modal-day-details'); openEditModal('events', '${evt.id}')" title="編集" style="width: 26px; height: 26px;">
+                        <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+                    </button>
+                    <button type="button" class="btn-icon-sm delete" onclick="deleteDayEvent('${evt.id}', '${dateStr}')" title="削除" style="width: 26px; height: 26px;">
+                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                    </button>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
+    }
+    
+    // イベント追加ボタンの連動
+    addEventBtn.onclick = () => {
+        closeModal('modal-day-details');
+        document.getElementById('evt-date').value = dateStr;
+        openModal('modal-add-event');
+    };
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    openModal('modal-day-details');
+}
+
+function deleteDayEvent(id, dateStr) {
+    const item = state.events.find(e => e.id === id);
+    const title = item ? item.title : '予定';
+    
+    if (confirm(`本当に予定「${title}」を削除しますか？`)) {
+        state.events = state.events.filter(e => e.id !== id);
+        saveState();
+        renderCalendar();
+        
+        // 変更履歴への自動記帳
+        recordChangelogAuto('🗑️ 予定の削除', `予定「${title}」をカレンダーから削除しました。`);
+        
+        // 詳細ポップアップを再描画
+        openDayDetails(dateStr);
+        showToast(`予定「${title}」を削除しました`, 'danger');
+    }
+}
+
+window.openDayDetails = openDayDetails;
+window.deleteDayEvent = deleteDayEvent;
+
 
 
