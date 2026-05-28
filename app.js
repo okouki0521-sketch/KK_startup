@@ -2324,8 +2324,37 @@ function renderIdeas() {
     const pA = state.settings.partnerAName;
     const pB = state.settings.partnerBName;
 
-    if (state.ideas.length > 0) {
-        state.ideas.forEach(idea => {
+    const activeSubtab = state.ideasActiveSubtab || 'active';
+    
+    // サブタブボタンの active スタイル動的適用
+    const tabActive = document.getElementById('subtab-ideas-active');
+    const tabCompleted = document.getElementById('subtab-ideas-completed');
+    if (tabActive && tabCompleted) {
+        if (activeSubtab === 'active') {
+            tabActive.classList.add('active');
+            tabActive.style.borderBottomColor = 'var(--color-primary)';
+            tabActive.style.color = 'var(--color-primary)';
+            tabCompleted.classList.remove('active');
+            tabCompleted.style.borderBottomColor = 'transparent';
+            tabCompleted.style.color = 'var(--text-muted)';
+        } else {
+            tabCompleted.classList.add('active');
+            tabCompleted.style.borderBottomColor = 'var(--color-primary)';
+            tabCompleted.style.color = 'var(--color-primary)';
+            tabActive.classList.remove('active');
+            tabActive.style.borderBottomColor = 'transparent';
+            tabActive.style.color = 'var(--text-muted)';
+        }
+    }
+
+    // アイデアをフィルタリング
+    const filteredIdeas = state.ideas.filter(idea => {
+        const status = idea.status || 'active';
+        return status === activeSubtab;
+    });
+
+    if (filteredIdeas.length > 0) {
+        filteredIdeas.forEach(idea => {
             const card = document.createElement('div');
             card.className = `idea-sticky`;
             card.setAttribute('data-idea-id', idea.id);
@@ -2334,12 +2363,32 @@ function renderIdeas() {
             const likedClass = isLikedByMe ? 'liked' : '';
             const authorLabel = idea.author === 'partnerA' ? pA : pB;
 
+            // 完了ステータスに応じた完了マーク
+            const isCompleted = (idea.status || 'active') === 'completed';
+            const completedTag = isCompleted ? `<span style="font-size: 10px; background: rgba(16, 185, 129, 0.1); color: var(--color-success); padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 8px; display: inline-flex; align-items: center; gap: 3px;"><i data-lucide="check" style="width: 10px; height: 10px;"></i>完了済</span>` : '';
+
+            // 完了/元に戻すボタンの切り替え
+            let completeActionBtn = '';
+            if (isCompleted) {
+                completeActionBtn = `
+                    <button type="button" class="btn-icon-sm edit" onclick="event.stopPropagation(); revertIdea('${idea.id}')" title="進行中に戻す" style="width: 28px; height: 28px; border-radius: 50%; color: var(--color-primary); border-color: rgba(79, 70, 229, 0.2); background: rgba(79, 70, 229, 0.05);">
+                        <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+                    </button>
+                `;
+            } else {
+                completeActionBtn = `
+                    <button type="button" class="btn-icon-sm edit" onclick="event.stopPropagation(); completeIdea('${idea.id}')" title="このアイデアを実行・完了にする" style="width: 28px; height: 28px; border-radius: 50%; color: var(--color-success); border-color: rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.05);">
+                        <i data-lucide="check-square" style="width: 14px; height: 14px;"></i>
+                    </button>
+                `;
+            }
+
             card.innerHTML = `
                 <div class="idea-header-clickable" onclick="toggleIdeaAccordion('${idea.id}')">
                     <div class="idea-header-title-section">
                         <i data-lucide="chevron-down" class="idea-chevron-icon" style="width: 16px; height: 16px; flex-shrink: 0; color: var(--text-muted);"></i>
                         <span class="idea-color-dot ${idea.color || 'yellow'}"></span>
-                        <h4>${idea.title}</h4>
+                        <h4 style="display: flex; align-items: center; flex-wrap: wrap;">${idea.title} ${completedTag}</h4>
                     </div>
                     <div class="idea-header-meta">
                         <span class="idea-author">提案者: ${authorLabel}</span>
@@ -2362,6 +2411,7 @@ function renderIdeas() {
                             </button>
                         </div>
                         <div style="display: flex; gap: 6px;">
+                            ${completeActionBtn}
                             <button type="button" class="btn-icon-sm edit" onclick="event.stopPropagation(); openEditModal('ideas', '${idea.id}')" title="編集" style="width: 28px; height: 28px; border-radius: 50%; color: var(--text-muted);">
                                 <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
                             </button>
@@ -2378,7 +2428,7 @@ function renderIdeas() {
         grid.innerHTML = `
             <div class="empty-state" style="grid-column: 1 / -1; width: 100%; padding: 40px 20px;">
                 <i data-lucide="lightbulb" style="width: 40px; height: 40px;"></i>
-                <p>アイデアがありません。上のボタンから最初のアイデアを投稿しましょう！</p>
+                <p>${activeSubtab === 'active' ? '進行中のアイデアはありません。上のボタンから最初のアイデアを投稿しましょう！' : '完了したアイデアはありません。進行中の付箋の「完了」ボタンを押して登録しましょう！'}</p>
             </div>
         `;
     }
@@ -2409,7 +2459,8 @@ function addIdea() {
         color: color,
         author: 'partnerA', // アプリ使用者は基本パートナーA（アリス）として振る舞う
         date: new Date().toISOString().split('T')[0],
-        likes: []
+        likes: [],
+        status: 'active'
     };
 
     state.ideas.push(newIdea);
@@ -2451,6 +2502,46 @@ function toggleIdeaLike(id) {
         renderIdeas();
     }
 }
+
+function completeIdea(id) {
+    const idea = state.ideas.find(i => i.id === id);
+    if (!idea) return;
+
+    idea.status = 'completed';
+    state.ideasActiveSubtab = 'completed'; // 「完了したアイデア」サブタブに自動移動！
+    saveState();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('✅ アイデアの完了', `提案アイデア「${idea.title}」を実行・完了しました！`);
+    
+    renderIdeas();
+    showToast(`アイデア「${idea.title}」を完了に移動しました！`, 'success');
+}
+
+function revertIdea(id) {
+    const idea = state.ideas.find(i => i.id === id);
+    if (!idea) return;
+
+    idea.status = 'active';
+    state.ideasActiveSubtab = 'active'; // 進行中に自動移動！
+    saveState();
+    
+    // 変更履歴への自動記帳
+    recordChangelogAuto('🔄 アイデアを進行中に戻す', `完了したアイデア「${idea.title}」を進行中に戻しました。`);
+    
+    renderIdeas();
+    showToast(`アイデア「${idea.title}」を進行中に戻しました。`);
+}
+
+function switchIdeasSubtab(subtab) {
+    state.ideasActiveSubtab = subtab;
+    saveState();
+    renderIdeas();
+}
+
+window.completeIdea = completeIdea;
+window.revertIdea = revertIdea;
+window.switchIdeasSubtab = switchIdeasSubtab;
 
 // ==========================================
 // 12. 意思決定ログ (Decision Log)

@@ -627,12 +627,22 @@
 
                 <!-- 6. アイディアボード -->
                 <section class="tab-pane" id="tab-ideas">
-                    <div class="ideas-header">
+                    <div class="ideas-header" style="margin-bottom: 16px;">
                         <div class="ideas-intro">
                             <p>思いついたビジネスアイデア、機能案、改善案を付箋として追加しましょう。相方の付箋に「いいね」したり、コメントを残せます。</p>
                         </div>
                         <button class="btn btn-primary" id="btn-add-idea">
                             <i data-lucide="plus"></i> 新しいアイデアを出す
+                        </button>
+                    </div>
+
+                    <!-- アイデア用サブタブナビゲーション（進行中 vs 完了） -->
+                    <div class="ideas-subtabs" style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #f1f5f9; padding-bottom: 2px;">
+                        <button class="subtab-btn active" id="subtab-ideas-active" onclick="switchIdeasSubtab('active')" style="padding: 10px 20px; font-size: 13.5px; font-weight: 700; border: none; background: none; border-bottom: 3px solid var(--color-primary); color: var(--color-primary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="lightbulb" style="width: 16px; height: 16px;"></i> 進行中のアイデア
+                        </button>
+                        <button class="subtab-btn" id="subtab-ideas-completed" onclick="switchIdeasSubtab('completed')" style="padding: 10px 20px; font-size: 13.5px; font-weight: 700; border: none; background: none; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> 完了したアイデア
                         </button>
                     </div>
 
