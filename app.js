@@ -5116,9 +5116,25 @@ function initQuickChatEvents() {
     const chatInput = document.getElementById('chat-input');
     if (sendBtn && chatInput) {
         sendBtn.addEventListener('click', sendQuickChatMessage);
+        
+        let enterCount = 0;
         chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                sendQuickChatMessage();
+                if (e.isComposing) {
+                    // IME 確定用のエンター
+                    enterCount = 1;
+                    return;
+                }
+                
+                enterCount++;
+                if (enterCount >= 2) {
+                    sendQuickChatMessage();
+                    enterCount = 0;
+                } else {
+                    e.preventDefault(); // 1回目は送信しない
+                }
+            } else {
+                enterCount = 0; // エンター以外のキーが押されたらカウントリセット
             }
         });
     }
@@ -5197,9 +5213,25 @@ function initAIChatEvents() {
     const aiChatInput = document.getElementById('ai-chat-input');
     if (sendAIChatBtn && aiChatInput) {
         sendAIChatBtn.addEventListener('click', sendAIChatMessage);
+        
+        let enterCount = 0;
         aiChatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                sendAIChatMessage();
+                if (e.isComposing) {
+                    // IME 確定用のエンター
+                    enterCount = 1;
+                    return;
+                }
+                
+                enterCount++;
+                if (enterCount >= 2) {
+                    sendAIChatMessage();
+                    enterCount = 0;
+                } else {
+                    e.preventDefault(); // 1回目は送信しない
+                }
+            } else {
+                enterCount = 0; // エンター以外のキーが押されたらカウントリセット
             }
         });
     }
