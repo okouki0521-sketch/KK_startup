@@ -373,7 +373,7 @@ function initStore() {
                 // 新機能や今後のアップデートで増えたキー（DEFAULT_STATEにあるが現在のstateに存在しないもの）のみ安全に追加
                 const defaultKeys = Object.keys(DEFAULT_STATE);
                 defaultKeys.forEach(k => {
-                    if (!(k in state)) {
+                    if (!(k in state) || (Array.isArray(DEFAULT_STATE[k]) && !Array.isArray(state[k]))) {
                         state[k] = JSON.parse(JSON.stringify(DEFAULT_STATE[k]));
                     }
                 });
@@ -805,7 +805,8 @@ function applyDynamicNames() {
     const project = state.settings.projectName;
 
     // タイトル更新
-    document.querySelector('.brand-text h1').textContent = project;
+    const brandTitle = document.querySelector('.brand-text h1');
+    if (brandTitle) brandTitle.textContent = project;
 
     // アバター
     const avatars = document.querySelectorAll('.partner-avatar');
@@ -819,7 +820,8 @@ function applyDynamicNames() {
     }
 
     // パートナー名表記
-    document.getElementById('partner-names-display').textContent = `${pA} & ${pB}`;
+    const namesDisplay = document.getElementById('partner-names-display');
+    if (namesDisplay) namesDisplay.textContent = `${pA} & ${pB}`;
 
     // 創業憲章内の名前ラベル
     const labelA = document.getElementById('label-share-a');
@@ -4205,18 +4207,23 @@ function renderMemos() {
     const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
     gridContainer.innerHTML = '';
 
-    if (!state.sharedMemos) state.sharedMemos = [];
+    if (!state.sharedMemos || !Array.isArray(state.sharedMemos)) {
+        state.sharedMemos = [];
+    }
 
     // フィルタリング処理
     let filtered = state.sharedMemos;
     if (currentMemoFilter !== 'all') {
-        filtered = filtered.filter(m => m.category === currentMemoFilter);
+        filtered = filtered.filter(m => m && m.category === currentMemoFilter);
     }
     if (searchQuery !== '') {
-        filtered = filtered.filter(m => 
-            m.title.toLowerCase().includes(searchQuery) || 
-            m.content.toLowerCase().includes(searchQuery)
-        );
+        filtered = filtered.filter(m => {
+            if (!m) return false;
+            const title = m.title || '';
+            const content = m.content || '';
+            return title.toLowerCase().includes(searchQuery) || 
+                   content.toLowerCase().includes(searchQuery);
+        });
     }
 
     if (filtered.length === 0) {
@@ -4228,8 +4235,9 @@ function renderMemos() {
         `;
     } else {
         filtered.forEach(m => {
+            if (!m) return;
             const card = document.createElement('div');
-            card.className = `memo-card ${m.category}`;
+            card.className = `memo-card ${m.category || 'other'}`;
             
             // カテゴリの日本語表示
             let catName = 'その他';
@@ -4242,9 +4250,11 @@ function renderMemos() {
             const authorClass = m.lastUpdatedBy === 'partnerA' ? 'pA' : 'pB';
 
             // 本文中のプレースホルダー（[パートナー名]など）を動的に置換して表示（コピー時は原文のまま）
-            let displayContent = m.content;
-            displayContent = displayContent.replace(/\[パートナー名\]/g, authorName);
-            displayContent = displayContent.replace(/\[煌記\/和弥\]/g, authorName);
+            let displayContent = m.content || '';
+            if (typeof displayContent === 'string') {
+                displayContent = displayContent.replace(/\[パートナー名\]/g, authorName || '');
+                displayContent = displayContent.replace(/\[煌記\/和弥\]/g, authorName || '');
+            }
 
             card.innerHTML = `
                 <div class="memo-card-header">
@@ -4261,7 +4271,7 @@ function renderMemos() {
                         </button>
                     </div>
                 </div>
-                <h4 onclick="openEditMemo('${m.id}')">${m.title}</h4>
+                <h4 onclick="openEditMemo('${m.id}')">${m.title || ''}</h4>
                 <div class="memo-content-box">${displayContent}</div>
                 ${m.fileUrl ? `
                 <div class="memo-attachment-link" style="margin-top: 10px;">
@@ -4274,7 +4284,7 @@ function renderMemos() {
                 ` : ''}
                 <div class="memo-footer">
                     <div class="memo-meta-info">
-                        更新: <span class="${authorClass}">${authorName}</span> (${m.date})
+                        更新: <span class="${authorClass}">${authorName || ''}</span> (${m.date || ''})
                     </div>
                 </div>
             `;
@@ -4316,13 +4326,15 @@ function handleAddOrEditMemo() {
         currentAuthor = memoAuthEl.value;
     }
 
-    if (!state.sharedMemos) state.sharedMemos = [];
+    if (!state.sharedMemos || !Array.isArray(state.sharedMemos)) {
+        state.sharedMemos = [];
+    }
 
     const dateStr = new Date().toISOString().split('T')[0];
 
     if (editId) {
         // 編集
-        const memo = state.sharedMemos.find(m => m.id === editId);
+        const memo = state.sharedMemos.find(m => m && m.id === editId);
         if (memo) {
             memo.title = title;
             memo.category = category;
@@ -4367,11 +4379,14 @@ function handleAddOrEditMemo() {
 }
 
 function deleteMemo(id) {
-    const memo = state.sharedMemos.find(m => m.id === id);
+    if (!state.sharedMemos || !Array.isArray(state.sharedMemos)) {
+        state.sharedMemos = [];
+    }
+    const memo = state.sharedMemos.find(m => m && m.id === id);
     if (!memo) return;
 
-    if (confirm(`本当にメモ「${memo.title}」を削除しますか？`)) {
-        state.sharedMemos = state.sharedMemos.filter(m => m.id !== id);
+    if (confirm(`本当にメモ「${memo.title || ''}」を削除しますか？`)) {
+        state.sharedMemos = state.sharedMemos.filter(m => m && m.id !== id);
         saveState();
         renderMemos();
         showToast('メモを削除しました', 'danger');
@@ -4379,14 +4394,17 @@ function deleteMemo(id) {
 }
 
 function openEditMemo(id) {
-    const memo = state.sharedMemos.find(m => m.id === id);
+    if (!state.sharedMemos || !Array.isArray(state.sharedMemos)) {
+        state.sharedMemos = [];
+    }
+    const memo = state.sharedMemos.find(m => m && m.id === id);
     if (!memo) return;
 
     document.getElementById('memo-modal-title').textContent = '共有メモを編集';
     document.getElementById('memo-edit-id').value = memo.id;
-    document.getElementById('memo-title').value = memo.title;
-    document.getElementById('memo-category').value = memo.category;
-    document.getElementById('memo-content').value = memo.content;
+    document.getElementById('memo-title').value = memo.title || '';
+    document.getElementById('memo-category').value = memo.category || 'rule';
+    document.getElementById('memo-content').value = memo.content || '';
     document.getElementById('memo-file-name').value = memo.fileName || '';
     document.getElementById('memo-file-url').value = memo.fileUrl || '';
 
