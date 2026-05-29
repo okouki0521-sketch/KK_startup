@@ -2096,6 +2096,272 @@ body {
     white-space: pre-line;
 }
 
+/* ---------------------------------------------------- */
+/* ALIGNMENT / SHARED MEMOS SPACE SPECIFIC              */
+/* ---------------------------------------------------- */
+.memos-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 28px;
+    background-color: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: var(--border-radius-lg);
+    padding: 16px 24px;
+    box-shadow: var(--card-shadow);
+}
+
+.memos-search-box {
+    position: relative;
+    flex: 1;
+    max-width: 320px;
+}
+
+.memos-search-box input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border-radius: var(--border-radius-md);
+    border: 1px solid #e2e8f0;
+    font-size: 13.5px;
+    font-weight: 550;
+    transition: var(--transition-smooth);
+    background-color: #f8fafc;
+}
+
+.memos-search-box input:focus {
+    background-color: #ffffff;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    outline: none;
+}
+
+.memos-search-box .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+.memos-category-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-chip {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.filter-chip:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.filter-chip.active {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+.memos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.memo-card {
+    background-color: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: var(--border-radius-lg);
+    padding: 24px;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: var(--transition-smooth);
+    border-left: 4px solid var(--text-muted);
+    position: relative;
+    overflow: hidden;
+}
+
+.memo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.memo-card.rule { border-left-color: var(--color-blue); }
+.memo-card.customer { border-left-color: var(--color-green); }
+.memo-card.marketing { border-left-color: var(--color-purple); }
+.memo-card.other { border-left-color: var(--color-pink); }
+
+.memo-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.memo-category-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: #f1f5f9;
+}
+
+.memo-card.rule .memo-category-badge { background-color: rgba(2, 132, 199, 0.08); color: var(--color-blue); }
+.memo-card.customer .memo-category-badge { background-color: rgba(16, 185, 129, 0.08); color: var(--color-green); }
+.memo-card.marketing .memo-category-badge { background-color: rgba(147, 51, 234, 0.08); color: var(--color-purple); }
+.memo-card.other .memo-category-badge { background-color: rgba(219, 39, 119, 0.08); color: var(--color-pink); }
+
+.memo-card h4 {
+    font-size: 15.5px;
+    font-weight: 800;
+    color: #1e1b4b;
+    margin: 0;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.memo-card h4:hover {
+    color: var(--color-primary);
+}
+
+.memo-content-box {
+    font-size: 12.8px;
+    color: var(--text-primary);
+    line-height: 1.55;
+    background-color: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: var(--border-radius-sm);
+    padding: 12px 14px;
+    white-space: pre-line;
+    max-height: 180px;
+    overflow-y: auto;
+    font-weight: 500;
+    flex-grow: 1;
+}
+
+.memo-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 12px;
+    margin-top: 4px;
+}
+
+.memo-meta-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.memo-meta-info span {
+    font-weight: 700;
+}
+
+.memo-meta-info span.pA { color: var(--color-blue); }
+.memo-meta-info span.pB { color: var(--color-purple); }
+
+.memo-actions-btn-group {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-memo-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.btn-memo-action:hover {
+    background-color: #f8fafc;
+    color: var(--text-primary);
+}
+
+.btn-memo-action.copy {
+    color: var(--color-primary);
+    border-color: rgba(79, 70, 229, 0.2);
+    background-color: rgba(79, 70, 229, 0.02);
+}
+
+.btn-memo-action.copy:hover {
+    background-color: var(--color-primary);
+    color: #ffffff;
+}
+
+.btn-memo-action.delete:hover {
+    background-color: var(--color-pink);
+    color: #ffffff;
+    border-color: var(--color-pink);
+}
+
+.btn-memo-action.edit:hover {
+    background-color: #f1f5f9;
+}
+
+/* コピー完了時のミニトースト/アニメーション用クラス */
+@keyframes copyPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); background-color: var(--color-green); color: #ffffff; border-color: var(--color-green); }
+    100% { transform: scale(1); }
+}
+
+.copy-success-animation {
+    animation: copyPulse 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.empty-memos-state {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    text-align: center;
+    background-color: var(--bg-card);
+    border: 1px dashed #cbd5e1;
+    border-radius: var(--border-radius-lg);
+    color: var(--text-muted);
+}
+
+.empty-memos-state i {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.empty-memos-state p {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+}
+
 
 
 

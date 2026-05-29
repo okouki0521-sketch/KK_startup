@@ -66,6 +66,10 @@
                     <i data-lucide="clipboard-list"></i>
                     <span>進捗共有・日報</span>
                 </a>
+                <a href="#" class="nav-item" data-tab="alignment">
+                    <i data-lucide="notebook"></i>
+                    <span>共通認識スペース</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
@@ -819,6 +823,31 @@
                             <!-- 動的に国籍比率が生成 -->
                         </div>
                     </div>
+            </section>
+
+            <!-- 10. 共通認識スペースタブ -->
+            <section class="tab-pane" id="tab-alignment">
+                <!-- 検索・フィルターバー -->
+                <div class="memos-filter-bar">
+                    <div class="memos-search-box">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="memo-search-input" placeholder="ルールやメモを検索..." autocomplete="off">
+                    </div>
+                    <div class="memos-category-filters" id="memo-category-filters">
+                        <button class="filter-chip active" data-category="all">すべて</button>
+                        <button class="filter-chip" data-category="rule">業務ルール</button>
+                        <button class="filter-chip" data-category="customer">顧客対応</button>
+                        <button class="filter-chip" data-category="marketing">マーケティング</button>
+                        <button class="filter-chip" data-category="other">その他</button>
+                    </div>
+                    <button class="btn btn-primary" id="btn-add-memo-modal">
+                        <i data-lucide="plus-circle"></i>共有メモを追加
+                    </button>
+                </div>
+
+                <!-- メモ一覧グリッド -->
+                <div class="memos-grid" id="memos-grid-container">
+                    <!-- JSで動的にメモカードがレンダリングされます -->
                 </div>
             </section>
         </main>
@@ -1241,6 +1270,37 @@
                         <i data-lucide="plus" style="width: 16px; height: 16px;"></i>新しい予定を追加
                     </button>
                 </div>
+            </div>
+    <!-- モーダル: 共有メモ追加・編集 -->
+    <div class="modal-overlay" id="modal-add-memo">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="memo-modal-title">共有メモを追加</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="memo-edit-id">
+                <div class="form-group">
+                    <label>タイトル</label>
+                    <input type="text" id="memo-title" placeholder="例: インスタDMのテンプレート、サーバー移行手順等" required>
+                </div>
+                <div class="form-group">
+                    <label>カテゴリ</label>
+                    <select id="memo-category">
+                        <option value="rule">業務ルール</option>
+                        <option value="customer">顧客対応</option>
+                        <option value="marketing">マーケティング</option>
+                        <option value="other">その他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>本文・内容 (テンプレートやルール内容)</label>
+                    <textarea id="memo-content" rows="8" placeholder="共有したい内容を記載してください。DM文面などをここに登録しておくと、後からワンクリックでコピーできます。" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-memo">保存する</button>
             </div>
         </div>
     </div>

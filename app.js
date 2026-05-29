@@ -200,6 +200,40 @@ const DEFAULT_STATE = {
             content: '・共同創業者の信頼を強固にする「デジタルワークスペース」を開設。\n・創業憲章の明文化、ロードマップ＆目標管理、カレンダー共有、割り勘マネーマネージャー、アイデアボード、意思決定ログ、日報報告ボードなど主要モジュールをすべて統合。',
             isSystem: true
         }
+    ],
+    sharedMemos: [
+        {
+            id: 'memo-1',
+            title: 'インスタDM対応：ファーストアプローチ文面',
+            category: 'customer',
+            content: '初めまして！旅行プラン作成サポート『LumiJourney』の[パートナー名]と申します。SNSでの素敵なお写真や旅の投稿を拝見し、ぜひ私たちの新サービスをご体験いただきたくDMいたしました！\n\n私たちは、忙しい日常の中で「旅行の計画がストレスになってしまう」という方のための、完全オーダーメイド旅行プラン作成サービスです。\n現在、5社限定で無料モニターを募集しております。もしご興味がございましたら、ぜひ詳細をLP（ https://lumijourney.example.com ）にてご覧いただき、お返事いただけますと幸いです！よろしくお願いいたします！',
+            lastUpdatedBy: 'partnerB',
+            date: '2026-05-28'
+        },
+        {
+            id: 'memo-2',
+            title: '問い合わせ対応ルール (返信スピードの目安)',
+            category: 'rule',
+            content: '・インスタDMやWebサイトから問い合わせを受信した場合、気がついた方が「3時間以内」にファーストアクション（受領連絡または日程調整）のメッセージを返信する。\n・対応が遅れる、または返答に迷う場合は、必ずすぐにもう一方のパートナーにDM等で相談し、カバーし合うこと。',
+            lastUpdatedBy: 'partnerA',
+            date: '2026-05-27'
+        },
+        {
+            id: 'memo-3',
+            title: 'SNS投稿用の推奨ハッシュタグ一覧',
+            category: 'marketing',
+            content: 'インスタグラムやTikTokで動画・写真を投稿する際は、以下のタグセットをキャプションの末尾に必ず追加してください。\n\n#LumiJourney #旅行計画 #旅行プラン #オーダーメイド旅行 #旅行準備 #旅行の悩み解決 #旅行好きと繋がりたい #タビジョ #映え旅',
+            lastUpdatedBy: 'partnerB',
+            date: '2026-05-26'
+        },
+        {
+            id: 'memo-4',
+            title: '共有フォルダと使用ツールのリンク集',
+            category: 'other',
+            content: '・公式Googleドライブ（領収書・資料保管）: https://drive.google.com/drive/folders/lumi-shared\n・LP公開URL: https://lumijourney.example.com\n・ドメイン・サーバー管理（Vercel）: https://vercel.com/koki/lumi-web-app\n・営業アプローチ先スプレッドシート: https://docs.google.com/spreadsheets/d/lumi-sales',
+            lastUpdatedBy: 'partnerA',
+            date: '2026-05-25'
+        }
     ]
 };
 
@@ -239,7 +273,8 @@ const EMPTY_STATE = {
     incomes: [],
     updates: [],
     customers: [],
-    changelogs: []
+    changelogs: [],
+    sharedMemos: []
 };
 
 // ==========================================
@@ -451,6 +486,8 @@ function switchTabQuietly(tabId) {
         renderUpdates();
     } else if (tabId === 'customers') {
         renderCRM();
+    } else if (tabId === 'alignment') {
+        renderMemos();
     }
 }
 
@@ -546,7 +583,8 @@ const TAB_INFO = {
     ideas: { title: 'アイディアボード', subtitle: 'ブレインストーミングとインスピレーションの保管庫' },
     decisions: { title: '意思決定ログ', subtitle: '「言った・言わない」を防ぐための決定事項の公式アーカイブ' },
     updates: { title: '進捗共有・日報', subtitle: '今日取り組んだことと今後取り組むことをお互いに可視化します' },
-    customers: { title: '顧客＆売上管理', subtitle: 'サービス利用顧客の属性と売上比率を分析・管理します' }
+    customers: { title: '顧客＆売上管理', subtitle: 'サービス利用顧客の属性と売上比率を分析・管理します' },
+    alignment: { title: '共通認識スペース', subtitle: '共同業務上のルール、テンプレート、共通認識を自由に管理・コピペできます' }
 };
 
 function switchTab(tabId) {
@@ -589,6 +627,8 @@ function switchTab(tabId) {
         renderUpdates();
     } else if (tabId === 'customers') {
         renderCRM();
+    } else if (tabId === 'alignment') {
+        renderMemos();
     }
 
     // スクロールをトップに戻す
@@ -3216,6 +3256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // イベントバインディング
     applyDynamicNames();
+    initMemoEvents();
     
     // 設定
     document.getElementById('btn-settings').addEventListener('click', () => {
@@ -3963,6 +4004,259 @@ function deleteDayEvent(id, dateStr) {
 
 window.openDayDetails = openDayDetails;
 window.deleteDayEvent = deleteDayEvent;
+
+// ==========================================
+// 20. 共通認識スペース (Shared Memos Space)
+// ==========================================
+let currentMemoFilter = 'all';
+
+function renderMemos() {
+    const gridContainer = document.getElementById('memos-grid-container');
+    const searchInput = document.getElementById('memo-search-input');
+    if (!gridContainer) return;
+
+    const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    gridContainer.innerHTML = '';
+
+    if (!state.sharedMemos) state.sharedMemos = [];
+
+    // フィルタリング処理
+    let filtered = state.sharedMemos;
+    if (currentMemoFilter !== 'all') {
+        filtered = filtered.filter(m => m.category === currentMemoFilter);
+    }
+    if (searchQuery !== '') {
+        filtered = filtered.filter(m => 
+            m.title.toLowerCase().includes(searchQuery) || 
+            m.content.toLowerCase().includes(searchQuery)
+        );
+    }
+
+    if (filtered.length === 0) {
+        gridContainer.innerHTML = `
+            <div class="empty-memos-state">
+                <i data-lucide="sticky-note"></i>
+                <p>${searchQuery || currentMemoFilter !== 'all' ? '該当するメモはありません' : '登録されたメモはありません。業務ルールやDMテンプレート、共有事項を書き込んでみましょう！'}</p>
+            </div>
+        `;
+    } else {
+        filtered.forEach(m => {
+            const card = document.createElement('div');
+            card.className = `memo-card ${m.category}`;
+            
+            // カテゴリの日本語表示
+            let catName = 'その他';
+            if (m.category === 'rule') catName = '業務ルール';
+            else if (m.category === 'customer') catName = '顧客対応';
+            else if (m.category === 'marketing') catName = 'マーケティング';
+
+            // 更新者のアバター・名前
+            const authorName = m.lastUpdatedBy === 'partnerA' ? state.settings.partnerAName : state.settings.partnerBName;
+            const authorClass = m.lastUpdatedBy === 'partnerA' ? 'pA' : 'pB';
+
+            // 本文中のプレースホルダー（[パートナー名]など）を動的に置換して表示（コピー時は原文のまま）
+            let displayContent = m.content;
+            displayContent = displayContent.replace(/\[パートナー名\]/g, authorName);
+            displayContent = displayContent.replace(/\[煌記\/和弥\]/g, authorName);
+
+            card.innerHTML = `
+                <div class="memo-card-header">
+                    <span class="memo-category-badge">${catName}</span>
+                    <div class="memo-actions-btn-group">
+                        <button type="button" class="btn-memo-action copy" onclick="copyMemoContent('${m.id}', this)" title="本文をコピー">
+                            <i data-lucide="copy"></i>
+                        </button>
+                        <button type="button" class="btn-memo-action edit" onclick="openEditMemo('${m.id}')" title="編集">
+                            <i data-lucide="edit-3"></i>
+                        </button>
+                        <button type="button" class="btn-memo-action delete" onclick="deleteMemo('${m.id}')" title="削除">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+                <h4 onclick="openEditMemo('${m.id}')">${m.title}</h4>
+                <div class="memo-content-box">${displayContent}</div>
+                <div class="memo-footer">
+                    <div class="memo-meta-info">
+                        更新: <span class="${authorClass}">${authorName}</span> (${m.date})
+                    </div>
+                </div>
+            `;
+            gridContainer.appendChild(card);
+        });
+    }
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function handleAddOrEditMemo() {
+    const editIdInput = document.getElementById('memo-edit-id');
+    const titleInput = document.getElementById('memo-title');
+    const categorySelect = document.getElementById('memo-category');
+    const contentInput = document.getElementById('memo-content');
+
+    if (!titleInput || !categorySelect || !contentInput) return;
+
+    const title = titleInput.value.trim();
+    const category = categorySelect.value;
+    const content = contentInput.value.trim();
+    const editId = editIdInput ? editIdInput.value : '';
+
+    if (!title || !content) {
+        alert('タイトルと本文を入力してください。');
+        return;
+    }
+
+    // 誰が更新したか判定（現在日報等で選択されているアクティブユーザー、またはアバターより）
+    let currentAuthor = 'partnerA'; // デフォルト
+    const updOptEl = document.getElementById('upd-author'); // app.js内の日報作成者選択用セレクト
+    if (updOptEl) {
+        currentAuthor = updOptEl.value;
+    } else {
+        // 設定ページの名前から推測
+        currentAuthor = 'partnerA';
+    }
+
+    if (!state.sharedMemos) state.sharedMemos = [];
+
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    if (editId) {
+        // 編集
+        const memo = state.sharedMemos.find(m => m.id === editId);
+        if (memo) {
+            memo.title = title;
+            memo.category = category;
+            memo.content = content;
+            memo.lastUpdatedBy = currentAuthor;
+            memo.date = dateStr;
+            showToast('共有メモを更新しました！');
+        }
+    } else {
+        // 新規登録
+        const newMemo = {
+            id: 'memo-' + Date.now(),
+            title: title,
+            category: category,
+            content: content,
+            lastUpdatedBy: currentAuthor,
+            date: dateStr
+        };
+        state.sharedMemos.push(newMemo);
+        showToast('新しいメモを登録しました！');
+    }
+
+    saveState();
+    closeModal('modal-add-memo');
+    renderMemos();
+}
+
+function deleteMemo(id) {
+    const memo = state.sharedMemos.find(m => m.id === id);
+    if (!memo) return;
+
+    if (confirm(`本当にメモ「${memo.title}」を削除しますか？`)) {
+        state.sharedMemos = state.sharedMemos.filter(m => m.id !== id);
+        saveState();
+        renderMemos();
+        showToast('メモを削除しました', 'danger');
+    }
+}
+
+function openEditMemo(id) {
+    const memo = state.sharedMemos.find(m => m.id === id);
+    if (!memo) return;
+
+    document.getElementById('memo-modal-title').textContent = '共有メモを編集';
+    document.getElementById('memo-edit-id').value = memo.id;
+    document.getElementById('memo-title').value = memo.title;
+    document.getElementById('memo-category').value = memo.category;
+    document.getElementById('memo-content').value = memo.content;
+
+    openModal('modal-add-memo');
+}
+
+function copyMemoContent(id, buttonEl) {
+    const memo = state.sharedMemos.find(m => m.id === id);
+    if (!memo) return;
+
+    // クリップボードへコピー
+    // パートナー名プレースホルダーの動的置換も適用した状態でコピーさせます
+    const authorName = memo.lastUpdatedBy === 'partnerA' ? state.settings.partnerAName : state.settings.partnerBName;
+    let contentToCopy = memo.content;
+    contentToCopy = contentToCopy.replace(/\[パートナー名\]/g, authorName);
+    contentToCopy = contentToCopy.replace(/\[煌記\/和弥\]/g, authorName);
+
+    navigator.clipboard.writeText(contentToCopy).then(() => {
+        showToast('本文をクリップボードにコピーしました！');
+        
+        // コピー成功時のエフェクトアニメーション
+        if (buttonEl) {
+            buttonEl.classList.add('copy-success-animation');
+            // アイコンを一時的にチェックマークに変える
+            const icon = buttonEl.querySelector('i');
+            if (icon) {
+                icon.setAttribute('data-lucide', 'check');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+            setTimeout(() => {
+                buttonEl.classList.remove('copy-success-animation');
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'copy');
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            }, 1000);
+        }
+    }).catch(err => {
+        console.error('Copy failed: ', err);
+        alert('コピーに失敗しました。お手数ですが、テキストボックスより手動でコピーしてください。');
+    });
+}
+
+function initMemoEvents() {
+    // 共有メモ新規登録ボタン
+    const addMemoBtn = document.getElementById('btn-add-memo-modal');
+    if (addMemoBtn) {
+        addMemoBtn.addEventListener('click', () => {
+            document.getElementById('memo-modal-title').textContent = '共有メモを追加';
+            document.getElementById('memo-edit-id').value = '';
+            document.getElementById('memo-title').value = '';
+            document.getElementById('memo-category').value = 'rule';
+            document.getElementById('memo-content').value = '';
+            openModal('modal-add-memo');
+        });
+    }
+
+    // 保存ボタン
+    const submitMemoBtn = document.getElementById('btn-submit-memo');
+    if (submitMemoBtn) {
+        submitMemoBtn.addEventListener('click', handleAddOrEditMemo);
+    }
+
+    // 検索入力リスナー
+    const searchInput = document.getElementById('memo-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', renderMemos);
+    }
+
+    // カテゴリフィルターチップリスナー
+    const chips = document.querySelectorAll('#memo-category-filters .filter-chip');
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            chips.forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentMemoFilter = chip.getAttribute('data-category');
+            renderMemos();
+        });
+    });
+}
+
+window.renderMemos = renderMemos;
+window.deleteMemo = deleteMemo;
+window.openEditMemo = openEditMemo;
+window.copyMemoContent = copyMemoContent;
 
 
 
