@@ -2677,6 +2677,78 @@ body {
     pointer-events: none; /* ドラッグ要素の下にある他カードをelementFromPointで検知させるための重要プロパティ */
 }
 
+/* ==========================================
+   21. データ保護・復旧センター Styles
+   ========================================== */
+.recovery-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.recovery-history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.recovery-history-item:hover {
+    border-color: var(--color-pink);
+    background-color: rgba(236, 72, 153, 0.03);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.recovery-history-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.recovery-history-time {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.recovery-history-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.btn-rollback {
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--color-pink), #ec4899);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    line-height: 1.2;
+}
+
+.btn-rollback:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+.btn-rollback:active {
+    transform: scale(0.98);
+}
+
 
 
 

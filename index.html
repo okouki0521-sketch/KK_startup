@@ -1134,6 +1134,37 @@
                     </p>
                     <input type="text" id="settings-sync-key" placeholder="例: our-dream-project-2026" style="width: 100%;">
                 </div>
+                
+                <!-- 🛡️ データ保護・復旧センター -->
+                <div class="form-group" style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 16px;">
+                    <label style="display: flex; align-items: center; gap: 6px; color: var(--color-pink); font-weight: 700; margin-bottom: 8px;">
+                        <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i> データ保護・復旧センター
+                    </label>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+                        操作ごとに自動保存される「世代別バックアップ（最大10件）」から、1クリックでいつでも過去の状態に安全に復元できます。手動バックアップの保存・読み込みもここで行えます。
+                    </p>
+                    
+                    <!-- 手動バックアップボタン群 -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <button class="btn btn-secondary btn-sm" id="btn-export-data" onclick="exportData()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; height: 32px;">
+                            <i data-lucide="download" style="width: 14px; height: 14px;"></i> バックアップ保存
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="btn-import-data" onclick="triggerImport()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; height: 32px;">
+                            <i data-lucide="upload" style="width: 14px; height: 14px;"></i> バックアップ読み込み
+                        </button>
+                        <input type="file" id="import-file" style="display: none;" accept=".json" onchange="handleImport(event)">
+                    </div>
+
+                    <!-- 復旧履歴リストコンテナ -->
+                    <div class="recovery-history-container">
+                        <span style="font-size: 11px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">🕒 自動保存履歴（直近10件）</span>
+                        <div id="recovery-history-list" class="recovery-history-list" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 4px; background-color: var(--bg-hover);">
+                            <div class="recovery-history-empty" style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 11px;">
+                                履歴データがまだありません
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary btn-close-modal">キャンセル</button>

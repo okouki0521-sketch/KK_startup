@@ -414,6 +414,20 @@ function initStore() {
         state = JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
     
+    // 自動クレンジング: 全データの全配列の各要素に updatedAt がなければ lastUpdated または現在時刻を補完してスマートマージの精度を最大化する
+    const arrayKeysToClean = ['sharedMemos', 'ideas', 'goals', 'events', 'expenses', 'incomes', 'decisions', 'updates', 'customers', 'phases', 'changelogs'];
+    arrayKeysToClean.forEach(key => {
+        if (state[key] && Array.isArray(state[key])) {
+            state[key].forEach(item => {
+                if (item && typeof item === 'object') {
+                    if (!item.updatedAt) {
+                        item.updatedAt = item.lastUpdated || (item.date ? new Date(item.date).getTime() : 0) || state.lastUpdated || Date.now();
+                    }
+                }
+            });
+        }
+    });
+    
     // 即時バックアップを保存して同期
     localStorage.setItem('cofounder_hub_state_backup', JSON.stringify(state));
     
@@ -454,6 +468,7 @@ function syncSalesGoals() {
 
 function saveState() {
     syncSalesGoals(); // 保存前に売上目標の現在値と実際の売上合計を自動連動
+    saveToHistory(state); // 保存直前に現在の状態をタイムマシーン履歴に自動退避！
     state.lastUpdated = Date.now();
     const serialized = JSON.stringify(state);
     localStorage.setItem('cofounder_hub_state', serialized);
@@ -513,9 +528,9 @@ async function syncWithCloud() {
         if (response.ok) {
             const cloudData = await response.json();
             
-            // クラウド上のデータの方が新しい場合のみ同期する
-            if (cloudData && cloudData.lastUpdated && (!state.lastUpdated || cloudData.lastUpdated > state.lastUpdated)) {
-                console.log('Detected newer data in cloud. Syncing...');
+            // クラウド側の最終更新時間と異なる場合のみ同期・マージを行う
+            if (cloudData && cloudData.lastUpdated && cloudData.lastUpdated !== state.lastUpdated) {
+                console.log('Detected cloud data change. Merging...');
                 
                 // 新機能キーの不足や構造不一致を安全に補完
                 const defaultKeys = Object.keys(DEFAULT_STATE);
@@ -524,28 +539,34 @@ async function syncWithCloud() {
                         cloudData[k] = JSON.parse(JSON.stringify(DEFAULT_STATE[k]));
                     }
                 });
-                // 旧バージョンのsharedMemosのマイグレーション
-                if (cloudData.sharedMemos && cloudData.sharedMemos.length === 4 && !cloudData.sharedMemos.some(m => m.id === 'memo-5')) {
-                    cloudData.sharedMemos = JSON.parse(JSON.stringify(DEFAULT_STATE.sharedMemos));
-                }
-                if (DEFAULT_STATE.settings) {
-                    cloudData.settings = { ...DEFAULT_STATE.settings, ...cloudData.settings };
-                }
-                if (DEFAULT_STATE.agreement) {
-                    cloudData.agreement = { ...DEFAULT_STATE.agreement, ...cloudData.agreement };
-                }
+                
+                // スマートマージの実行（ローカルとクラウドの合流）
+                const mergedState = smartMergeState(state, cloudData);
 
-                state = cloudData;
-                localStorage.setItem('cofounder_hub_state', JSON.stringify(state));
-                
-                // 現在のタブを静かに再描画して更新を反映
-                const activeTab = document.querySelector('.nav-item.active');
-                if (activeTab) {
-                    const tabId = activeTab.getAttribute('data-tab');
-                    switchTabQuietly(tabId);
+                // もしマージした結果、手元のデータやクラウドが変化した場合のみ保存と再反映
+                if (JSON.stringify(state) !== JSON.stringify(mergedState)) {
+                    // 同期前の手元の有効なデータを直前バックアップとして退避
+                    const currentLocal = localStorage.getItem('cofounder_hub_state');
+                    if (currentLocal) {
+                        localStorage.setItem('cofounder_hub_state_pre_sync_backup', currentLocal);
+                    }
+                    
+                    state = mergedState;
+                    localStorage.setItem('cofounder_hub_state', JSON.stringify(state));
+                    localStorage.setItem('cofounder_hub_state_backup', JSON.stringify(state));
+                    
+                    // 現在のタブを静かに再描画して更新を反映
+                    const activeTab = document.querySelector('.nav-item.active');
+                    if (activeTab) {
+                        const tabId = activeTab.getAttribute('data-tab');
+                        switchTabQuietly(tabId);
+                    }
+                    
+                    // マージ結果をクラウドにも即座に再アップロードし、両者の状態を100%同一に揃える
+                    await uploadToCloud();
+                    
+                    showToast('パートナーのデータとインテリジェント統合されました', 'info');
                 }
-                
-                showToast('パートナーの最新の更新を自動同期しました', 'info');
             }
         } else if (response.status === 404) {
             // クラウド上にまだキーが存在しない（初めて合言葉を設定した）場合、
@@ -3438,6 +3459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 設定
     document.getElementById('btn-settings').addEventListener('click', () => {
         loadSettings();
+        renderRecoveryCenter(); // 設定画面が開いた際にデータ保護履歴を描画！
         openModal('modal-settings');
     });
     document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
@@ -4466,6 +4488,7 @@ function handleAddOrEditMemo() {
             memo.fileUrl = fileUrl;
             memo.lastUpdatedBy = currentAuthor;
             memo.date = dateStr;
+            memo.updatedAt = Date.now(); // タイムスタンプ付与！
             showToast('共有メモを更新しました！');
         }
     } else {
@@ -4478,7 +4501,8 @@ function handleAddOrEditMemo() {
             fileName: fileName,
             fileUrl: fileUrl,
             lastUpdatedBy: currentAuthor,
-            date: dateStr
+            date: dateStr,
+            updatedAt: Date.now() // タイムスタンプ付与！
         };
         state.sharedMemos.push(newMemo);
         showToast('新しいメモを登録しました！');
@@ -5669,3 +5693,264 @@ function renderLPAnalytics() {
     });
 }
 window.renderLPAnalytics = renderLPAnalytics;
+
+// ==========================================
+// 22. 鉄壁データ保護・マージ・復旧システム (Data Protection & Automerge)
+// ==========================================
+
+// 22.1 世代別自動バックアップの保存
+function saveToHistory(stateToSave) {
+    try {
+        if (!stateToSave || typeof stateToSave !== 'object') return;
+        
+        let history = [];
+        const rawHistory = localStorage.getItem('cofounder_hub_history');
+        if (rawHistory) {
+            history = JSON.parse(rawHistory);
+        }
+        if (!Array.isArray(history)) history = [];
+
+        // ディープコピーを作成
+        const cleanState = JSON.parse(JSON.stringify(stateToSave));
+        
+        // 直前の履歴と同じ状態なら保存をスキップ（不要な容量消費を防ぐ）
+        if (history.length > 0 && JSON.stringify(history[0].data) === JSON.stringify(cleanState)) {
+            return;
+        }
+
+        // 新しい履歴を先頭に追加
+        history.unshift({
+            timestamp: Date.now(),
+            data: cleanState
+        });
+
+        // 最大10世代に制限
+        if (history.length > 10) {
+            history = history.slice(0, 10);
+        }
+
+        localStorage.setItem('cofounder_hub_history', JSON.stringify(history));
+        console.log('🛡️ Generational backup saved. History size:', history.length);
+    } catch (e) {
+        console.error('Failed to save state to history:', e);
+    }
+}
+
+// 22.2 配列データのスマートマージ (IDベース & updatedAt比較)
+function mergeArrayById(localArr, cloudArr, uniqueKey = 'id') {
+    const local = Array.isArray(localArr) ? localArr : [];
+    const cloud = Array.isArray(cloudArr) ? cloudArr : [];
+    
+    const localMap = new Map(local.map(item => [item[uniqueKey], item]));
+    const cloudMap = new Map(cloud.map(item => [item[uniqueKey], item]));
+    
+    const merged = [];
+    const allKeys = new Set([...localMap.keys(), ...cloudMap.keys()]);
+    
+    for (const key of allKeys) {
+        const localItem = localMap.get(key);
+        const cloudItem = cloudMap.get(key);
+        
+        if (localItem && cloudItem) {
+            // 両方にある場合、更新時間（updatedAt / lastUpdated / date）を比較
+            const localTime = Number(localItem.updatedAt || localItem.lastUpdated || (localItem.date ? new Date(localItem.date).getTime() : 0) || 0);
+            const cloudTime = Number(cloudItem.updatedAt || cloudItem.lastUpdated || (cloudItem.date ? new Date(cloudItem.date).getTime() : 0) || 0);
+            
+            if (localTime >= cloudTime) {
+                merged.push(localItem);
+            } else {
+                merged.push(cloudItem);
+            }
+        } else if (localItem) {
+            // ローカルにしかない（新規追加）
+            merged.push(localItem);
+        } else if (cloudItem) {
+            // クラウドにしかない（他方が追加したもの）
+            merged.push(cloudItem);
+        }
+    }
+    return merged;
+}
+
+// 22.3 クラウドとローカルの全項目スマートマージ
+function smartMergeState(local, cloud) {
+    if (!local || typeof local !== 'object') return cloud;
+    if (!cloud || typeof cloud !== 'object') return local;
+
+    console.log('🧠 Executing smart merge of local and cloud states...');
+
+    const merged = { ...local };
+
+    // 設定や合意のメタオブジェクトはディープマージ
+    if (local.settings && cloud.settings) {
+        merged.settings = { ...local.settings, ...cloud.settings };
+    }
+    if (local.agreement && cloud.agreement) {
+        merged.agreement = { ...local.agreement, ...cloud.agreement };
+    }
+
+    // 主要な配列データをIDベースでスマートマージ
+    const arrayKeys = [
+        { key: 'sharedMemos', id: 'id' },
+        { key: 'ideas', id: 'id' },
+        { key: 'goals', id: 'id' },
+        { key: 'events', id: 'id' },
+        { key: 'expenses', id: 'id' },
+        { key: 'incomes', id: 'id' },
+        { key: 'decisions', id: 'id' },
+        { key: 'updates', id: 'id' },
+        { key: 'customers', id: 'id' },
+        { key: 'phases', id: 'id' },
+        { key: 'changelogs', id: 'id' }
+    ];
+
+    arrayKeys.forEach(({ key, id }) => {
+        if (local[key] || cloud[key]) {
+            merged[key] = mergeArrayById(local[key], cloud[key], id);
+        }
+    });
+
+    // タイムスタンプは最新の方を採用
+    merged.lastUpdated = Math.max(local.lastUpdated || 0, cloud.lastUpdated || 0, Date.now());
+
+    console.log('🧠 Smart merge completed. Memos count:', (merged.sharedMemos || []).length);
+    return merged;
+}
+
+// 22.4 復旧センターUIの描画
+function renderRecoveryCenter() {
+    const listContainer = document.getElementById('recovery-history-list');
+    if (!listContainer) return;
+
+    let history = [];
+    try {
+        const rawHistory = localStorage.getItem('cofounder_hub_history');
+        if (rawHistory) {
+            history = JSON.parse(rawHistory);
+        }
+    } catch (e) {
+        console.error('Failed to parse history for UI:', e);
+    }
+
+    if (!Array.isArray(history) || history.length === 0) {
+        listContainer.innerHTML = `
+            <div class="recovery-history-empty" style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 11px;">
+                履歴データがまだありません
+            </div>
+        `;
+        return;
+    }
+
+    listContainer.innerHTML = '';
+    history.forEach((item, index) => {
+        const timeStr = new Date(item.timestamp).toLocaleString();
+        const data = item.data || {};
+        
+        const memoCount = (data.sharedMemos || []).length;
+        const ideaCount = (data.ideas || []).length;
+        const taskCount = (data.goals || []).length; // 目標/タスク数
+        
+        const historyItem = document.createElement('div');
+        historyItem.className = 'recovery-history-item';
+        historyItem.innerHTML = `
+            <div class="recovery-history-info">
+                <span class="recovery-history-time">
+                    <i data-lucide="clock" style="width: 12px; height: 12px; color: var(--color-pink);"></i> ${timeStr} ${index === 0 ? '<span style="color: var(--color-primary); font-size: 9px; font-weight: 700;">(最新)</span>' : ''}
+                </span>
+                <span class="recovery-history-meta">
+                    メモ: ${memoCount}件 | アイデア: ${ideaCount}件 | マイルストーン: ${taskCount}件
+                </span>
+            </div>
+            <button class="btn-rollback" onclick="rollbackToHistory(${index})">
+                <i data-lucide="rotate-ccw" style="width: 10px; height: 10px;"></i> 復元
+            </button>
+        `;
+        listContainer.appendChild(historyItem);
+    });
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+// 22.5 バックアップ履歴からのロールバック実行
+async function rollbackToHistory(index) {
+    try {
+        let history = [];
+        const rawHistory = localStorage.getItem('cofounder_hub_history');
+        if (rawHistory) {
+            history = JSON.parse(rawHistory);
+        }
+
+        if (!Array.isArray(history) || !history[index]) {
+            alert('指定された履歴データが見つかりません。');
+            return;
+        }
+
+        const targetItem = history[index];
+        const confirmRollback = confirm(
+            `🕒 以下の時点のデータにロールバックしますか？\n\n` +
+            `・保存日時: ${new Date(targetItem.timestamp).toLocaleString()}\n` +
+            `・共有メモ数: ${(targetItem.data.sharedMemos || []).length} 件\n` +
+            `・アイデア数: ${(targetItem.data.ideas || []).length} 件\n\n` +
+            `※現在の状態は、さらに「最新の履歴」として自動退避されるため、この復元操作自体を取り消すことも可能です。`
+        );
+
+        if (!confirmRollback) return;
+
+        // 現在のデータを履歴に退避してから復旧
+        saveToHistory(state);
+
+        // stateとローカルストレージを復旧
+        state = JSON.parse(JSON.stringify(targetItem.data));
+        state.lastUpdated = Date.now(); // タイムスタンプを強制最新にし、クラウドにも同期
+
+        const serialized = JSON.stringify(state);
+        localStorage.setItem('cofounder_hub_state', serialized);
+        localStorage.setItem('cofounder_hub_state_backup', serialized);
+
+        console.log('Local restored. Uploading to cloud...');
+
+        // クラウド（KVDB）への即時同期
+        const secretKey = state.settings && state.settings.syncSecretKey;
+        if (secretKey && secretKey.trim().length >= 4) {
+            let hash = 0;
+            for (let i = 0; i < secretKey.length; i++) {
+                const char = secretKey.charCodeAt(i);
+                hash = (hash << 5) - hash + char;
+                hash = hash & hash;
+            }
+            const cleanKey = secretKey.replace(/[^a-zA-Z0-9]/g, '');
+            const uniqueString = cleanKey + Math.abs(hash).toString(36);
+            const keyName = (uniqueString + 'cofoundersync').substring(0, 16);
+            
+            const sharedBucket = "XCFoA3p5QxYZeeEomCFG68";
+            const url = `https://kvdb.io/${sharedBucket}/${keyName}`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state)
+                });
+                if (response.ok) {
+                    console.log('Cloud update success after rollback.');
+                }
+            } catch (err) {
+                console.error('Cloud upload error during rollback:', err);
+            }
+        }
+
+        alert('🎉 データのロールバック（復元）が成功しました！');
+        location.reload();
+    } catch (e) {
+        alert('ロールバック実行中にエラーが発生しました: ' + e.message);
+    }
+}
+
+// グローバル公開
+window.saveToHistory = saveToHistory;
+window.smartMergeState = smartMergeState;
+window.renderRecoveryCenter = renderRecoveryCenter;
+window.rollbackToHistory = rollbackToHistory;
