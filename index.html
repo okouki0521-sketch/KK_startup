@@ -898,22 +898,9 @@
                         </div>
                     </div>
                 </section>
-
-            </div>
             
             <!-- 9. 顧客＆売上管理タブ -->
             <section class="tab-pane" id="tab-customers">
-                <div class="main-header">
-                    <div class="header-title">
-                        <h2>顧客＆売上管理</h2>
-                        <p>サービス利用顧客の属性と売上比率を分析・管理します</p>
-                    </div>
-                    <div class="header-actions">
-                        <button class="btn btn-primary" id="btn-add-customer-modal">
-                            <i data-lucide="user-plus"></i>顧客を追加
-                        </button>
-                    </div>
-                </div>
 
                 <!-- 統計サマリー -->
                 <div class="stats-grid">
@@ -941,9 +928,14 @@
                             <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                                 <i data-lucide="database" class="text-primary"></i> 顧客データベース
                             </h3>
-                            <div class="search-box" style="position: relative;">
-                                <input type="text" id="crm-search" placeholder="名前・国籍・プランで検索..." style="padding: 8px 12px 8px 32px; font-size: 13px; border-radius: 8px; border: 1px solid #e2e8f0; width: 220px; outline: none; transition: border-color 0.2s;">
-                                <i data-lucide="search" style="position: absolute; left: 10px; top: 10px; width: 14px; height: 14px; color: var(--text-muted);"></i>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="search-box" style="position: relative;">
+                                    <input type="text" id="crm-search" placeholder="名前・国籍・プランで検索..." style="padding: 8px 12px 8px 32px; font-size: 13px; border-radius: 8px; border: 1px solid #e2e8f0; width: 220px; outline: none; transition: border-color 0.2s;">
+                                    <i data-lucide="search" style="position: absolute; left: 10px; top: 10px; width: 14px; height: 14px; color: var(--text-muted);"></i>
+                                </div>
+                                <button class="btn btn-primary" id="btn-add-customer-modal" style="padding: 8px 16px; font-size: 12.5px; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="user-plus"></i>顧客を追加
+                                </button>
                             </div>
                         </div>
                         <div style="overflow-x: auto;">
@@ -1106,8 +1098,9 @@
                     <!-- JSで動的にメモカードがレンダリングされます -->
                 </div>
             </section>
-        </main>
-    </div>
+        </div>
+    </main>
+</div>
 
     <!-- 各種ダイアログ・モーダル -->
     
@@ -1564,6 +1557,8 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
     <!-- モーダル: 共有メモ追加・編集 -->
     <div class="modal-overlay" id="modal-add-memo">
         <div class="modal-box">
@@ -1576,6 +1571,13 @@
                 <div class="form-group">
                     <label>タイトル</label>
                     <input type="text" id="memo-title" placeholder="例: インスタDMのテンプレート、サーバー移行手順等" required>
+                </div>
+                <div class="form-group">
+                    <label>更新者 / 報告者</label>
+                    <select id="memo-author">
+                        <option value="partnerA" id="memo-opt-pA">パートナーA</option>
+                        <option value="partnerB" id="memo-opt-pB">パートナーB</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>カテゴリ</label>
