@@ -231,8 +231,20 @@ const DEFAULT_STATE = {
             title: '共有フォルダと使用ツールのリンク集',
             category: 'other',
             content: '・公式Googleドライブ（領収書・資料保管）: https://drive.google.com/drive/folders/lumi-shared\n・LP公開URL: https://lumijourney.example.com\n・ドメイン・サーバー管理（Vercel）: https://vercel.com/koki/lumi-web-app\n・営業アプローチ先スプレッドシート: https://docs.google.com/spreadsheets/d/lumi-sales',
+            fileName: '公式Googleドライブフォルダ',
+            fileUrl: 'https://drive.google.com/drive/folders/lumi-shared',
             lastUpdatedBy: 'partnerA',
             date: '2026-05-25'
+        },
+        {
+            id: 'memo-5',
+            title: 'LumiJourney サービス利用規約 (PDF資料案)',
+            category: 'rule',
+            content: 'サービスローンチに向けて作成した、モニターユーザー向けの利用規約および免責事項の日本語PDFドラフトです。規約の主要ポイント：\n1. プラン送付後のキャンセルポリシーについて\n2. 個人情報の管理と取り扱い規程\n3. サービスのフィードバックに関する著作権帰属',
+            fileName: 'LumiJourney_利用規約_draft.pdf',
+            fileUrl: 'https://drive.google.com/file/d/sample-terms-pdf/view',
+            lastUpdatedBy: 'partnerA',
+            date: '2026-05-29'
         }
     ]
 };
@@ -307,6 +319,12 @@ function initStore() {
                         state[k] = JSON.parse(JSON.stringify(DEFAULT_STATE[k]));
                     }
                 });
+
+                // 旧バージョンのsharedMemos（4つだけでPDF機能がないもの）のマイグレーション
+                if (state.sharedMemos && state.sharedMemos.length === 4 && !state.sharedMemos.some(m => m.id === 'memo-5')) {
+                    console.log('Migrating sharedMemos to support PDF and attachment preset data...');
+                    state.sharedMemos = JSON.parse(JSON.stringify(DEFAULT_STATE.sharedMemos));
+                }
 
                 // ネストされたオブジェクト（settingsやagreement）の内部キーの不足も安全にマージ
                 if (DEFAULT_STATE.settings) {
@@ -4076,6 +4094,15 @@ function renderMemos() {
                 </div>
                 <h4 onclick="openEditMemo('${m.id}')">${m.title}</h4>
                 <div class="memo-content-box">${displayContent}</div>
+                ${m.fileUrl ? `
+                <div class="memo-attachment-link" style="margin-top: 10px;">
+                    <a href="${m.fileUrl}" target="_blank" class="btn btn-outline" style="padding: 6px 12px; font-size: 11.5px; border-color: rgba(79, 70, 229, 0.2); color: var(--color-primary); background-color: rgba(79, 70, 229, 0.02); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; border-radius: var(--border-radius-sm); font-weight: 700; width: auto;">
+                        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+                        <span>${m.fileName || '添付資料・PDFを開く'}</span>
+                        <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                    </a>
+                </div>
+                ` : ''}
                 <div class="memo-footer">
                     <div class="memo-meta-info">
                         更新: <span class="${authorClass}">${authorName}</span> (${m.date})
@@ -4096,12 +4123,16 @@ function handleAddOrEditMemo() {
     const titleInput = document.getElementById('memo-title');
     const categorySelect = document.getElementById('memo-category');
     const contentInput = document.getElementById('memo-content');
+    const fileNameInput = document.getElementById('memo-file-name');
+    const fileUrlInput = document.getElementById('memo-file-url');
 
     if (!titleInput || !categorySelect || !contentInput) return;
 
     const title = titleInput.value.trim();
     const category = categorySelect.value;
     const content = contentInput.value.trim();
+    const fileName = fileNameInput ? fileNameInput.value.trim() : '';
+    const fileUrl = fileUrlInput ? fileUrlInput.value.trim() : '';
     const editId = editIdInput ? editIdInput.value : '';
 
     if (!title || !content) {
@@ -4130,6 +4161,8 @@ function handleAddOrEditMemo() {
             memo.title = title;
             memo.category = category;
             memo.content = content;
+            memo.fileName = fileName;
+            memo.fileUrl = fileUrl;
             memo.lastUpdatedBy = currentAuthor;
             memo.date = dateStr;
             showToast('共有メモを更新しました！');
@@ -4141,6 +4174,8 @@ function handleAddOrEditMemo() {
             title: title,
             category: category,
             content: content,
+            fileName: fileName,
+            fileUrl: fileUrl,
             lastUpdatedBy: currentAuthor,
             date: dateStr
         };
@@ -4174,6 +4209,8 @@ function openEditMemo(id) {
     document.getElementById('memo-title').value = memo.title;
     document.getElementById('memo-category').value = memo.category;
     document.getElementById('memo-content').value = memo.content;
+    document.getElementById('memo-file-name').value = memo.fileName || '';
+    document.getElementById('memo-file-url').value = memo.fileUrl || '';
 
     openModal('modal-add-memo');
 }
@@ -4225,6 +4262,8 @@ function initMemoEvents() {
             document.getElementById('memo-title').value = '';
             document.getElementById('memo-category').value = 'rule';
             document.getElementById('memo-content').value = '';
+            document.getElementById('memo-file-name').value = '';
+            document.getElementById('memo-file-url').value = '';
             openModal('modal-add-memo');
         });
     }

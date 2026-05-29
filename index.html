@@ -823,6 +823,7 @@
                             <!-- 動的に国籍比率が生成 -->
                         </div>
                     </div>
+                </div>
             </section>
 
             <!-- 10. 共通認識スペースタブ -->
@@ -1296,6 +1297,13 @@
                 <div class="form-group">
                     <label>本文・内容 (テンプレートやルール内容)</label>
                     <textarea id="memo-content" rows="8" placeholder="共有したい内容を記載してください。DM文面などをここに登録しておくと、後からワンクリックでコピーできます。" required></textarea>
+                </div>
+                <div class="form-group" style="margin-top: 12px; border-top: 1px dashed var(--border-color); padding-top: 12px;">
+                    <label style="font-weight: 750;"><i data-lucide="link" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px; color: var(--color-primary);"></i>資料・PDF等のリンク添付 (任意)</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-top: 8px;">
+                        <input type="text" id="memo-file-name" placeholder="資料名 (例: 利用規約.pdf)">
+                        <input type="text" id="memo-file-url" placeholder="リンク先URL (Googleドライブ等)">
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

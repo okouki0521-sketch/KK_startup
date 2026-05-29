@@ -51,8 +51,9 @@ body {
     font-family: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg-app);
     color: var(--text-primary);
-    overflow: hidden;
-    height: 100vh;
+    overflow-y: auto; /* 🚀 ブラウザ全体が滑らかに縦スクロールできるように変更 */
+    min-height: 100vh;
+    height: auto;
     width: 100vw;
     -webkit-font-smoothing: antialiased;
     background-image: 
@@ -63,9 +64,10 @@ body {
 /* App Container Layout */
 .app-container {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
+    height: auto;
     width: 100vw;
-    overflow: hidden;
+    overflow: visible; /* 🚀 固定スクロールを解除 */
 }
 
 /* ---------------------------------------------------- */
@@ -77,7 +79,8 @@ body {
     border-right: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100vh; /* 🚀 コンテナの高さに合わせて自動的に最下部まで引き伸ばす */
+    height: auto;
     z-index: 10;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.01);
 }
@@ -229,8 +232,9 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    overflow: hidden;
+    min-height: 100vh;
+    height: auto;
+    overflow: visible; /* 🚀 固定スクロールを解除 */
 }
 
 .main-header {
@@ -270,7 +274,7 @@ body {
 .workspace-viewport {
     flex: 1;
     padding: 40px;
-    overflow-y: auto;
+    overflow: visible; /* 🚀 内部スクロールの解除 */
 }
 
 .tab-pane {
@@ -357,6 +361,7 @@ body {
     cursor: pointer;
     transition: var(--transition-smooth);
     border: 1px solid transparent;
+    white-space: nowrap;
 }
 
 .btn-primary {
@@ -1791,12 +1796,14 @@ body {
     background-color: rgba(15, 23, 42, 0.35);
     backdrop-filter: blur(8px);
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* 🚀 中央寄せからはみ出し防止のため「上端配置」に変更 */
     justify-content: center;
     z-index: 100;
     opacity: 0;
     pointer-events: none;
     transition: var(--transition-smooth);
+    overflow-y: auto; /* 🚀 モーダル全体を縦スクロール可能にする */
+    padding: 40px 0;  /* 🚀 モーダルの上下に十分な余白を確保 */
 }
 
 .modal-overlay.active {
@@ -1815,6 +1822,7 @@ body {
     transition: var(--transition-smooth);
     display: flex;
     flex-direction: column;
+    margin: auto; /* 🚀 モーダルをはみ出さず縦中央・スクロール可能に配置 */
 }
 
 .modal-overlay.active .modal-box {
@@ -1850,8 +1858,7 @@ body {
 
 .modal-body {
     padding: 32px;
-    max-height: calc(100vh - 250px);
-    overflow-y: auto;
+    max-height: none; /* 🚀 内部スクロールではなく、モーダル全体を滑らかにスクロールさせる */
 }
 
 .modal-footer {
