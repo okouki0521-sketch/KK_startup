@@ -2599,6 +2599,9 @@ function renderIdeas() {
         `;
     }
     lucide.createIcons();
+
+    // 長押し並び替えイベントをアタッチ
+    initSortable('ideas-board-grid', '.idea-sticky', 'ideas', renderIdeas);
 }
 
 function toggleIdeaAccordion(id) {
@@ -4195,6 +4198,122 @@ window.openDayDetails = openDayDetails;
 window.deleteDayEvent = deleteDayEvent;
 
 // ==========================================
+// 19.5 プレミアム長押し並び替えロジック (Generic Long-Press Sortable)
+// ==========================================
+function initSortable(containerId, itemSelector, stateKey, renderFn) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (container.dataset.sortableInitialized === 'true') return;
+    container.dataset.sortableInitialized = 'true';
+
+    let longPressTimeout = null;
+    let draggedElement = null;
+    let startX = 0;
+    let startY = 0;
+    let isDragging = false;
+
+    container.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+
+        const item = e.target.closest(itemSelector);
+        if (!item) return;
+
+        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('select') || e.target.closest('textarea')) {
+            return;
+        }
+
+        draggedElement = item;
+        startX = e.clientX;
+        startY = e.clientY;
+        isDragging = false;
+
+        longPressTimeout = setTimeout(() => {
+            isDragging = true;
+            draggedElement.classList.add('sortable-dragging');
+            try {
+                draggedElement.setPointerCapture(e.pointerId);
+            } catch (err) {}
+        }, 300);
+    });
+
+    container.addEventListener('pointermove', (e) => {
+        if (!draggedElement) return;
+
+        if (!isDragging) {
+            const dist = Math.sqrt(Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2));
+            if (dist > 6) {
+                clearTimeout(longPressTimeout);
+            }
+            return;
+        }
+
+        const overElement = document.elementFromPoint(e.clientX, e.clientY);
+        if (!overElement) return;
+
+        const overItem = overElement.closest(itemSelector);
+        if (overItem && overItem !== draggedElement && overItem.parentNode === container) {
+            const children = Array.from(container.children);
+            const draggedIdx = children.indexOf(draggedElement);
+            const overIdx = children.indexOf(overItem);
+
+            if (draggedIdx < overIdx) {
+                container.insertBefore(draggedElement, overItem.nextSibling);
+            } else {
+                container.insertBefore(draggedElement, overItem);
+            }
+        }
+    });
+
+    const endDrag = (e) => {
+        clearTimeout(longPressTimeout);
+
+        if (draggedElement) {
+            if (isDragging) {
+                draggedElement.classList.remove('sortable-dragging');
+                try {
+                    draggedElement.releasePointerCapture(e.pointerId);
+                } catch (err) {}
+
+                const children = Array.from(container.children);
+                const newIds = children
+                    .map(el => el.getAttribute('data-memo-id') || el.getAttribute('data-idea-id'))
+                    .filter(Boolean);
+
+                if (newIds.length > 0 && state[stateKey]) {
+                    const existingList = state[stateKey];
+                    const sortedList = [];
+                    
+                    newIds.forEach(id => {
+                        const item = existingList.find(x => x && x.id === id);
+                        if (item) sortedList.push(item);
+                    });
+                    
+                    existingList.forEach(item => {
+                        if (item && !newIds.includes(item.id)) {
+                            sortedList.push(item);
+                        }
+                    });
+
+                    state[stateKey] = sortedList;
+                    saveState();
+                    showToast('並び順を保存しました！');
+                }
+
+                if (typeof renderFn === 'function') {
+                    renderFn();
+                }
+            }
+            draggedElement = null;
+        }
+        isDragging = false;
+    };
+
+    container.addEventListener('pointerup', endDrag);
+    container.addEventListener('pointercancel', endDrag);
+}
+
+// ==========================================
 // 20. 共通認識スペース (Shared Memos Space)
 // ==========================================
 let currentMemoFilter = 'all';
@@ -4238,6 +4357,7 @@ function renderMemos() {
             if (!m) return;
             const card = document.createElement('div');
             card.className = `memo-card ${m.category || 'other'}`;
+            card.setAttribute('data-memo-id', m.id);
             
             // カテゴリの日本語表示
             let catName = 'その他';
@@ -4295,6 +4415,9 @@ function renderMemos() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    // 長押し並び替えイベントをアタッチ
+    initSortable('memos-grid-container', '.memo-card', 'sharedMemos', renderMemos);
 }
 
 function handleAddOrEditMemo() {
