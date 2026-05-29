@@ -42,6 +42,10 @@
                     <i data-lucide="milestone"></i>
                     <span>ロードマップ & 目標</span>
                 </a>
+                <a href="#" class="nav-item" data-tab="tasks">
+                    <i data-lucide="kanban"></i>
+                    <span>タスク管理</span>
+                </a>
                 <a href="#" class="nav-item" data-tab="calendar">
                     <i data-lucide="calendar"></i>
                     <span>カレンダー共有</span>
@@ -96,6 +100,25 @@
                     <p id="current-tab-subtitle">プロジェクトの全体状況を一覧します</p>
                 </div>
                 <div class="header-actions">
+                    <!-- 通知ベルボタンとドロップダウン -->
+                    <div class="notifications-container" style="position: relative;">
+                        <button class="btn btn-secondary btn-icon-only" id="btn-notifications" style="position: relative; border-color: rgba(79, 70, 229, 0.15); width: 38px; height: 38px; padding: 0; display: flex; align-items: center; justify-content: center;" title="通知を表示します">
+                            <i data-lucide="bell"></i>
+                            <span class="notification-badge" id="notification-badge" style="display: none; position: absolute; top: -4px; right: -4px; background-color: var(--color-pink); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; font-weight: 700; align-items: center; justify-content: center; border: 2px solid #ffffff;">0</span>
+                        </button>
+                        <div class="notifications-dropdown" id="notifications-dropdown" style="display: none; position: absolute; top: 48px; right: 0; width: 320px; background-color: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1); z-index: 1000; padding: 8px 0; max-height: 400px; overflow-y: auto;">
+                            <div class="dropdown-header" style="padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 700; font-size: 13.5px; color: var(--text-primary);">お知らせ・通知</span>
+                                <button class="btn-text" id="btn-clear-notifications" style="font-size: 11px; padding: 0; color: var(--color-primary); font-weight: 600;">すべて既読</button>
+                            </div>
+                            <div class="dropdown-body" id="notifications-list" style="padding: 4px 0;">
+                                <div class="empty-state" style="padding: 24px 16px; text-align: center; color: var(--text-secondary); font-size: 12.5px;">
+                                    <i data-lucide="bell-off" style="width: 24px; height: 24px; margin-bottom: 8px; opacity: 0.5; margin-left: auto; margin-right: auto;"></i>
+                                    <p>新しい通知はありません</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <button class="btn btn-secondary" id="btn-changelog" style="border-color: rgba(79, 70, 229, 0.15); color: var(--color-primary);" title="システムのアップデート・変更履歴を確認します">
                         <i data-lucide="history"></i>
                         <span>変更履歴</span>
@@ -204,6 +227,32 @@
                                         <i data-lucide="book-open"></i>
                                         <p>登録された意思決定はありません</p>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- クイック伝言板 (Quick Chat Board) -->
+                    <div class="content-card" style="margin-top: 24px; border-top: 3px solid var(--color-primary);">
+                        <div class="card-header">
+                            <div class="card-title-area">
+                                <i data-lucide="message-square" class="title-icon text-primary"></i>
+                                <h3>共同創業者 伝言板 (Quick Chat)</h3>
+                            </div>
+                            <span class="badge badge-info" id="chat-unread-badge" style="display:none;">新着メッセージ</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="quick-chat-container">
+                                <div class="quick-chat-messages" id="quick-chat-messages" style="height: 200px; overflow-y: auto; padding: 12px; background: rgba(248, 250, 252, 0.5); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
+                                    <!-- メッセージはJSで動的に表示 -->
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <select id="chat-sender" style="width: 120px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-family: inherit; font-size: 13px; font-weight: 600;">
+                                        <option value="partnerA" id="chat-opt-pA">パートナーA</option>
+                                        <option value="partnerB" id="chat-opt-pB">パートナーB</option>
+                                    </select>
+                                    <input type="text" id="chat-input" placeholder="相方への連絡、指示、メンション（@和弥 @煌記）を入力..." style="flex-grow: 1; padding: 10px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-family: inherit; font-size: 13px;">
+                                    <button class="btn btn-primary" id="btn-send-chat" style="padding: 10px 20px;">送信</button>
                                 </div>
                             </div>
                         </div>
@@ -437,6 +486,73 @@
                     </div>
                 </section>
 
+                <!-- タスク管理カンバンタブ -->
+                <section class="tab-pane" id="tab-tasks">
+                    <div class="tasks-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <p style="color: var(--text-muted); font-size: 14px; margin: 0;">
+                            「未着手」「進行中」「レビュー」「完了」の4カラムで、やるべき作業やタスクを管理します。
+                        </p>
+                        <button class="btn btn-primary" id="btn-add-task-modal">
+                            <i data-lucide="plus-circle"></i>タスクを追加
+                        </button>
+                    </div>
+
+                    <!-- カンバンボードコンテナ -->
+                    <div class="kanban-board" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: start; min-height: 500px;">
+                        <!-- 未着手カラム -->
+                        <div class="kanban-column" id="col-todo" style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 450px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 4px;">
+                                <h4 style="font-size: 13.5px; font-weight: 750; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #64748b;"></span>
+                                    未着手 <span id="count-todo" style="font-size: 11px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 999px;">0</span>
+                                </h4>
+                            </div>
+                            <div class="kanban-cards-container" id="cards-todo" style="display: flex; flex-direction: column; gap: 10px; min-height: 380px;">
+                                <!-- タスクカードが動的に挿入される -->
+                            </div>
+                        </div>
+
+                        <!-- 進行中カラム -->
+                        <div class="kanban-column" id="col-doing" style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 450px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #60a5fa; padding-bottom: 8px; margin-bottom: 4px;">
+                                <h4 style="font-size: 13.5px; font-weight: 750; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--color-blue);"></span>
+                                    進行中 <span id="count-doing" style="font-size: 11px; background: rgba(2, 132, 199, 0.1); color: var(--color-blue); padding: 2px 6px; border-radius: 999px;">0</span>
+                                </h4>
+                            </div>
+                            <div class="kanban-cards-container" id="cards-doing" style="display: flex; flex-direction: column; gap: 10px; min-height: 380px;">
+                                <!-- タスクカードが動的に挿入される -->
+                            </div>
+                        </div>
+
+                        <!-- レビューカラム -->
+                        <div class="kanban-column" id="col-review" style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 450px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #fbbf24; padding-bottom: 8px; margin-bottom: 4px;">
+                                <h4 style="font-size: 13.5px; font-weight: 750; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #d97706;"></span>
+                                    レビュー待ち <span id="count-review" style="font-size: 11px; background: rgba(217, 119, 6, 0.1); color: #d97706; padding: 2px 6px; border-radius: 999px;">0</span>
+                                </h4>
+                            </div>
+                            <div class="kanban-cards-container" id="cards-review" style="display: flex; flex-direction: column; gap: 10px; min-height: 380px;">
+                                <!-- タスクカードが動的に挿入される -->
+                            </div>
+                        </div>
+
+                        <!-- 完了カラム -->
+                        <div class="kanban-column" id="col-done" style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 450px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #34d399; padding-bottom: 8px; margin-bottom: 4px;">
+                                <h4 style="font-size: 13.5px; font-weight: 750; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--color-green);"></span>
+                                    完了 <span id="count-done" style="font-size: 11px; background: rgba(16, 185, 129, 0.1); color: var(--color-green); padding: 2px 6px; border-radius: 999px;">0</span>
+                                </h4>
+                            </div>
+                            <div class="kanban-cards-container" id="cards-done" style="display: flex; flex-direction: column; gap: 10px; min-height: 380px;">
+                                <!-- タスクカードが動的に挿入される -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- 5. マネーマネージャー -->
                 <section class="tab-pane" id="tab-financials">
                     <!-- 資金サマリー -->
@@ -466,10 +582,22 @@
                             <h2 id="fin-pB-total" class="text-purple">¥0</h2>
                             <p id="fin-pB-share-percent">出資比率: 50%</p>
                         </div>
-                        <div class="finance-card settlement-card">
+                        <div class="finance-card settlement-card" style="display: flex; flex-direction: column;">
                             <span>現在の清算バランス</span>
                             <h2 id="fin-settlement-balance">¥0</h2>
                             <p id="fin-settlement-action">お互いの出費バランスは均等です</p>
+                            
+                            <!-- 清算用PayPay送金QR表示 -->
+                            <div id="paypay-qr-container" style="display: none; margin-top: 12px; padding: 10px; background: #ffffff; border: 1px solid rgba(79, 70, 229, 0.1); border-radius: var(--border-radius-sm); text-align: center; flex-direction: column; gap: 8px;">
+                                <span style="font-size: 11px; font-weight: 750; color: #ff007f; display: flex; align-items: center; gap: 4px; justify-content: center;">
+                                    <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> PayPayでスピーディに送金清算
+                                </span>
+                                <div id="paypay-qr-image" style="width: 120px; height: 120px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; border-radius: 4px; overflow: hidden; margin-left: auto; margin-right: auto;">
+                                    <!-- QR画像がAPIより自动挿入されます -->
+                                </div>
+                                <span id="paypay-qr-desc" style="font-size: 10.5px; color: var(--text-secondary); font-weight: 600;">送金金額: ¥0</span>
+                            </div>
+
                             <button class="btn btn-primary btn-sm mt-3 w-100" id="btn-clear-settlement">
                                 <i data-lucide="check-circle"></i> 清算を記録する (リセット)
                             </button>
@@ -654,6 +782,41 @@
                     <div class="ideas-board" id="ideas-board-grid">
                         <!-- 付箋が動的にレンダリングされる -->
                     </div>
+
+                    <!-- AIアイデア壁打ちチャットパートナー -->
+                    <div class="content-card" style="margin-top: 36px; border-top: 3px solid var(--color-purple);">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                            <div class="card-title-area">
+                                <i data-lucide="bot" class="title-icon text-purple"></i>
+                                <h3>AIアイデア壁打ちチャット (LumiJourneyアドバイザー)</h3>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="password" id="gemini-api-key" placeholder="Gemini APIキーを入力 (任意)" style="padding: 6px 12px; font-size: 11px; border: 1px solid var(--border-color); border-radius: var(--radius-md); width: 180px;">
+                                <button class="btn btn-secondary btn-sm" id="btn-save-api-key" style="padding: 6px 12px; font-size: 11px; height: 28px;">保存</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 16px;">
+                                AIが共同創業者の優秀な第三の壁打ち相手としてアドバイスします。設定されたAPIキーがない場合は、<strong>LumiJourneyのメインターゲット層（旅行計画に悩む個人/カップル）のプロファイルを意識したシミュレーションAIアドバイザー</strong>が的確なビジネス批評・アドバイスを返信します。
+                            </p>
+                            <div class="ai-chat-box" style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                                <div id="ai-chat-messages" style="height: 240px; overflow-y: auto; padding: 16px; background: rgba(243, 244, 246, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 12px;">
+                                    <div class="chat-msg ai" style="display: flex; gap: 10px; max-width: 85%;">
+                                        <div style="width: 28px; height: 28px; border-radius: 50%; background: var(--color-purple); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;"><i data-lucide="bot" style="width: 14px; height: 14px;"></i></div>
+                                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 0 12px 12px 12px; padding: 10px 14px; font-size: 12.8px; line-height: 1.5; color: var(--text-primary); font-weight: 500;">
+                                            煌記さん、和弥さん、こんにちは！旅行計画サービス「LumiJourney」のビジネスアイデアやマーケティング施策、LPコピーの文案など、何でも相談してください。ターゲット層のインサイトに基づいて壁打ち相手を務めます！
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="ai-chat-input" placeholder="例：『旅行はアクティブに動きたいけど計画が面倒』というターゲット層に向けた、心に刺さるキャッチコピーを考えて" style="flex-grow: 1; padding: 10px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-family: inherit; font-size: 13px;">
+                                    <button class="btn btn-primary" id="btn-send-ai-chat" style="padding: 0 20px; background-color: var(--color-purple); border-color: var(--color-purple); display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="send" style="width: 14px; height: 14px;"></i> 送信する
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- 7. 意思決定ログ -->
@@ -821,6 +984,98 @@
                         </div>
                         <div id="crm-country-bars" style="display: flex; flex-direction: column; gap: 12px;">
                             <!-- 動的に国籍比率が生成 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LPアクセス・マーケティング分析ダッシュボード -->
+                <div class="content-card" style="margin-top: 24px; border-top: 3px solid var(--color-green);">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+                        <div class="card-title-area">
+                            <i data-lucide="line-chart" class="title-icon text-green"></i>
+                            <h3>LPアクセス ＆ マーケティングファネル分析</h3>
+                        </div>
+                        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); background: #f1f5f9; padding: 4px 10px; border-radius: 4px;">
+                            同期ステータス: <span style="color: var(--color-green);">● リアルタイム</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="analytics-metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                            <div style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
+                                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">日次PV数 (Page Views)</span>
+                                <div id="analytics-pv" style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 6px 0;">1,240 PV</div>
+                                <span style="font-size: 10px; color: var(--color-green); font-weight: 700;">↑ 12.4% (前日比)</span>
+                            </div>
+                            <div style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
+                                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">ユニーク訪問者 (UU)</span>
+                                <div id="analytics-uu" style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 6px 0;">860 UU</div>
+                                <span style="font-size: 10px; color: var(--color-green); font-weight: 700;">↑ 8.2% (前日比)</span>
+                            </div>
+                            <div style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
+                                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">CVR (お申し込み完了ボタン率)</span>
+                                <div id="analytics-cvr" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 6px 0;">3.2 %</div>
+                                <span style="font-size: 10px; color: var(--color-primary); font-weight: 700;">目標ラインクリア</span>
+                            </div>
+                            <div style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
+                                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">直帰率 (Bounce Rate)</span>
+                                <div id="analytics-bounce" style="font-size: 24px; font-weight: 800; color: var(--color-pink); margin: 6px 0;">42.1 %</div>
+                                <span style="font-size: 10px; color: var(--color-green); font-weight: 700;">↓ 2.5% (前日比改善)</span>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
+                            <!-- アクセストレンドグラフ -->
+                            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
+                                <h4 style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="trending-up" class="text-green"></i> 過去7日間のアクセストレンド (PV/UU)
+                                </h4>
+                                <div style="position: relative; height: 220px; width: 100%;">
+                                    <canvas id="analytics-trend-chart"></canvas>
+                                </div>
+                            </div>
+                            <!-- コンバージョン漏斗（ファネル） -->
+                            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; min-height: 275px;">
+                                <h4 style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="filter" class="text-primary"></i> マーケティングCVファネル
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
+                                            <span>1. LPアクセス (UU)</span>
+                                            <span id="funnel-step-1">860 UU (100%)</span>
+                                        </div>
+                                        <div style="height: 14px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
+                                            <div style="height: 100%; width: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 4px;"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
+                                            <span>2. プラン詳細スクロール</span>
+                                            <span id="funnel-step-2">420 UU (48.8%)</span>
+                                        </div>
+                                        <div style="height: 14px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
+                                            <div id="funnel-bar-2" style="height: 100%; width: 48.8%; background: linear-gradient(90deg, #4f46e5, #818cf8); border-radius: 4px;"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
+                                            <span>3. お申し込みボタンクリック</span>
+                                            <span id="funnel-step-3">82 UU (9.5%)</span>
+                                        </div>
+                                        <div style="height: 14px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
+                                            <div id="funnel-bar-3" style="height: 100%; width: 9.5%; background: linear-gradient(90deg, #ec4899, #f472b6); border-radius: 4px;"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
+                                            <span>4. 面談完了・売上計上 (CV)</span>
+                                            <span id="funnel-step-4">27 件 (3.2%)</span>
+                                        </div>
+                                        <div style="height: 14px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
+                                            <div id="funnel-bar-4" style="height: 100%; width: 3.2%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 4px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1196,6 +1451,43 @@
                     <label>顧客メモ・特記事項</label>
                     <textarea id="cust-memo" rows="3" placeholder="例: 桜の時期の京都ガイドツアーを希望。英語でのフルサポート付き。"></textarea>
                 </div>
+                <div class="form-group" style="margin-top: 12px; border-top: 1px dashed var(--border-color); padding-top: 12px;">
+                    <label style="font-weight: 750; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
+                        <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i> LumiJourney ヒアリングシート (Zoom面談用)
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 11px;">旅行目的地 (国・都市)</label>
+                            <input type="text" id="cust-hear-destination" placeholder="例: 東京、京都、金沢" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 11px;">予算クラス</label>
+                            <select id="cust-hear-budget" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                <option value="standard">標準 (一般的なホテル・体験)</option>
+                                <option value="budget">節約 (ドミトリー・格安メイン)</option>
+                                <option value="luxury">贅沢 (高級宿・プライベートガイド)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 11px;">旅のペース</label>
+                            <select id="cust-hear-pace" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                <option value="moderate">のんびり (観光は1日2-3箇所)</option>
+                                <option value="active">アクティブ (朝から夜まで満喫)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 4px;">
+                            <label style="font-size: 11px; margin-bottom: 6px;">特別な配慮・要望</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <label style="font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; cursor: pointer;">
+                                    <input type="checkbox" id="cust-hear-req-allergy"> アレルギー
+                                </label>
+                                <label style="font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; cursor: pointer;">
+                                    <input type="checkbox" id="cust-hear-req-family"> 家族・子供連れ
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary btn-close-modal">キャンセル</button>
@@ -1309,6 +1601,90 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary btn-close-modal">キャンセル</button>
                 <button class="btn btn-primary" id="btn-submit-memo">保存する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: タスク追加・編集 -->
+    <div class="modal-overlay" id="modal-add-task">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="task-modal-title">タスクを追加</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="task-edit-id">
+                <div class="form-group">
+                    <label>タスク名</label>
+                    <input type="text" id="task-title" placeholder="例: LPのメインビジュアル素材作成" required>
+                </div>
+                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>担当者</label>
+                        <select id="task-assignee" style="width:100%;">
+                            <option value="partnerA" id="task-opt-pA">パートナーA</option>
+                            <option value="partnerB" id="task-opt-pB">パートナーB</option>
+                            <option value="both">共同・ペア</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>ステータス</label>
+                        <select id="task-status" style="width:100%;">
+                            <option value="todo">未着手</option>
+                            <option value="doing">進行中</option>
+                            <option value="review">レビュー待ち</option>
+                            <option value="done">完了</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; margin-top: 16px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>優先度</label>
+                        <select id="task-priority" style="width:100%;">
+                            <option value="medium">中 (標準)</option>
+                            <option value="high">高 (大至急)</option>
+                            <option value="low">低 (後回し)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>期限日</label>
+                        <input type="date" id="task-deadline" required style="width:100%;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>詳細内容・注意点</label>
+                    <textarea id="task-desc" rows="4" placeholder="例: モニター獲得に向けて、旅行計画の魅力が伝わるバナーデザインを作成する。Figmaで下書き後に合意を得る。"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-close-modal">キャンセル</button>
+                <button class="btn btn-primary" id="btn-submit-task">保存する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: PDF/資料アプリ内プレビュービューア -->
+    <div class="modal-overlay" id="modal-preview-doc">
+        <div class="modal-box" style="width: 800px; max-width: 95vw; height: 80vh; max-height: 90vh;">
+            <div class="modal-header">
+                <h3 id="preview-doc-title">資料プレビュー</h3>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 0; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden;">
+                <iframe id="preview-doc-iframe" src="" style="width: 100%; height: 100%; border: none; flex-grow: 1; background: #ffffff;"></iframe>
+                <div id="preview-doc-fallback" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px; text-align: center; flex-grow: 1; color: var(--text-secondary);">
+                    <i data-lucide="file-warning" style="width: 48px; height: 48px; color: var(--color-pink); opacity: 0.8;"></i>
+                    <div>
+                        <h4 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">アプリ内で資料を表示できません</h4>
+                        <p style="font-size: 12.5px; line-height: 1.5;">このサイト（Googleドライブ等）はセキュリティ保護のためアプリ内 iframe での直接表示を制限しています。<br>お手数ですが、以下のボタンから別タブで開いてご確認ください。</p>
+                    </div>
+                    <a href="" id="preview-doc-fallback-btn" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                        <i data-lucide="external-link"></i>別タブで資料を開く
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid var(--border-color); justify-content: flex-end;">
+                <button class="btn btn-secondary btn-close-modal">閉じる</button>
             </div>
         </div>
     </div>
