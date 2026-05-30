@@ -920,6 +920,12 @@ function applyDynamicNames() {
     if (taskOptA) taskOptA.textContent = pA;
     const taskOptB = document.getElementById('task-opt-pB');
     if (taskOptB) taskOptB.textContent = pB;
+
+    // アイデアの提案者セレクトボックス選択肢更新
+    const ideaOptA = document.getElementById('idea-opt-pA');
+    if (ideaOptA) ideaOptA.textContent = pA;
+    const ideaOptB = document.getElementById('idea-opt-pB');
+    if (ideaOptB) ideaOptB.textContent = pB;
 }
 
 // ==========================================
@@ -2744,6 +2750,8 @@ function addIdea() {
     const title = document.getElementById('idea-title').value.trim();
     const desc = document.getElementById('idea-desc').value.trim();
     const color = document.querySelector('input[name="idea-color"]:checked').value;
+    const authorSelect = document.getElementById('idea-author');
+    const author = authorSelect ? authorSelect.value : 'partnerA';
 
     if (!title || !desc) {
         alert('タイトルと詳細を入力してください。');
@@ -2755,7 +2763,7 @@ function addIdea() {
         title: title,
         desc: desc,
         color: color,
-        author: 'partnerA', // アプリ使用者は基本パートナーA（アリス）として振る舞う
+        author: author,
         date: new Date().toISOString().split('T')[0],
         likes: [],
         status: 'active'
@@ -2771,6 +2779,8 @@ function addIdea() {
     // リセット
     document.getElementById('idea-title').value = '';
     document.getElementById('idea-desc').value = '';
+    const authorSelect = document.getElementById('idea-author');
+    if (authorSelect) authorSelect.value = 'partnerA';
     closeModal('modal-add-idea');
 }
 
