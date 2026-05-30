@@ -6480,10 +6480,10 @@ function renderCardChats() {
         bubbleWrap.innerHTML = `
             <span style="font-size: 9px; color: var(--text-muted); font-weight: 700; text-align: ${isMe ? 'right' : 'left'};">${senderName}</span>
             <div style="display: flex; gap: 6px; flex-direction: ${isMe ? 'row-reverse' : 'row'}; align-items: start;">
-                <div style="width: 24px; height: 24px; border-radius: 50%; background: ${isMe ? 'linear-gradient(135deg, var(--color-pink), #ff007f)' : 'rgba(255,255,255,0.06)'}; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; border: 1px solid rgba(255,255,255,0.05); flex-shrink: 0;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: ${isMe ? 'linear-gradient(135deg, var(--color-pink), #ff007f)' : 'rgba(0, 0, 0, 0.05)'}; color: ${isMe ? 'white' : 'var(--text-primary)'}; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; border: 1px solid rgba(0, 0, 0, 0.04); flex-shrink: 0;">
                     ${senderName.charAt(0).toUpperCase()}
                 </div>
-                <div style="background: ${isMe ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'rgba(255, 255, 255, 0.03)'}; border: 1px solid ${isMe ? 'rgba(79, 70, 229, 0.2)' : 'rgba(255,255,255,0.05)'}; color: var(--text-main); border-radius: ${isMe ? '10px 0 10px 10px' : '0 10px 10px 10px'}; padding: 8px 12px; font-size: 12px; line-height: 1.45; word-break: break-all; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                <div style="background: ${isMe ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'rgba(0, 0, 0, 0.03)'}; border: 1px solid ${isMe ? 'rgba(79, 70, 229, 0.2)' : 'rgba(0, 0, 0, 0.05)'}; color: ${isMe ? '#ffffff' : 'var(--text-primary)'}; border-radius: ${isMe ? '10px 0 10px 10px' : '0 10px 10px 10px'}; padding: 8px 12px; font-size: 12px; line-height: 1.45; word-break: break-all; box-shadow: 0 4px 10px rgba(15, 23, 42, 0.03);">
                     ${textHtml}
                 </div>
             </div>

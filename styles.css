@@ -2755,31 +2755,35 @@ body {
 
 /* 全体背景とタイポグラフィの極限美化 */
 body {
-    background: linear-gradient(135deg, #090d16, #0e1322) !important;
+    background: #f4f6fa !important;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(219, 39, 119, 0.05) 0%, transparent 40%) !important;
     font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
-    color: #f1f5f9 !important;
+    color: #1e293b !important;
     letter-spacing: -0.015em;
 }
 
 h1, h2, h3, h4, h5, h6, .stat-value {
     font-family: 'Outfit', sans-serif !important;
     letter-spacing: -0.02em;
+    color: #0f172a !important;
 }
 
-/* グラスモフィズムとネオングローの適用 */
+/* グラスモフィズムとネオングローの適用（超美麗白ベースガラス） */
 .sidebar, .content-card, .card, .stat-card, .modal-box, .crm-stat-card {
-    background: rgba(255, 255, 255, 0.02) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(99, 102, 241, 0.08) !important;
+    box-shadow: 0 10px 30px -5px rgba(79, 70, 229, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02) !important;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 /* ホバー時の美しい発光効果 */
 .content-card:hover, .card:hover, .stat-card:hover, .crm-stat-card:hover {
     border-color: rgba(236, 72, 153, 0.2) !important;
-    box-shadow: 0 0 25px rgba(236, 72, 153, 0.08), 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 15px 35px rgba(79, 70, 229, 0.08), 0 0 15px rgba(236, 72, 153, 0.1) !important;
     transform: translateY(-3px) !important;
 }
 
@@ -2808,10 +2812,10 @@ h1, h2, h3, h4, h5, h6, .stat-value {
     }
 }
 
-/* スケルトンローダー（波打つグラスモフィズム） */
+/* スケルトンローダー（波打つグラスモフィズム・ライトモード） */
 .skeleton-card {
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid rgba(99, 102, 241, 0.04) !important;
     border-radius: var(--border-radius-md);
     padding: 16px;
     overflow: hidden;
@@ -2820,7 +2824,7 @@ h1, h2, h3, h4, h5, h6, .stat-value {
 
 .skeleton-line {
     height: 12px;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(0, 0, 0, 0.04) !important;
     border-radius: 4px;
     margin-bottom: 8px;
     position: relative;
@@ -2835,7 +2839,7 @@ h1, h2, h3, h4, h5, h6, .stat-value {
     left: -150px;
     height: 100%;
     width: 150px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent) !important;
     animation: skeleton-glow 1.5s infinite ease-in-out;
 }
 
@@ -2849,11 +2853,14 @@ h1, h2, h3, h4, h5, h6, .stat-value {
     height: 8px;
 }
 .kanban-board-wrapper::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.08);
+    background: rgba(79, 70, 229, 0.15) !important;
     border-radius: 4px;
 }
 
 .kanban-column {
+    background: rgba(255, 255, 255, 0.4) !important;
+    border: 1px solid rgba(99, 102, 241, 0.04) !important;
+    border-radius: var(--border-radius-md);
     transition: background 0.3s ease, border-color 0.3s ease;
 }
 
@@ -2863,11 +2870,11 @@ h1, h2, h3, h4, h5, h6, .stat-value {
 }
 
 .kanban-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
     border-radius: var(--border-radius-sm);
     padding: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: grab;
     user-select: none;
@@ -2876,9 +2883,9 @@ h1, h2, h3, h4, h5, h6, .stat-value {
 
 .kanban-card:hover {
     border-color: rgba(236, 72, 153, 0.3) !important;
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), 0 0 10px rgba(236, 72, 153, 0.05) !important;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.06), 0 0 10px rgba(236, 72, 153, 0.1) !important;
 }
 
 .kanban-card:active {
@@ -2888,7 +2895,7 @@ h1, h2, h3, h4, h5, h6, .stat-value {
 .kanban-card-title {
     font-size: 13px;
     font-weight: 750;
-    color: var(--text-main);
+    color: var(--text-primary) !important;
     margin-bottom: 6px;
     display: flex;
     align-items: center;
@@ -2912,9 +2919,9 @@ h1, h2, h3, h4, h5, h6, .stat-value {
     text-transform: uppercase;
 }
 
-.kanban-card-badge.gold { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-.kanban-card-badge.blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-.kanban-card-badge.pink { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+.kanban-card-badge.gold { background: rgba(217, 119, 6, 0.1) !important; color: #d97706 !important; }
+.kanban-card-badge.blue { background: rgba(37, 99, 235, 0.1) !important; color: #2563eb !important; }
+.kanban-card-badge.pink { background: rgba(219, 39, 119, 0.1) !important; color: #db2777 !important; }
 
 /* AIコックピット・チャットバルーン Styles */
 .chat-msg {
@@ -2940,7 +2947,7 @@ h1, h2, h3, h4, h5, h6, .stat-value {
 /* 一言チャットサイドスライドパネル Styles */
 .chat-slide-panel.open {
     right: 0 !important;
-    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: -10px 0 40px rgba(15, 23, 42, 0.08) !important;
 }
 
 /* 通知ベルの脈動Keyframes */
