@@ -2779,7 +2779,6 @@ function addIdea() {
     // リセット
     document.getElementById('idea-title').value = '';
     document.getElementById('idea-desc').value = '';
-    const authorSelect = document.getElementById('idea-author');
     if (authorSelect) authorSelect.value = 'partnerA';
     closeModal('modal-add-idea');
 }
