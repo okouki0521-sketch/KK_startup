@@ -64,10 +64,6 @@
                     <i data-lucide="swords"></i>
                     <span>アプローチ進捗</span>
                 </a>
-                <a href="#" class="nav-item" data-tab="decisions">
-                    <i data-lucide="book-open"></i>
-                    <span>意思決定ログ</span>
-                </a>
                 <a href="#" class="nav-item" data-tab="updates">
                     <i data-lucide="clipboard-list"></i>
                     <span>進捗共有・日報</span>
@@ -206,9 +202,9 @@
                                 <i data-lucide="file-check"></i>
                             </div>
                             <div class="stat-content">
-                                <h3>意思決定ログ</h3>
+                                <h3>合意ログ・決定事項</h3>
                                 <div class="stat-value" id="dash-decisions-count">0 件</div>
-                                <span class="stat-label">合意された重要事項</span>
+                                <span class="stat-label">共通認識スペースの合意事項</span>
                             </div>
                         </div>
                         <div class="stat-card">
@@ -249,9 +245,9 @@
                             <div class="card-header">
                                 <div class="card-title-area">
                                     <i data-lucide="clock" class="title-icon"></i>
-                                    <h3>最近の意思決定ログ</h3>
+                                    <h3>最近の意思決定・合意事項</h3>
                                 </div>
-                                <button class="btn-text" onclick="switchTab('decisions')">すべて見る</button>
+                                <button class="btn-text" onclick="switchTab('alignment')">すべて見る</button>
                             </div>
                             <div class="card-body">
                                 <div class="recent-decisions" id="dash-decisions-list">
@@ -260,32 +256,6 @@
                                         <i data-lucide="book-open"></i>
                                         <p>登録された意思決定はありません</p>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- クイック伝言板 (Quick Chat Board) -->
-                    <div class="content-card" style="margin-top: 24px; border-top: 3px solid var(--color-primary);">
-                        <div class="card-header">
-                            <div class="card-title-area">
-                                <i data-lucide="message-square" class="title-icon text-primary"></i>
-                                <h3>共同創業者 伝言板 (Quick Chat)</h3>
-                            </div>
-                            <span class="badge badge-info" id="chat-unread-badge" style="display:none;">新着メッセージ</span>
-                        </div>
-                        <div class="card-body">
-                            <div class="quick-chat-container">
-                                <div class="quick-chat-messages" id="quick-chat-messages" style="height: 200px; overflow-y: auto; padding: 12px; background: rgba(248, 250, 252, 0.5); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px;">
-                                    <!-- メッセージはJSで動的に表示 -->
-                                </div>
-                                <div style="display: flex; gap: 10px;">
-                                    <select id="chat-sender" style="width: 120px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-family: inherit; font-size: 13px; font-weight: 600;">
-                                        <option value="partnerA" id="chat-opt-pA">パートナーA</option>
-                                        <option value="partnerB" id="chat-opt-pB">パートナーB</option>
-                                    </select>
-                                    <input type="text" id="chat-input" placeholder="相方への連絡、指示、メンション（@和弥 @煌記）を入力..." style="flex-grow: 1; padding: 10px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-family: inherit; font-size: 13px;">
-                                    <button class="btn btn-primary" id="btn-send-chat" style="padding: 10px 20px;">送信</button>
                                 </div>
                             </div>
                         </div>
@@ -442,32 +412,56 @@
 
                 <!-- 3. ロードマップ & 目標 -->
                 <section class="tab-pane" id="tab-roadmap">
-                    <div class="roadmap-layout">
-                        <!-- 左側: フェーズ型ロードマップ -->
-                        <div class="roadmap-column">
-                            <div class="column-header">
-                                <h3>事業ロードマップ</h3>
-                                <button class="btn btn-primary btn-sm" id="btn-add-phase">
-                                    <i data-lucide="plus"></i> フェーズを追加
-                                </button>
+                    <div class="roadmap-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; min-height: 400px;">
+                        <!-- 左側: 今月の3大マイルストーン -->
+                        <div class="content-card" style="padding: 24px;">
+                            <div class="card-header" style="border-bottom: 1px solid rgba(99, 102, 241, 0.08); padding-bottom: 16px; margin-bottom: 20px;">
+                                <div class="card-title-area">
+                                    <i data-lucide="flag" class="title-icon text-pink"></i>
+                                    <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary);">今月の3大主要マイルストーン</h3>
+                                </div>
                             </div>
-                            
-                            <div class="timeline" id="roadmap-timeline">
-                                <!-- ロードマップフェーズが動的に追加される -->
+                            <div class="milestones-vision-list" style="display: flex; flex-direction: column; gap: 16px;">
+                                <div class="vision-item" style="padding: 16px; background: rgba(79, 70, 229, 0.03); border: 1px solid rgba(79, 70, 229, 0.1); border-radius: var(--border-radius-md); position: relative;">
+                                    <span style="position: absolute; top: -10px; left: 16px; font-size: 9px; font-weight: 900; background: var(--color-primary); color: white; padding: 2px 8px; border-radius: 4px;">TARGET 01</span>
+                                    <h4 style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-top: 4px;">🚀 LP公開 ＆ 初期インバウンド顧客モニター募集開始</h4>
+                                    <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; line-height: 1.45;">まずはLPを公開し、Reddit・Instagram等のSNSを通じて最初の無料相談Zoom面談モニターを集客します。</p>
+                                </div>
+                                <div class="vision-item" style="padding: 16px; background: rgba(147, 51, 234, 0.03); border: 1px solid rgba(147, 51, 234, 0.1); border-radius: var(--border-radius-md); position: relative;">
+                                    <span style="position: absolute; top: -10px; left: 16px; font-size: 9px; font-weight: 900; background: var(--color-purple); color: white; padding: 2px 8px; border-radius: 4px;">TARGET 02</span>
+                                    <h4 style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-top: 4px;">📝 Zoom面談用ヒアリングシートの最適化とテスト面談5件</h4>
+                                    <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; line-height: 1.45;">面談をスムーズにし、顧客の隠れたニーズを引き出すためのZoomヒアリングシートを完成させ、5名以上の検証面談を実施します。</p>
+                                </div>
+                                <div class="vision-item" style="padding: 16px; background: rgba(219, 39, 119, 0.03); border: 1px solid rgba(219, 39, 119, 0.1); border-radius: var(--border-radius-md); position: relative;">
+                                    <span style="position: absolute; top: -10px; left: 16px; font-size: 9px; font-weight: 900; background: var(--color-pink); color: white; padding: 2px 8px; border-radius: 4px;">TARGET 03</span>
+                                    <h4 style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-top: 4px;">⚔️ 初期顧客向けテーラーメイド旅プランの提案 ＆ 成約</h4>
+                                    <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; line-height: 1.45;">面談結果に基づき、ナビサムライとしての最初の有料プラン提案を行い、第一号となる顧客の成約を獲得します。</p>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- 右側: 目標(KPI)管理 -->
-                        <div class="goals-column">
-                            <div class="column-header">
-                                <h3>目標・KPI管理</h3>
-                                <button class="btn btn-primary btn-sm" id="btn-add-goal">
-                                    <i data-lucide="plus"></i> 目標を追加
-                                </button>
+                        <!-- 右側: 共同創業者の共通ビジョン・スローガン -->
+                        <div class="content-card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                <div class="card-header" style="border-bottom: 1px solid rgba(99, 102, 241, 0.08); padding-bottom: 16px; margin-bottom: 20px;">
+                                    <div class="card-title-area">
+                                        <i data-lucide="sparkles" class="title-icon text-yellow"></i>
+                                        <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary);">共同創業ビジョン ＆ スローガン</h3>
+                                    </div>
+                                </div>
+                                <div style="text-align: center; padding: 20px 10px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.02), rgba(219, 39, 119, 0.02)); border: 1px dashed rgba(99, 102, 241, 0.15); border-radius: var(--border-radius-md); margin-bottom: 20px;">
+                                    <i data-lucide="crown" style="width: 32px; height: 32px; color: #f59e0b; margin-bottom: 8px; margin-left: auto; margin-right: auto; filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.2));"></i>
+                                    <h4 style="font-size: 16px; font-weight: 900; color: var(--text-primary); letter-spacing: 0.05em; line-height: 1.5; margin: 4px 0 8px 0;">日本旅行の楽しさを最大化し、<br>すべての「旅行計画のストレス」をゼロにする。</h4>
+                                    <p style="font-size: 11.5px; color: var(--text-secondary); max-width: 80%; margin: 0 auto; line-height: 1.5;">ガイドブックを閉じて、あなただけの日本旅行の案内人（ナビサムライ）を持とう。</p>
+                                </div>
                             </div>
-
-                            <div class="goals-list" id="goals-list-container">
-                                <!-- 目標アイテムが動的に追加される -->
+                            
+                            <div style="padding: 16px; background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.04); border-radius: var(--border-radius-md); display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center;"><i data-lucide="users" style="width: 18px; height: 18px;"></i></div>
+                                <div>
+                                    <h5 style="font-size: 12px; font-weight: 800; color: var(--text-primary);">煌記 ＆ 和弥 の最強タッグ</h5>
+                                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">実務と意思決定を完全同期し、前人未到のインバウンド体験を創出する。</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -852,22 +846,6 @@
                     </div>
                 </section>
 
-                <!-- 7. 意思決定ログ -->
-                <section class="tab-pane" id="tab-decisions">
-                    <div class="decisions-container">
-                        <div class="decisions-header-area">
-                            <p>「言った言わない」を防ぐための決定事項の公式ログです。株式比率の変更、採用、大きな支出、ピボットなど、合意した決定を残しましょう。</p>
-                            <button class="btn btn-primary" id="btn-add-decision">
-                                <i data-lucide="plus"></i> 決定事項を記録する
-                            </button>
-                        </div>
-
-                        <div class="decisions-timeline" id="decisions-timeline-list">
-                            <!-- 意思決定タイムラインが動的に挿入される -->
-                        </div>
-                    </div>
-                </section>
-
                 <!-- 8. 進捗共有・日報 (Daily Updates) -->
                 <section class="tab-pane" id="tab-updates">
                     <div class="updates-header" style="margin-bottom: 24px;">
@@ -1032,6 +1010,7 @@
                         <button class="filter-chip" data-category="rule">業務ルール</button>
                         <button class="filter-chip" data-category="customer">顧客対応</button>
                         <button class="filter-chip" data-category="marketing">マーケティング</button>
+                        <button class="filter-chip" data-category="decision">決定事項</button>
                         <button class="filter-chip" data-category="other">その他</button>
                     </div>
                     <button class="btn btn-primary" id="btn-add-memo-modal">
@@ -1660,6 +1639,7 @@
                         <option value="rule">業務ルール</option>
                         <option value="customer">顧客対応</option>
                         <option value="marketing">マーケティング</option>
+                        <option value="decision">決定事項・合意ログ</option>
                         <option value="other">その他</option>
                     </select>
                 </div>

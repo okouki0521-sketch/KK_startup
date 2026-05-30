@@ -595,16 +595,12 @@ function switchTabQuietly(tabId) {
         updateDashboard();
     } else if (tabId === 'agreement') {
         loadAgreementData();
-    } else if (tabId === 'roadmap') {
-        renderRoadmapAndGoals();
     } else if (tabId === 'calendar') {
         renderCalendar();
     } else if (tabId === 'financials') {
         renderFinancials();
     } else if (tabId === 'ideas') {
         renderIdeas();
-    } else if (tabId === 'decisions') {
-        renderDecisions();
     } else if (tabId === 'updates') {
         renderUpdates();
     } else if (tabId === 'customers') {
@@ -739,16 +735,12 @@ function switchTab(tabId) {
         renderDashboard();
     } else if (tabId === 'agreement') {
         loadAgreementData();
-    } else if (tabId === 'roadmap') {
-        renderRoadmapAndGoals();
     } else if (tabId === 'calendar') {
         renderCalendar();
     } else if (tabId === 'financials') {
         renderFinancials();
     } else if (tabId === 'ideas') {
         renderIdeas();
-    } else if (tabId === 'decisions') {
-        renderDecisions();
     } else if (tabId === 'updates') {
         renderUpdates();
     } else if (tabId === 'customers') {
@@ -987,11 +979,16 @@ function updateDashboard() {
     }
 
     // 3. その他件数
-    document.getElementById('dash-decisions-count').textContent = `${state.decisions.length} 件`;
-    document.getElementById('dash-ideas-count').textContent = `${state.ideas.length} 件`;
+    const decMemos = (state.sharedMemos || []).filter(m => m && m.category === 'decision');
+    const dashDecisionsEl = document.getElementById('dash-decisions-count');
+    if (dashDecisionsEl) {
+        dashDecisionsEl.textContent = `${decMemos.length} 件`;
+    }
+    const dashIdeasEl = document.getElementById('dash-ideas-count');
+    if (dashIdeasEl) {
+        dashIdeasEl.textContent = `${state.ideas.length} 件`;
+    }
 
-    // 伝言板（Quick Chat）の自動更新
-    renderQuickChat();
     // 通知バッジの自動更新
     updateNotificationBadge();
 }
@@ -999,80 +996,75 @@ function updateDashboard() {
 function renderDashboard() {
     updateDashboard();
 
-    // 1. 直近のマイルストーン
+    // 1. 直近のマイルストーン (静的な最強ビジョンボードと連動)
     const listContainer = document.getElementById('dash-milestones-list');
-    listContainer.innerHTML = '';
-
-    // 直近3件の未完了目標を表示
-    const activeGoals = state.goals
-        .filter(g => g.current < g.target)
-        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
-        .slice(0, 3);
-
-    if (activeGoals.length > 0) {
-        activeGoals.forEach(g => {
-            const item = document.createElement('div');
-            item.className = 'timeline-content';
-            item.style.marginBottom = '12px';
-            item.style.padding = '16px';
-            
-            const pct = Math.round((g.current / g.target) * 100);
-            const assigneeName = g.assignee === 'partnerA' ? state.settings.partnerAName : (g.assignee === 'partnerB' ? state.settings.partnerBName : '共同');
-            
-            item.innerHTML = `
-                <div class="timeline-header" style="margin-bottom: 6px;">
-                    <h4 style="font-size: 14px;">${g.title}</h4>
-                    <span class="timeline-period" style="font-size: 11px;">期限: ${g.deadline}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">
-                    <span>担当: ${assigneeName}</span>
-                    <span>進捗: ${g.current}/${g.target} ${g.unit} (${pct}%)</span>
-                </div>
-                <div class="progress-bar-container" style="height: 4px; margin-top: 0;">
-                    <div class="progress-bar" style="width: ${pct}%; background: linear-gradient(to right, var(--color-green), #34d399)"></div>
-                </div>
-            `;
-            listContainer.appendChild(item);
-        });
-    } else {
+    if (listContainer) {
         listContainer.innerHTML = `
-            <div class="empty-state">
-                <i data-lucide="target"></i>
-                <p>現在進行中の目標はありません</p>
+            <div class="timeline-content" style="margin-bottom: 12px; padding: 12px; border-left: 2.5px solid var(--color-primary); background: rgba(99, 102, 241, 0.03); border-radius: 4px;">
+                <div class="timeline-header" style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="font-size: 13px; font-weight: 800; color: var(--text-primary);">🚀 TARGET 01: LP公開 ＆ モニター募集</h4>
+                    <span style="font-size: 9px; font-weight: 800; color: var(--color-primary); background: rgba(99, 102, 241, 0.1); padding: 1px 6px; border-radius: 3px;">進行中</span>
+                </div>
+                <p style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">SNSを活用し最初のZoomモニターを集客します。</p>
+            </div>
+            <div class="timeline-content" style="margin-bottom: 12px; padding: 12px; border-left: 2.5px solid var(--color-purple); background: rgba(147, 51, 234, 0.03); border-radius: 4px;">
+                <div class="timeline-header" style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="font-size: 13px; font-weight: 800; color: var(--text-primary);">📝 TARGET 02: ヒアリングシート & 面談</h4>
+                    <span style="font-size: 9px; font-weight: 800; color: var(--color-purple); background: rgba(147, 51, 234, 0.1); padding: 1px 6px; border-radius: 3px;">準備中</span>
+                </div>
+                <p style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">Zoom面談の最適化と5件のテスト面談検証。</p>
+            </div>
+            <div class="timeline-content" style="margin-bottom: 0; padding: 12px; border-left: 2.5px solid var(--color-pink); background: rgba(219, 39, 119, 0.03); border-radius: 4px;">
+                <div class="timeline-header" style="margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="font-size: 13px; font-weight: 800; color: var(--text-primary);">⚔️ TARGET 03: 初期顧客獲得 ＆ 有料成約</h4>
+                    <span style="font-size: 9px; font-weight: 800; color: var(--color-pink); background: rgba(219, 39, 119, 0.1); padding: 1px 6px; border-radius: 3px;">マイルストーン</span>
+                </div>
+                <p style="font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4;">インバウンド第一号顧客の成約を獲得します。</p>
             </div>
         `;
-        lucide.createIcons();
     }
 
-    // 2. 最近の意思決定
+    // 2. 最近の意思決定 (共通認識スペースの「決定事項」カテゴリより動的に最新2件を取得)
     const decContainer = document.getElementById('dash-decisions-list');
-    decContainer.innerHTML = '';
+    if (decContainer) {
+        decContainer.innerHTML = '';
 
-    const recentDecisions = [...state.decisions].reverse().slice(0, 2);
+        const decMemos = (state.sharedMemos || []).filter(m => m && m.category === 'decision');
+        const recentDecisions = [...decMemos]
+            .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+            .slice(0, 2);
 
-    if (recentDecisions.length > 0) {
-        recentDecisions.forEach(d => {
-            const card = document.createElement('div');
-            card.className = 'decision-card';
-            card.style.padding = '20px';
-            card.style.marginBottom = '12px';
-            card.innerHTML = `
-                <div class="decision-meta" style="margin-bottom: 8px;">
-                    <span class="decision-date-badge" style="padding: 2px 8px; font-size: 10px;">${d.date}</span>
+        if (recentDecisions.length > 0) {
+            recentDecisions.forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'decision-card';
+                card.style.padding = '16px';
+                card.style.marginBottom = '12px';
+                card.style.background = 'rgba(245, 158, 11, 0.02)';
+                card.style.border = '1px solid rgba(245, 158, 11, 0.08)';
+                card.style.borderRadius = 'var(--border-radius-md)';
+                
+                const dateDisplay = d.date || (d.updatedAt ? new Date(d.updatedAt).toISOString().split('T')[0] : '');
+                
+                card.innerHTML = `
+                    <div class="decision-meta" style="margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span class="decision-date-badge" style="padding: 2px 8px; font-size: 10px; background: rgba(217, 119, 6, 0.1); color: #d97706; border-radius: 4px; font-weight: 750;">${dateDisplay}</span>
+                        <span style="font-size: 9px; color: var(--text-muted); font-weight: 700;">🤝 署名合意済</span>
+                    </div>
+                    <h3 style="font-size: 13.5px; margin-bottom: 6px; font-weight: 800; color: var(--text-primary);">${d.title}</h3>
+                    <p style="font-size: 11.5px; color: var(--text-secondary); line-height: 1.45; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${d.content}</p>
+                `;
+                decContainer.appendChild(card);
+            });
+        } else {
+            decContainer.innerHTML = `
+                <div class="empty-state" style="padding: 30px 10px;">
+                    <i data-lucide="book-open"></i>
+                    <p>合意された重要決定はまだありません</p>
                 </div>
-                <h3 style="font-size: 14px; margin-bottom: 8px;">${d.title}</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">${d.reason}</p>
             `;
-            decContainer.appendChild(card);
-        });
-    } else {
-        decContainer.innerHTML = `
-            <div class="empty-state">
-                <i data-lucide="book-open"></i>
-                <p>合意された重要決定はありません</p>
-            </div>
-        `;
-        lucide.createIcons();
+            lucide.createIcons();
+        }
     }
 }
 
@@ -3575,12 +3567,16 @@ document.addEventListener('DOMContentLoaded', () => {
     initAIChatTabEvents();
     
     // 設定
-    document.getElementById('btn-settings').addEventListener('click', () => {
-        loadSettings();
-        renderRecoveryCenter(); // 設定画面が開いた際にデータ保護履歴を描画！
-        openModal('modal-settings');
-    });
-    document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
+    const btnSettings = document.getElementById('btn-settings');
+    if (btnSettings) {
+        btnSettings.addEventListener('click', () => {
+            loadSettings();
+            renderRecoveryCenter(); // 設定画面が開いた際にデータ保護履歴を描画！
+            openModal('modal-settings');
+        });
+    }
+    const btnSaveSettings = document.getElementById('btn-save-settings');
+    if (btnSaveSettings) btnSaveSettings.addEventListener('click', saveSettings);
     
     // インポート/エクスポート
     const exportBtn = document.getElementById('btn-export');
@@ -3606,45 +3602,57 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ロードマップ
-    document.getElementById('btn-add-phase').addEventListener('click', () => openModal('modal-add-phase'));
-    document.getElementById('btn-submit-phase').addEventListener('click', addPhase);
-
-    // 目標
-    document.getElementById('btn-add-goal').addEventListener('click', () => {
-        document.getElementById('goal-deadline').value = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0]; // デフォルト1ヶ月後
-        openModal('modal-add-goal');
-    });
-    document.getElementById('btn-submit-goal').addEventListener('click', addGoal);
-
     // 憲章
-    document.getElementById('btn-save-agreement').addEventListener('click', saveAgreementData);
-    document.getElementById('btn-sig-pA').addEventListener('click', () => toggleSignature('pA'));
-    document.getElementById('btn-sig-pB').addEventListener('click', () => toggleSignature('pB'));
+    const btnSaveAgreement = document.getElementById('btn-save-agreement');
+    if (btnSaveAgreement) btnSaveAgreement.addEventListener('click', saveAgreementData);
+    
+    const btnSigPA = document.getElementById('btn-sig-pA');
+    if (btnSigPA) btnSigPA.addEventListener('click', () => toggleSignature('pA'));
+    
+    const btnSigPB = document.getElementById('btn-sig-pB');
+    if (btnSigPB) btnSigPB.addEventListener('click', () => toggleSignature('pB'));
 
     // カレンダー
-    document.getElementById('btn-prev-month').addEventListener('click', prevMonth);
-    document.getElementById('btn-next-month').addEventListener('click', nextMonth);
-    document.getElementById('btn-add-event').addEventListener('click', () => {
-        document.getElementById('evt-date').value = new Date().toISOString().split('T')[0];
-        openModal('modal-add-event');
-    });
-    document.getElementById('btn-submit-event').addEventListener('click', addEvent);
+    const btnPrevMonth = document.getElementById('btn-prev-month');
+    if (btnPrevMonth) btnPrevMonth.addEventListener('click', prevMonth);
+    
+    const btnNextMonth = document.getElementById('btn-next-month');
+    if (btnNextMonth) btnNextMonth.addEventListener('click', nextMonth);
+    
+    const btnAddEvent = document.getElementById('btn-add-event');
+    if (btnAddEvent) {
+        btnAddEvent.addEventListener('click', () => {
+            const dateEl = document.getElementById('evt-date');
+            if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+            openModal('modal-add-event');
+        });
+    }
+    const btnSubmitEvent = document.getElementById('btn-submit-event');
+    if (btnSubmitEvent) btnSubmitEvent.addEventListener('click', addEvent);
 
     // 経費
-    document.getElementById('form-add-expense').addEventListener('submit', handleAddExpense);
-    document.getElementById('btn-clear-settlement').addEventListener('click', clearSettlement);
-    document.getElementById('exp-date').value = new Date().toISOString().split('T')[0];
+    const formAddExpense = document.getElementById('form-add-expense');
+    if (formAddExpense) formAddExpense.addEventListener('submit', handleAddExpense);
+    
+    const btnClearSettlement = document.getElementById('btn-clear-settlement');
+    if (btnClearSettlement) btnClearSettlement.addEventListener('click', clearSettlement);
+    
+    const expDate = document.getElementById('exp-date');
+    if (expDate) expDate.value = new Date().toISOString().split('T')[0];
 
     // 収入
     const formAddInc = document.getElementById('form-add-income');
     if (formAddInc) formAddInc.addEventListener('submit', handleAddIncome);
+    
     const incDateEl = document.getElementById('inc-date');
     if (incDateEl) incDateEl.value = new Date().toISOString().split('T')[0];
 
     // アイディア
-    document.getElementById('btn-add-idea').addEventListener('click', () => openModal('modal-add-idea'));
-    document.getElementById('btn-submit-idea').addEventListener('click', addIdea);
+    const btnAddIdea = document.getElementById('btn-add-idea');
+    if (btnAddIdea) btnAddIdea.addEventListener('click', () => openModal('modal-add-idea'));
+    
+    const btnSubmitIdea = document.getElementById('btn-submit-idea');
+    if (btnSubmitIdea) btnSubmitIdea.addEventListener('click', addIdea);
     
     // アイディアのカラーピッカーのインタラクション
     document.querySelectorAll('.color-opt').forEach(opt => {
@@ -3655,16 +3663,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 意思決定
-    document.getElementById('btn-add-decision').addEventListener('click', () => {
-        document.getElementById('dec-date').value = new Date().toISOString().split('T')[0];
-        openModal('modal-add-decision');
-    });
-    document.getElementById('btn-submit-decision').addEventListener('click', addDecision);
-
     // 進捗共有
     const formAddUpd = document.getElementById('form-add-update');
     if (formAddUpd) formAddUpd.addEventListener('submit', handleAddUpdate);
+    
     const updDateEl = document.getElementById('upd-date');
     if (updDateEl) updDateEl.value = new Date().toISOString().split('T')[0];
 
@@ -4723,6 +4725,7 @@ function renderMemos() {
             if (m.category === 'rule') catName = '業務ルール';
             else if (m.category === 'customer') catName = '顧客対応';
             else if (m.category === 'marketing') catName = 'マーケティング';
+            else if (m.category === 'decision') catName = '決定事項';
 
             // 更新者のアバター・名前
             const authorName = m.lastUpdatedBy === 'partnerA' ? state.settings.partnerAName : state.settings.partnerBName;

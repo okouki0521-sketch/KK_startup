@@ -2214,6 +2214,7 @@ body {
 .memo-card.rule { border-left-color: var(--color-blue); }
 .memo-card.customer { border-left-color: var(--color-green); }
 .memo-card.marketing { border-left-color: var(--color-purple); }
+.memo-card.decision { border-left-color: var(--color-yellow); }
 .memo-card.other { border-left-color: var(--color-pink); }
 
 .memo-card-header {
@@ -2234,6 +2235,7 @@ body {
 .memo-card.rule .memo-category-badge { background-color: rgba(2, 132, 199, 0.08); color: var(--color-blue); }
 .memo-card.customer .memo-category-badge { background-color: rgba(16, 185, 129, 0.08); color: var(--color-green); }
 .memo-card.marketing .memo-category-badge { background-color: rgba(147, 51, 234, 0.08); color: var(--color-purple); }
+.memo-card.decision .memo-category-badge { background-color: rgba(234, 88, 12, 0.08); color: var(--color-yellow); }
 .memo-card.other .memo-category-badge { background-color: rgba(219, 39, 119, 0.08); color: var(--color-pink); }
 
 .memo-card h4 {
