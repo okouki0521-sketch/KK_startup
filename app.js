@@ -3284,6 +3284,7 @@ function openEditModal(type, id) {
                 <div class="form-group">
                     <label>年齢・世代</label>
                     <select id="edit-cust-age" style="width: 100%;">
+                        <option value="不明" ${item.age === '不明' ? 'selected' : ''}>不明</option>
                         <option value="20代" ${item.age === '20代' ? 'selected' : ''}>20代</option>
                         <option value="30代" ${item.age === '30代' ? 'selected' : ''}>30代</option>
                         <option value="40代" ${item.age === '40代' ? 'selected' : ''}>40代</option>
@@ -3301,6 +3302,7 @@ function openEditModal(type, id) {
                 <div class="form-group">
                     <label>購入プラン</label>
                     <select id="edit-cust-plan" style="width: 100%;">
+                        <option value="不明" ${item.plan === '不明' ? 'selected' : ''}>不明</option>
                         <option value="スタンダード" ${item.plan === 'スタンダード' ? 'selected' : ''}>スタンダード</option>
                         <option value="プロ" ${item.plan === 'プロ' ? 'selected' : ''}>プロ</option>
                         <option value="プレミアム" ${item.plan === 'プレミアム' ? 'selected' : ''}>プレミアム</option>
@@ -3309,6 +3311,7 @@ function openEditModal(type, id) {
                 <div class="form-group">
                     <label>契約期間</label>
                     <select id="edit-cust-duration" style="width: 100%;">
+                        <option value="不明" ${item.duration === '不明' ? 'selected' : ''}>不明</option>
                         <option value="1週間" ${item.duration === '1週間' ? 'selected' : ''}>1週間</option>
                         <option value="2週間" ${item.duration === '2週間' ? 'selected' : ''}>2週間</option>
                         <option value="1ヶ月" ${item.duration === '1ヶ月' ? 'selected' : ''}>1ヶ月</option>
@@ -3318,7 +3321,7 @@ function openEditModal(type, id) {
             <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div class="form-group">
                     <label>売上金額 (円)</label>
-                    <input type="number" id="edit-cust-amount" value="${item.amount}" min="1" required style="width: 100%;">
+                    <input type="number" id="edit-cust-amount" value="${item.amount}" min="0" required style="width: 100%;">
                 </div>
                 <div class="form-group">
                     <label>購入日</label>
@@ -3341,6 +3344,7 @@ function openEditModal(type, id) {
                     <div class="form-group" style="margin-bottom: 0;">
                         <label style="font-size: 11px;">予算クラス</label>
                         <select id="edit-cust-hear-budget" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border-color); width: 100%;">
+                            <option value="不明" ${item.hearBudget === '不明' ? 'selected' : ''}>不明</option>
                             <option value="standard" ${item.hearBudget === 'standard' ? 'selected' : ''}>標準 (一般的なホテル・体験)</option>
                             <option value="budget" ${item.hearBudget === 'budget' ? 'selected' : ''}>節約 (ドミトリー・格安メイン)</option>
                             <option value="luxury" ${item.hearBudget === 'luxury' ? 'selected' : ''}>贅沢 (高級宿・プライベートガイド)</option>
@@ -3349,6 +3353,7 @@ function openEditModal(type, id) {
                     <div class="form-group" style="margin-bottom: 0;">
                         <label style="font-size: 11px;">旅のペース</label>
                         <select id="edit-cust-hear-pace" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border-color); width: 100%;">
+                            <option value="不明" ${item.hearPace === '不明' ? 'selected' : ''}>不明</option>
                             <option value="moderate" ${item.hearPace === 'moderate' ? 'selected' : ''}>のんびり (観光は1日2-3箇所)</option>
                             <option value="active" ${item.hearPace === 'active' ? 'selected' : ''}>アクティブ (朝から夜まで満喫)</option>
                         </select>
@@ -3492,7 +3497,7 @@ function saveEditItem(type, id) {
         item.hearReqAllergy = document.getElementById('edit-cust-hear-req-allergy').checked;
         item.hearReqFamily = document.getElementById('edit-cust-hear-req-family').checked;
 
-        if (!item.name || item.amount <= 0 || !item.date) {
+        if (!item.name || item.amount < 0 || !item.date) {
             alert('すべての必要事項を入力してください。');
             return;
         }
@@ -3705,12 +3710,19 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('cust-name').value = '';
             document.getElementById('cust-memo').value = '';
             document.getElementById('cust-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('cust-plan').value = 'スタンダード';
-            document.getElementById('cust-duration').value = '1週間';
-            document.getElementById('cust-age').value = '20代';
-            document.getElementById('cust-country').value = '日本';
+            document.getElementById('cust-plan').value = '不明';
+            document.getElementById('cust-duration').value = '不明';
+            document.getElementById('cust-age').value = '不明';
+            document.getElementById('cust-country').value = '不明';
             document.getElementById('cust-country-other-group').style.display = 'none';
             document.getElementById('cust-country-other').value = '';
+            
+            // ヒアリングシートの初期化
+            document.getElementById('cust-hear-destination').value = '';
+            document.getElementById('cust-hear-budget').value = '不明';
+            document.getElementById('cust-hear-pace').value = '不明';
+            document.getElementById('cust-hear-req-allergy').checked = false;
+            document.getElementById('cust-hear-req-family').checked = false;
             
             // 金額初期計算
             calculateCrmAmount();
@@ -3786,6 +3798,11 @@ function calculateCrmAmount() {
     const plan = document.getElementById('cust-plan').value;
     const duration = document.getElementById('cust-duration').value;
     const amountInput = document.getElementById('cust-amount');
+    
+    if (plan === '不明' || duration === '不明') {
+        amountInput.value = 0;
+        return;
+    }
     
     // 料金テーブル設計 (9つの料金パターン)
     // スタンダード: 1週間=1980円, 2週間=2480円, 1ヶ月=2980円
@@ -4233,7 +4250,7 @@ function addCustomer() {
     const hearReqAllergy = document.getElementById('cust-hear-req-allergy').checked;
     const hearReqFamily = document.getElementById('cust-hear-req-family').checked;
 
-    if (!name || amount <= 0 || !date) {
+    if (!name || amount < 0 || !date) {
         alert('名前、金額、購入日を正しく入力してください。');
         return;
     }
