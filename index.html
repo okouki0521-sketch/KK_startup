@@ -12,6 +12,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- QRious (PayPay QR Code Generator) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -24,8 +26,8 @@
                     <i data-lucide="layers"></i>
                 </div>
                 <div class="brand-text">
-                    <h1>Co-Founder Hub</h1>
-                    <span>Partnership Workspace</span>
+                    <h1>コックピット</h1>
+                    <span>Navi Samurai OS</span>
                 </div>
             </div>
             
@@ -59,8 +61,8 @@
                     <span>アイディアボード</span>
                 </a>
                 <a href="#" class="nav-item" data-tab="customers">
-                    <i data-lucide="users"></i>
-                    <span>顧客＆売上管理</span>
+                    <i data-lucide="swords"></i>
+                    <span>アプローチ進捗</span>
                 </a>
                 <a href="#" class="nav-item" data-tab="decisions">
                     <i data-lucide="book-open"></i>
@@ -73,6 +75,10 @@
                 <a href="#" class="nav-item" data-tab="alignment">
                     <i data-lucide="notebook"></i>
                     <span>共通認識スペース</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="ai-chat">
+                    <i data-lucide="bot"></i>
+                    <span>AIコックピット</span>
                 </a>
             </nav>
 
@@ -144,6 +150,33 @@
                 
                 <!-- 1. ダッシュボード -->
                 <section class="tab-pane active" id="tab-dashboard">
+                    <!-- 同期状態オーロラパルス -->
+                    <div class="aurora-sync-banner" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-md); margin-bottom: 16px; backdrop-filter: blur(10px);">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="pulse-dot"></span>
+                            <span style="font-size: 12px; font-weight: 700; color: var(--text-main);" id="partner-sync-status">共同経営パートナー（和弥）とセキュア同期完了</span>
+                        </div>
+                        <span style="font-size: 10px; color: var(--text-muted);" id="last-sync-time-display">同期時刻: 未同期</span>
+                    </div>
+
+                    <!-- LPアクセス・コンバージョン同期グラフ -->
+                    <div class="content-card" style="margin-bottom: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);">
+                        <div class="card-header" style="padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                            <div class="card-title-area">
+                                <i data-lucide="trending-up" class="title-icon" style="color: var(--color-pink);"></i>
+                                <h3>ナビサムライ LPアクセス・コンバージョン推移</h3>
+                            </div>
+                            <div style="display: flex; gap: 6px; font-size: 11px;">
+                                <span style="display: flex; align-items: center; gap: 4px; color: #10b981;"><span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>PV</span>
+                                <span style="display: flex; align-items: center; gap: 4px; color: #3b82f6;"><span style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></span>UU</span>
+                                <span style="display: flex; align-items: center; gap: 4px; color: #db2777;"><span style="width: 8px; height: 8px; background: #db2777; border-radius: 50%;"></span>CV</span>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 16px; height: 180px; position: relative;">
+                            <canvas id="lp-analytics-chart"></canvas>
+                        </div>
+                    </div>
+
                     <!-- 統計カードグリッド -->
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -899,176 +932,89 @@
                     </div>
                 </section>
             
-            <!-- 9. 顧客＆売上管理タブ -->
+            <!-- 9. アプローチ進捗 (CRMカンバンボード) タブ -->
             <section class="tab-pane" id="tab-customers">
-
-                <!-- 統計サマリー -->
-                <div class="stats-grid">
-                    <div class="crm-stat-card" style="border-left: 4px solid var(--color-primary);">
-                        <div class="crm-stat-card-title">総顧客数</div>
-                        <div class="crm-stat-card-value" id="crm-total-customers">0 名</div>
-                        <div class="crm-stat-card-desc">累計獲得したユニーク顧客数</div>
+                <div class="crm-header-area" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                            <i data-lucide="kanban-square" class="text-pink"></i> ナビサムライ アプローチ進捗ボード
+                        </h3>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">お互いのアプローチ状況をドラッグ＆ドロップでリアルタイム管理・共有します</p>
                     </div>
-                    <div class="crm-stat-card" style="border-left: 4px solid var(--color-success);">
-                        <div class="crm-stat-card-title">総売上高</div>
-                        <div class="crm-stat-card-value" id="crm-total-sales" style="color: var(--color-success);">¥0</div>
-                        <div class="crm-stat-card-desc">プラン販売による累計売上高</div>
-                    </div>
-                    <div class="crm-stat-card" style="border-left: 4px solid #a855f7;">
-                        <div class="crm-stat-card-title">平均顧客単価 (客単価)</div>
-                        <div class="crm-stat-card-value" id="crm-arpu">¥0</div>
-                        <div class="crm-stat-card-desc">1人あたりの平均お支払額</div>
-                    </div>
+                    <button class="btn btn-primary" id="btn-add-customer-modal" style="padding: 8px 16px; font-size: 12.5px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="user-plus"></i>新規見込み顧客を追加
+                    </button>
                 </div>
 
-                <div class="dashboard-grid">
-                    <!-- 左側: 顧客リスト -->
-                    <div class="card" style="grid-column: span 8; min-height: 400px;">
-                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="database" class="text-primary"></i> 顧客データベース
-                            </h3>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="search-box" style="position: relative;">
-                                    <input type="text" id="crm-search" placeholder="名前・国籍・プランで検索..." style="padding: 8px 12px 8px 32px; font-size: 13px; border-radius: 8px; border: 1px solid #e2e8f0; width: 220px; outline: none; transition: border-color 0.2s;">
-                                    <i data-lucide="search" style="position: absolute; left: 10px; top: 10px; width: 14px; height: 14px; color: var(--text-muted);"></i>
-                                </div>
-                                <button class="btn btn-primary" id="btn-add-customer-modal" style="padding: 8px 16px; font-size: 12.5px; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="user-plus"></i>顧客を追加
-                                </button>
+                <!-- カンバンボードコンテナ -->
+                <div class="kanban-board-wrapper" style="overflow-x: auto; padding-bottom: 12px; margin-top: 10px;">
+                    <div class="kanban-board" style="display: grid; grid-template-columns: repeat(5, minmax(240px, 1fr)); gap: 16px; min-width: 1200px;">
+                        
+                        <!-- 1. 未アプローチ -->
+                        <div class="kanban-column" data-status="lead" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 500px;">
+                            <div class="kanban-column-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 4px;">
+                                <span style="font-size: 13px; font-weight: 800; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 8px; height: 8px; background: #94a3b8; border-radius: 50%;"></span> 未アプローチ
+                                </span>
+                                <span class="kanban-column-count" id="count-lead" style="font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; color: var(--text-secondary);">0</span>
                             </div>
-                        </div>
-                        <div style="overflow-x: auto;">
-                            <table class="premium-table" style="width: 100%; border-collapse: collapse; text-align: left;">
-                                <thead>
-                                    <tr style="border-bottom: 2px solid #f1f5f9; color: var(--text-secondary); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                                        <th style="padding: 12px 8px;">顧客名</th>
-                                        <th style="padding: 12px 8px;">年齢</th>
-                                        <th style="padding: 12px 8px;">国籍</th>
-                                        <th style="padding: 12px 8px;">プラン & 期間</th>
-                                        <th style="padding: 12px 8px;">売上金額</th>
-                                        <th style="padding: 12px 8px;">購入日</th>
-                                        <th style="padding: 12px 8px; text-align: right;">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="crm-customer-tbody" style="font-size: 13.5px; color: var(--text-primary);">
-                                    <!-- 動的にレンダリング -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- 右側: 分析パネル -->
-                    <div class="card" style="grid-column: span 4;">
-                        <div class="card-header" style="margin-bottom: 20px;">
-                            <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="pie-chart" class="text-primary"></i> プラン別シェア・売上
-                            </h3>
-                        </div>
-                        <div id="crm-plan-bars" style="display: flex; flex-direction: column; gap: 16px;">
-                            <!-- 動的にバーグラフが生成 -->
+                            <div class="kanban-cards-container" id="cards-lead" style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 450px;">
+                                <!-- 動的生成 -->
+                            </div>
                         </div>
 
-                        <div class="card-header" style="margin-top: 36px; margin-bottom: 20px; border-top: 1px dashed var(--border-color); padding-top: 24px;">
-                            <h3 style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                <i data-lucide="globe" class="text-primary"></i> 国籍別インバウンド比率
-                            </h3>
+                        <!-- 2. DM送付済 -->
+                        <div class="kanban-column" data-status="contacted" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 500px;">
+                            <div class="kanban-column-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 4px;">
+                                <span style="font-size: 13px; font-weight: 800; color: #3b82f6; display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></span> DM送付済
+                                </span>
+                                <span class="kanban-column-count" id="count-contacted" style="font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; color: var(--text-secondary);">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="cards-contacted" style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 450px;">
+                                <!-- 動的生成 -->
+                            </div>
                         </div>
-                        <div id="crm-country-bars" style="display: flex; flex-direction: column; gap: 12px;">
-                            <!-- 動的に国籍比率が生成 -->
-                        </div>
-                    </div>
-                </div>
 
-                <!-- LPアクセス・マーケティング分析ダッシュボード -->
-                <div class="content-card" style="margin-top: 24px; border-top: 3px solid var(--color-green);">
-                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
-                        <div class="card-title-area">
-                            <i data-lucide="line-chart" class="title-icon text-green"></i>
-                            <h3>LPアクセス ＆ マーケティングファネル分析</h3>
-                        </div>
-                        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); background: #f1f5f9; padding: 4px 10px; border-radius: 4px;">
-                            同期ステータス: <span style="color: var(--color-green);">● リアルタイム</span>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="analytics-metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
-                            <div style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
-                                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">日次PV数 (Page Views)</span>
-                                <div id="analytics-pv" style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 6px 0;">1,240 PV</div>
-                                <span style="font-size: 10px; color: var(--color-green); font-weight: 700;">↑ 12.4% (前日比)</span>
+                        <!-- 3. 返信待ち -->
+                        <div class="kanban-column" data-status="waiting" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 500px;">
+                            <div class="kanban-column-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 4px;">
+                                <span style="font-size: 13px; font-weight: 800; color: #f59e0b; display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></span> 返信待ち / 商談中
+                                </span>
+                                <span class="kanban-column-count" id="count-waiting" style="font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; color: var(--text-secondary);">0</span>
                             </div>
-                            <div style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
-                                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">ユニーク訪問者 (UU)</span>
-                                <div id="analytics-uu" style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin: 6px 0;">860 UU</div>
-                                <span style="font-size: 10px; color: var(--color-green); font-weight: 700;">↑ 8.2% (前日比)</span>
-                            </div>
-                            <div style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
-                                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">CVR (お申し込み完了ボタン率)</span>
-                                <div id="analytics-cvr" style="font-size: 24px; font-weight: 800; color: var(--color-primary); margin: 6px 0;">3.2 %</div>
-                                <span style="font-size: 10px; color: var(--color-primary); font-weight: 700;">目標ラインクリア</span>
-                            </div>
-                            <div style="background: rgba(248, 250, 252, 0.6); border: 1px solid var(--border-color); padding: 16px; border-radius: var(--radius-md); text-align: center;">
-                                <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">直帰率 (Bounce Rate)</span>
-                                <div id="analytics-bounce" style="font-size: 24px; font-weight: 800; color: var(--color-pink); margin: 6px 0;">42.1 %</div>
-                                <span style="font-size: 10px; color: var(--color-green); font-weight: 700;">↓ 2.5% (前日比改善)</span>
+                            <div class="kanban-cards-container" id="cards-waiting" style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 450px;">
+                                <!-- 動的生成 -->
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
-                            <!-- アクセストレンドグラフ -->
-                            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
-                                <h4 style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="trending-up" class="text-green"></i> 過去7日間のアクセストレンド (PV/UU)
-                                </h4>
-                                <div style="position: relative; height: 220px; width: 100%;">
-                                    <canvas id="analytics-trend-chart"></canvas>
-                                </div>
+
+                        <!-- 4. プラン提案中 -->
+                        <div class="kanban-column" data-status="proposal" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 500px;">
+                            <div class="kanban-column-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 4px;">
+                                <span style="font-size: 13px; font-weight: 800; color: #a855f7; display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 8px; height: 8px; background: #a855f7; border-radius: 50%;"></span> プラン提案中
+                                </span>
+                                <span class="kanban-column-count" id="count-proposal" style="font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; color: var(--text-secondary);">0</span>
                             </div>
-                            <!-- コンバージョン漏斗（ファネル） -->
-                            <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; min-height: 275px;">
-                                <h4 style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="filter" class="text-primary"></i> マーケティングCVファネル
-                                </h4>
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    <div>
-                                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
-                                            <span>1. LPアクセス (UU)</span>
-                                            <span id="funnel-step-1">860 UU (100%)</span>
-                                        </div>
-                                        <div style="height: 14px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
-                                            <div style="height: 100%; width: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 4px;"></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
-                                            <span>2. プラン詳細スクロール</span>
-                                            <span id="funnel-step-2">420 UU (48.8%)</span>
-                                        </div>
-                                        <div style="height: 14px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
-                                            <div id="funnel-bar-2" style="height: 100%; width: 48.8%; background: linear-gradient(90deg, #4f46e5, #818cf8); border-radius: 4px;"></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
-                                            <span>3. お申し込みボタンクリック</span>
-                                            <span id="funnel-step-3">82 UU (9.5%)</span>
-                                        </div>
-                                        <div style="height: 14px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
-                                            <div id="funnel-bar-3" style="height: 100%; width: 9.5%; background: linear-gradient(90deg, #ec4899, #f472b6); border-radius: 4px;"></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
-                                            <span>4. 面談完了・売上計上 (CV)</span>
-                                            <span id="funnel-step-4">27 件 (3.2%)</span>
-                                        </div>
-                                        <div style="height: 14px; background: #e2e8f0; border-radius: 4px; overflow: hidden; position: relative;">
-                                            <div id="funnel-bar-4" style="height: 100%; width: 3.2%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 4px;"></div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="kanban-cards-container" id="cards-proposal" style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 450px;">
+                                <!-- 動的生成 -->
                             </div>
                         </div>
+
+                        <!-- 5. 成約！🎉 -->
+                        <div class="kanban-column" data-status="won" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 500px;">
+                            <div class="kanban-column-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 4px;">
+                                <span style="font-size: 13px; font-weight: 800; color: #10b981; display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span> 成約！🎉
+                                </span>
+                                <span class="kanban-column-count" id="count-won" style="font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; color: var(--text-secondary);">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="cards-won" style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 450px;">
+                                <!-- 動的生成 -->
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -1096,6 +1042,83 @@
                 <!-- メモ一覧グリッド -->
                 <div class="memos-grid" id="memos-grid-container">
                     <!-- JSで動的にメモカードがレンダリングされます -->
+                </div>
+            </section>
+
+            <!-- 11. AIコックピットタブ -->
+            <section class="tab-pane" id="tab-ai-chat">
+                <div class="crm-header-area" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                            <i data-lucide="bot" class="text-primary"></i> サムライAI企画パートナー
+                        </h3>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Gemini AIとお二人の事業アイデアや顧客アプローチDM、旅行プラン構成を共同で企画します</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid" style="display: grid; grid-template-columns: 3fr 1fr; gap: 20px;">
+                    <!-- 左側: チャット対話エリア -->
+                    <div class="card" style="display: flex; flex-direction: column; height: 550px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);">
+                        <div class="card-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 13px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="messages-square" class="text-primary"></i> 作戦会議スレッド
+                            </span>
+                            <button class="btn btn-secondary btn-sm" id="btn-clear-ai-history" style="font-size: 11px; padding: 4px 10px;">
+                                履歴をクリア
+                            </button>
+                        </div>
+                        
+                        <!-- 対話ログエリア -->
+                        <div class="card-body" id="ai-chat-log" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+                            <!-- AIの初期挨拶 -->
+                            <div class="chat-msg ai" style="display: flex; gap: 10px; align-items: start;">
+                                <div class="chat-avatar" style="width: 32px; height: 32px; background: var(--color-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;">
+                                    <i data-lucide="bot" style="width: 16px; height: 16px;"></i>
+                                </div>
+                                <div class="chat-bubble" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-main); padding: 10px 14px; border-radius: 0 12px 12px 12px; font-size: 13px; line-height: 1.5; max-width: 80%;">
+                                    <p style="margin: 0; font-weight: 700; color: var(--color-primary); margin-bottom: 4px;">ナビサムライAI</p>
+                                    <p style="margin: 0;">お疲れ様です！『ナビサムライ』企画パートナーAIです。お二人の事業戦略、アプローチDM文面、顧客への提案旅行プラン作成など、何でも壁打ちしてください！下のボタンからアプローチ用テンプレートや企画プロンプトを瞬時にセットできます。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- チャット入力欄 -->
+                        <div class="card-footer" style="padding: 12px 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0,0,0,0.1);">
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="main-ai-chat-input" placeholder="AIに質問する、またはプロンプトを選択..." style="flex: 1; padding: 10px 14px; font-size: 13px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255,255,255,0.02); color: var(--text-main); outline: none; transition: border-color 0.2s;" autocomplete="off">
+                                <button class="btn btn-primary" id="btn-main-send-ai-chat" style="padding: 10px 20px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="send"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右側: プリセット・プロンプト選択パネル -->
+                    <div class="card" style="padding: 16px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);">
+                        <h4 style="font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="wand-2" class="text-pink"></i> 侍プロンプト集
+                        </h4>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">ボタンをクリックするだけで、コックピット最適化済みの指示を瞬時に入力欄にセットします。</p>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm" onclick="setAIPrompt('dm')" style="text-align: left; font-size: 11.5px; padding: 8px 12px; border-color: rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); justify-content: flex-start; gap: 6px;">
+                                <i data-lucide="mail" style="width: 14px; height: 14px; color: var(--color-pink);"></i> インスタDM初回文面作成
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="setAIPrompt('plan')" style="text-align: left; font-size: 11.5px; padding: 8px 12px; border-color: rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); justify-content: flex-start; gap: 6px;">
+                                <i data-lucide="map" style="width: 14px; height: 14px; color: var(--color-blue);"></i> 旅行プラン構成案の作成
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="setAIPrompt('biz')" style="text-align: left; font-size: 11.5px; padding: 8px 12px; border-color: rgba(255,255,255,0.05); background: rgba(255,255,255,0.02); justify-content: flex-start; gap: 6px;">
+                                <i data-lucide="trending-up" style="width: 14px; height: 14px; color: var(--color-green);"></i> ナビサムライ事業戦略の壁打ち
+                            </button>
+                        </div>
+
+                        <div style="margin-top: 32px; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 16px;">
+                            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 8px;">🔑 APIキー設定状況</span>
+                            <div id="ai-key-status" style="font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 4px; text-align: center; background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                ❌ APIキー未設定 (設定へ)
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -1133,6 +1156,27 @@
                         お互いに【同じ合言葉 (4文字以上)】を入力して保存するだけで、クラウド経由でカレンダー、目標、経費、日報などすべてが自動でリアルタイム同期されます。
                     </p>
                     <input type="text" id="settings-sync-key" placeholder="例: our-dream-project-2026" style="width: 100%;">
+                </div>
+                
+                <!-- ⚔️ ナビサムライ専用プロ設定 -->
+                <div class="form-group" style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 16px;">
+                    <label style="display: flex; align-items: center; gap: 6px; color: var(--color-pink); font-weight: 700; margin-bottom: 8px;">
+                        <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> ナビサムライ専用プロ設定
+                    </label>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div>
+                            <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">Gemini APIキー (AIコックピット壁打ち用)</label>
+                            <input type="password" id="settings-gemini-key" placeholder="AIキーを入力 (例: AIzaSy...)" style="width: 100%; font-family: monospace;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">パートナーA (煌記) PayPay送金用URL</label>
+                            <input type="text" id="settings-pA-paypay" placeholder="例: https://paypay.me/xxxxxx" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">パートナーB (和弥) PayPay送金用URL</label>
+                            <input type="text" id="settings-pB-paypay" placeholder="例: https://paypay.me/yyyyyy" style="width: 100%;">
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- 🛡️ データ保護・復旧センター -->
@@ -1724,6 +1768,30 @@
 
     <!-- トースト通知用コンテナ -->
     <div id="toast-container" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
+
+    <!-- 💬 一言チャットサイドスライドパネル -->
+    <div id="chat-slide-panel" class="chat-slide-panel" style="position: fixed; top: 0; right: -360px; width: 350px; height: 100vh; background: rgba(15, 23, 42, 0.95); border-left: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); z-index: 9990; transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column;">
+        <div class="chat-panel-header" style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 14px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="messages-square" class="text-pink"></i> 一言チャットスレッド
+                </span>
+                <span id="chat-panel-subtitle" style="font-size: 10px; color: var(--text-muted);">対象カード: 読み込み中...</span>
+            </div>
+            <button id="btn-close-chat-panel" style="background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.2s;"><i data-lucide="x"></i></button>
+        </div>
+        <div id="chat-panel-body" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+            <!-- チャット履歴が動的にレンダリングされます -->
+        </div>
+        <div class="chat-panel-footer" style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);">
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="chat-panel-input" placeholder="チャットを入力... (@煌記 / @和弥 でメンション)" style="flex: 1; padding: 10px 12px; font-size: 12.5px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: var(--text-main); outline: none;">
+                <button id="btn-send-panel-chat" class="btn btn-primary" style="padding: 8px 14px; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

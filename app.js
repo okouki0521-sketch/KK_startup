@@ -9,7 +9,10 @@ const DEFAULT_STATE = {
         partnerBName: '和弥',
         projectName: 'KK_startup',
         syncSecretKey: 'KK_startup',
-        migratedToRealNames: true
+        migratedToRealNames: true,
+        geminiApiKey: '',
+        paypayUrlPA: '',
+        paypayUrlPB: ''
     },
     agreement: {
         visionAim: '旅行計画に悩みやハードルを抱えている人にプラン作成で寄り添い、光を照らしてあげるイメージ of サービス（ブランド of 礎としての「LumiJourney」） of 実現',
@@ -300,7 +303,8 @@ const DEFAULT_STATE = {
             date: '2026-05-29 15:45'
         }
     ],
-    geminiApiKey: ''
+    aiChatHistory: [],
+    cardChats: []
 };
 
 // まっさらな状態から開始するための空のスケルトンデータ
@@ -309,7 +313,10 @@ const EMPTY_STATE = {
         partnerAName: 'パートナーA',
         partnerBName: 'パートナーB',
         projectName: '新規プロジェクト',
-        syncSecretKey: ''
+        syncSecretKey: '',
+        geminiApiKey: '',
+        paypayUrlPA: '',
+        paypayUrlPB: ''
     },
     agreement: {
         visionAim: '',
@@ -344,7 +351,8 @@ const EMPTY_STATE = {
     tasks: [],
     notifications: [],
     chatMessages: [],
-    geminiApiKey: ''
+    aiChatHistory: [],
+    cardChats: []
 };
 
 // ==========================================
@@ -692,16 +700,17 @@ function showToast(message, type = 'success') {
 // 3. ルーティング & タブ切り替え
 // ==========================================
 const TAB_INFO = {
-    dashboard: { title: 'ダッシュボード', subtitle: 'プロジェクトの全体状況を一覧します' },
-    agreement: { title: '共同経営 創業憲章', subtitle: 'お互いの信頼と役割分担を明文化します' },
+    dashboard: { title: 'ダッシュボード', subtitle: 'プロジェクト of 全体状況を一覧します' },
+    agreement: { title: '共同経営 創業憲章', subtitle: 'お互い of 信頼と役割分担を明文化します' },
     roadmap: { title: 'ロードマップ & 目標', subtitle: '事業計画と進捗をトラッキングします' },
     calendar: { title: 'カレンダー共有', subtitle: '会議、締め切り、重要なイベントを管理します' },
-    financials: { title: 'マネーマネージャー', subtitle: '共同経費の支払い状況と割り勘をクリアに保ちます' },
-    ideas: { title: 'アイディアボード', subtitle: 'ブレインストーミングとインスピレーションの保管庫' },
-    decisions: { title: '意思決定ログ', subtitle: '「言った・言わない」を防ぐための決定事項の公式アーカイブ' },
+    financials: { title: 'マネーマネージャー', subtitle: '共同経費 of 支払い状況と割り勘をクリアに保ちます' },
+    ideas: { title: 'アイディアボード', subtitle: 'ブレインストーミングとインスピレーション of 保管庫' },
+    decisions: { title: '意思決定ログ', subtitle: '「言った・言わない」を防ぐための決定事項 of 公式アーカイブ' },
     updates: { title: '進捗共有・日報', subtitle: '今日取り組んだことと今後取り組むことをお互いに可視化します' },
-    customers: { title: '顧客＆売上管理', subtitle: 'サービス利用顧客の属性と売上比率を分析・管理します' },
-    alignment: { title: '共通認識スペース', subtitle: '共同業務上のルール、テンプレート、共通認識を自由に管理・コピペできます' }
+    customers: { title: '顧客＆売上管理', subtitle: 'サービス利用顧客 of 属性と売上比率を分析・管理します' },
+    alignment: { title: '共通認識スペース', subtitle: '共同業務上 of ルール、テンプレート、共通認識を自由に管理・コピペできます' },
+    'ai-chat': { title: 'サムライAI企画パートナー', subtitle: 'Gemini AIとお二人の事業アイデアや顧客アプローチDM、旅行プラン構成を共同で企画します' }
 };
 
 function switchTab(tabId) {
@@ -748,6 +757,8 @@ function switchTab(tabId) {
         renderMemos();
     } else if (tabId === 'tasks') {
         renderTasks();
+    } else if (tabId === 'ai-chat') {
+        renderAIChat();
     }
 
     // スクロールをトップに戻す
@@ -794,6 +805,16 @@ function loadSettings() {
     document.getElementById('settings-pB-name').value = state.settings.partnerBName;
     document.getElementById('settings-project-name').value = state.settings.projectName;
     document.getElementById('settings-sync-key').value = state.settings.syncSecretKey || '';
+    
+    // PayPay & Gemini settings loading
+    const gKeyInput = document.getElementById('settings-gemini-key');
+    if (gKeyInput) gKeyInput.value = state.settings.geminiApiKey || '';
+    
+    const pAPaypayInput = document.getElementById('settings-pA-paypay');
+    if (pAPaypayInput) pAPaypayInput.value = state.settings.paypayUrlPA || '';
+    
+    const pBPaypayInput = document.getElementById('settings-pB-paypay');
+    if (pBPaypayInput) pBPaypayInput.value = state.settings.paypayUrlPB || '';
 }
 
 function saveSettings() {
@@ -808,6 +829,15 @@ function saveSettings() {
     
     const prevKey = state.settings.syncSecretKey;
     state.settings.syncSecretKey = syncKey;
+
+    // PayPay & Gemini settings saving
+    const gKey = document.getElementById('settings-gemini-key')?.value.trim() || '';
+    const pAPaypay = document.getElementById('settings-pA-paypay')?.value.trim() || '';
+    const pBPaypay = document.getElementById('settings-pB-paypay')?.value.trim() || '';
+    
+    state.settings.geminiApiKey = gKey;
+    state.settings.paypayUrlPA = pAPaypay;
+    state.settings.paypayUrlPB = pBPaypay;
 
     saveState();
     applyDynamicNames();
@@ -2464,6 +2494,78 @@ function deleteUpdate(id) {
 }
 
 
+function triggerConfetti() {
+    const duration = 2500;
+    const end = Date.now() + duration;
+    
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '99999';
+    document.body.appendChild(container);
+    
+    const colors = ['#ec4899', '#3b82f6', '#10b981', '#fbbf24', '#a855f7', '#06b6d4'];
+    
+    const interval = setInterval(() => {
+        if (Date.now() > end) {
+            clearInterval(interval);
+            setTimeout(() => container.remove(), 1000);
+            return;
+        }
+        
+        for (let i = 0; i < 6; i++) {
+            const p = document.createElement('div');
+            p.style.position = 'absolute';
+            p.style.width = Math.random() * 8 + 6 + 'px';
+            p.style.height = Math.random() * 8 + 6 + 'px';
+            p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            p.style.left = '50%';
+            p.style.top = '50%';
+            
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = Math.random() * 12 + 6;
+            const vx = Math.cos(angle) * velocity;
+            const vy = Math.sin(angle) * velocity - 10;
+            
+            let posX = window.innerWidth / 2;
+            let posY = window.innerHeight / 2;
+            let currentVy = vy;
+            const gravity = 0.45;
+            
+            let rotation = Math.random() * 360;
+            let rotationSpeed = Math.random() * 12 - 6;
+            
+            let opacity = 1;
+            
+            const pInterval = setInterval(() => {
+                posX += vx;
+                posY += currentVy;
+                currentVy += gravity;
+                rotation += rotationSpeed;
+                opacity -= 0.025;
+                
+                p.style.left = posX + 'px';
+                p.style.top = posY + 'px';
+                p.style.transform = `rotate(${rotation}deg)`;
+                p.style.opacity = opacity;
+                
+                if (opacity <= 0 || posY > window.innerHeight || posX < 0 || posX > window.innerWidth) {
+                    clearInterval(pInterval);
+                    p.remove();
+                }
+            }, 16);
+            
+            container.appendChild(p);
+        }
+    }, 40);
+}
+window.triggerConfetti = triggerConfetti;
+
 function clearSettlement() {
     const pA = state.settings.partnerAName;
     const pB = state.settings.partnerBName;
@@ -2498,6 +2600,9 @@ function clearSettlement() {
         state.expenses = [];
         saveState();
         renderFinancials();
+        
+        // 紙吹雪エフェクトを盛大に発火！
+        triggerConfetti();
     }
 }
 
@@ -2597,7 +2702,18 @@ function renderIdeas() {
                                 <span>${idea.likes.length} 人がいいね！</span>
                             </button>
                         </div>
-                        <div style="display: flex; gap: 6px;">
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <!-- 💬 Card Comment Icon -->
+                            ${(() => {
+                                const iChats = (state.cardChats || []).filter(c => c.cardId === idea.id);
+                                const count = iChats.length;
+                                return `
+                                    <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); openCardChatPanel('${idea.id}', '${idea.title.replace(/'/g, "\\'")}')" title="一言チャット" style="width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; position: relative; color: ${count > 0 ? 'var(--color-pink)' : 'var(--text-muted)'}; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
+                                        <i data-lucide="message-square" style="width: 14px; height: 14px;"></i>
+                                        ${count > 0 ? `<span style="font-size: 8px; font-weight: bold; background: var(--color-pink); color: white; padding: 1px 4px; border-radius: 6px; position: absolute; top: -4px; right: -4px; z-index: 5;">${count}</span>` : ''}
+                                    </button>
+                                `;
+                            })()}
                             ${completeActionBtn}
                             <button type="button" class="btn-icon-sm edit" onclick="event.stopPropagation(); openEditModal('ideas', '${idea.id}')" title="編集" style="width: 28px; height: 28px; border-radius: 50%; color: var(--text-muted);">
                                 <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
@@ -3455,6 +3571,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initNotificationEvents();
     initQuickChatEvents();
     initAIChatEvents();
+    initCardChatEvents();
+    initAIChatTabEvents();
     
     // 設定
     document.getElementById('btn-settings').addEventListener('click', () => {
@@ -3683,11 +3801,16 @@ function calculateCrmAmount() {
 }
 
 function renderCRM() {
-    const tbody = document.getElementById('crm-customer-tbody');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
     const searchQuery = (document.getElementById('crm-search')?.value || '').toLowerCase().trim();
+    
+    // カンバンのカラム定義
+    const statuses = ['lead', 'contacted', 'waiting', 'proposal', 'won'];
+    
+    // カラムの全初期化
+    statuses.forEach(status => {
+        const container = document.getElementById(`cards-${status}`);
+        if (container) container.innerHTML = '';
+    });
     
     let totalCustomers = 0;
     let totalSales = 0;
@@ -3713,95 +3836,140 @@ function renderCRM() {
     const planSales = { 'スタンダード': 0, 'プロ': 0, 'プレミアム': 0 };
     const countryCounts = {};
 
-    const filteredCustomers = (state.customers || []).filter(c => {
+    const customers = state.customers || [];
+
+    // 全体の集計
+    customers.forEach(c => {
+        totalCustomers++;
+        totalSales += Number(c.amount) || 0;
+        
+        // プラン集計
+        if (c.plan in planCounts) {
+            planCounts[c.plan]++;
+            planSales[c.plan] += Number(c.amount) || 0;
+        }
+        
+        // 国籍集計
+        countryCounts[c.country] = (countryCounts[c.country] || 0) + 1;
+        
+        // 進捗未定義の場合はデフォルトでleadに設定
+        if (!c.status || !statuses.includes(c.status)) {
+            c.status = 'lead';
+        }
+    });
+
+    // 検索フィルタ適用
+    const filteredCustomers = customers.filter(c => {
         const nameMatch = c.name.toLowerCase().includes(searchQuery);
-        const countryMatch = c.country.toLowerCase().includes(searchQuery);
-        const planMatch = c.plan.toLowerCase().includes(searchQuery);
+        const countryMatch = (c.country || '').toLowerCase().includes(searchQuery);
+        const planMatch = (c.plan || '').toLowerCase().includes(searchQuery);
         return nameMatch || countryMatch || planMatch;
     });
 
-    // データベース描画と統計集計
-    if ((state.customers || []).length > 0) {
-        // 全体の集計
-        state.customers.forEach(c => {
-            totalCustomers++;
-            totalSales += Number(c.amount) || 0;
-            
-            // プラン集計
-            if (c.plan in planCounts) {
-                planCounts[c.plan]++;
-                planSales[c.plan] += Number(c.amount) || 0;
-            }
-            
-            // 国籍集計
-            countryCounts[c.country] = (countryCounts[c.country] || 0) + 1;
-        });
+    const colCounts = { lead: 0, contacted: 0, waiting: 0, proposal: 0, won: 0 };
 
-        // フィルタされた結果を描画
-        if (filteredCustomers.length > 0) {
-            filteredCustomers.forEach(c => {
-                const tr = document.createElement('tr');
-                
-                // 国籍の表示整形
-                let flagDisplay = c.country;
-                if (c.country in countryFlags) {
-                    flagDisplay = countryFlags[c.country];
-                } else {
-                    flagDisplay = `🏳️ ${c.country}`;
-                }
-                
-                // プランクラスの決定
-                let planClass = 'standard';
-                if (c.plan === 'プロ') planClass = 'pro';
-                if (c.plan === 'プレミアム') planClass = 'premium';
-                
-                tr.innerHTML = `
-                    <td style="padding: 12px 8px; font-weight: 700;">${c.name}</td>
-                    <td style="padding: 12px 8px; color: var(--text-muted); font-size: 13px;">${c.age}</td>
-                    <td style="padding: 12px 8px;"><span class="badge-country">${flagDisplay}</span></td>
-                    <td style="padding: 12px 8px;">
-                        <span class="badge-plan ${planClass}">${c.plan}</span>
-                        <span style="font-size: 11px; color: var(--text-muted); margin-left: 4px;">(${c.duration})</span>
-                    </td>
-                    <td style="padding: 12px 8px; font-weight: 700; color: var(--color-success);">¥${Number(c.amount).toLocaleString()}</td>
-                    <td style="padding: 12px 8px; font-size: 13px; color: var(--text-secondary);">${c.date}</td>
-                    <td style="padding: 12px 8px; text-align: right;">
-                        <button type="button" class="btn-icon-sm edit" onclick="openEditModal('customers', '${c.id}')" title="編集">
-                            <i data-lucide="edit-3"></i>
-                        </button>
-                        <button type="button" class="btn-icon-sm delete" onclick="deleteCustomer('${c.id}')" title="顧客を削除">
-                            <i data-lucide="trash-2"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+    // フィルタされた結果をカンバンボードに挿入
+    filteredCustomers.forEach(c => {
+        const status = c.status || 'lead';
+        colCounts[status]++;
+        
+        const container = document.getElementById(`cards-${status}`);
+        if (!container) return;
+        
+        // 国籍の表示整形
+        let flagDisplay = c.country;
+        if (c.country in countryFlags) {
+            flagDisplay = countryFlags[c.country];
         } else {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">
-                        検索条件に一致する顧客が見つかりません。
-                    </td>
-                </tr>
-            `;
+            flagDisplay = `🏳️ ${c.country}`;
         }
-    } else {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 48px; color: var(--text-muted);">
-                    <div style="font-size: 24px; margin-bottom: 8px;">👥</div>
-                    まだ利用顧客が登録されていません。<br>右上から顧客を追加して売上を管理しましょう！
-                </td>
-            </tr>
+        
+        // プランクラス
+        let planClass = 'standard';
+        if (c.plan === 'プロ') planClass = 'pro';
+        if (c.plan === 'プレミアム') planClass = 'premium';
+        
+        const card = document.createElement('div');
+        card.className = 'kanban-card card';
+        card.setAttribute('data-id', c.id);
+        card.style.position = 'relative';
+        card.style.cursor = 'grab';
+        card.style.userSelect = 'none';
+        card.style.touchAction = 'none'; // モバイルでのPointerEventsのスクロール干渉を防止
+        
+        // スレッドチャット未読数バッジ
+        const cComments = (state.cardChats || []).filter(chat => chat.cardId === c.id);
+        const commentsCount = cComments.length;
+        const badgeNoti = commentsCount > 0 ? `<span class="badge-comment-count" style="position: absolute; top: -5px; right: -5px; background: var(--color-pink); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite; z-index: 10;">${commentsCount}</span>` : '';
+        
+        const updatedAtStr = c.updatedAt ? new Date(c.updatedAt).toLocaleString([], {month: '2-digit', day: '2-digit', hour: '2-digit', minute:'2-digit'}) : (c.date || '日付未定');
+        
+        card.innerHTML = `
+            ${badgeNoti}
+            <div class="kanban-card-main" style="padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px;">
+                    <span style="font-size: 13.5px; font-weight: 800; color: var(--text-main); line-height: 1.2;">${c.name} <span style="font-size: 10.5px; color: var(--text-muted); font-weight: 500;">(${c.age})</span></span>
+                    <span class="kanban-card-badge ${planClass === 'standard' ? 'blue' : (planClass === 'pro' ? 'pink' : 'gold')}" style="padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase;">${c.plan}</span>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 11px;">
+                    <span class="badge-country" style="padding: 1px 4px; font-size: 9.5px; background: rgba(255,255,255,0.04); border-radius: 4px; border: 1px solid rgba(255,255,255,0.06); color: var(--text-secondary);">${flagDisplay}</span>
+                    <span style="color: var(--text-muted); font-size: 10px;">(${c.duration})</span>
+                </div>
+                
+                ${c.hearDestination ? `
+                <div style="font-size: 10.5px; color: var(--text-secondary); background: rgba(0,0,0,0.12); padding: 5px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                    <i data-lucide="map-pin" style="width: 10px; height: 10px; color: var(--color-blue);"></i>
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">目的: ${c.hearDestination}</span>
+                </div>
+                ` : ''}
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 8px;">
+                    <span style="font-size: 12.5px; font-weight: 800; color: var(--color-success);">¥${Number(c.amount || 0).toLocaleString()}</span>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <!-- 💬 Card Comment Icon -->
+                        <button type="button" class="btn-icon-sm" onclick="event.stopPropagation(); openCardChatPanel('${c.id}', '${c.name}')" title="一言チャット" style="width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted);">
+                            <i data-lucide="message-square" style="width: 11px; height: 11px;"></i>
+                        </button>
+                        <!-- ⚔️ plan pdf link (sword icon) -->
+                        <a href="${c.fileUrl || '#'}" target="_blank" class="btn-icon-sm" title="提案プラン" style="width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); display: inline-flex; align-items: center; justify-content: center; color: var(--color-pink); text-decoration: none;">
+                            <i data-lucide="swords" style="width: 11px; height: 11px;"></i>
+                        </a>
+                        <button type="button" class="btn-icon-sm edit" onclick="event.stopPropagation(); openEditModal('customers', '${c.id}')" title="編集" style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                            <i data-lucide="edit-3" style="width: 11px; height: 11px;"></i>
+                        </button>
+                        <button type="button" class="btn-icon-sm delete" onclick="event.stopPropagation(); deleteCustomer('${c.id}')" title="削除" style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                            <i data-lucide="trash-2" style="width: 11px; height: 11px;"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="font-size: 8px; color: var(--text-muted); text-align: right; margin-top: 2px;">
+                    更新: ${updatedAtStr}
+                </div>
+            </div>
         `;
-    }
+        
+        container.appendChild(card);
+        setupPointerDrag(card);
+    });
+
+    // カラムの件数表示更新
+    statuses.forEach(status => {
+        const countSpan = document.getElementById(`count-${status}`);
+        if (countSpan) countSpan.textContent = colCounts[status];
+    });
 
     // KPI更新
-    document.getElementById('crm-total-customers').textContent = `${totalCustomers} 名`;
-    document.getElementById('crm-total-sales').textContent = `¥${totalSales.toLocaleString()}`;
+    const totalCustEl = document.getElementById('crm-total-customers');
+    if (totalCustEl) totalCustEl.textContent = `${totalCustomers} 名`;
+    
+    const totalSalesEl = document.getElementById('crm-total-sales');
+    if (totalSalesEl) totalSalesEl.textContent = `¥${totalSales.toLocaleString()}`;
     
     const arpu = totalCustomers > 0 ? Math.round(totalSales / totalCustomers) : 0;
-    document.getElementById('crm-arpu').textContent = `¥${arpu.toLocaleString()}`;
+    const arpuEl = document.getElementById('crm-arpu');
+    if (arpuEl) arpuEl.textContent = `¥${arpu.toLocaleString()}`;
 
     // プラン別シェアの横棒グラフ描画
     const planBars = document.getElementById('crm-plan-bars');
@@ -3809,8 +3977,8 @@ function renderCRM() {
         planBars.innerHTML = '';
         const plans = ['スタンダード', 'プロ', 'プレミアム'];
         plans.forEach(p => {
-            const count = planCounts[p];
-            const sales = planSales[p];
+            const count = planCounts[p] || 0;
+            const sales = planSales[p] || 0;
             const pct = totalCustomers > 0 ? Math.round((count / totalCustomers) * 100) : 0;
             
             let barClass = 'standard';
@@ -3832,7 +4000,7 @@ function renderCRM() {
         });
     }
 
-    // 国籍別インバウンド比率の描画 (上位3カ国＋その他)
+    // 国籍別インバウンド比率の描画
     const countryBars = document.getElementById('crm-country-bars');
     if (countryBars) {
         countryBars.innerHTML = '';
@@ -3871,7 +4039,174 @@ function renderCRM() {
     // LPアクセス・マーケティング分析ダッシュボードを再描画
     renderLPAnalytics();
 
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+// ⚔️ カンバンカードのPointer Eventsドラッグ＆ドロップ実装
+function setupPointerDrag(card) {
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let offsetX = 0;
+    let offsetY = 0;
+    let initialParent = null;
+    let placeholder = null;
+    let rect = null;
+    
+    card.addEventListener('pointerdown', function(e) {
+        // ボタンやインプット、リンクのクリック時はドラッグをトリガーしない
+        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('.badge-comment-count')) {
+            return;
+        }
+        
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        rect = card.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        
+        initialParent = card.parentElement;
+        
+        // プレースホルダーの生成
+        placeholder = document.createElement('div');
+        placeholder.style.width = rect.width + 'px';
+        placeholder.style.height = rect.height + 'px';
+        placeholder.style.background = 'rgba(255, 255, 255, 0.02)';
+        placeholder.style.border = '2px dashed rgba(255, 255, 255, 0.12)';
+        placeholder.style.borderRadius = 'var(--border-radius-md)';
+        placeholder.style.margin = getComputedStyle(card).margin;
+        
+        // フワッと浮かび上がる極上グローエフェクト適用
+        card.style.width = rect.width + 'px';
+        card.style.height = rect.height + 'px';
+        card.style.position = 'fixed';
+        card.style.left = rect.left + 'px';
+        card.style.top = rect.top + 'px';
+        card.style.zIndex = '9999';
+        card.style.pointerEvents = 'none';
+        card.style.transform = 'scale(1.05)';
+        card.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(236, 72, 153, 0.35)';
+        card.style.cursor = 'grabbing';
+        card.style.transition = 'none'; // ドラッグ中はアニメーションをオフにして追従性を上げる
+        
+        initialParent.insertBefore(placeholder, card);
+        card.setPointerCapture(e.pointerId);
+    });
+    
+    card.addEventListener('pointermove', function(e) {
+        if (!isDragging) return;
+        
+        const x = e.clientX - offsetX;
+        const y = e.clientY - offsetY;
+        
+        card.style.left = x + 'px';
+        card.style.top = y + 'px';
+        
+        // ホバー中の列をハイライト
+        const columns = document.querySelectorAll('.kanban-column');
+        columns.forEach(col => {
+            col.style.background = 'rgba(255, 255, 255, 0.02)';
+            col.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+        });
+        
+        const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
+        const targetCol = hoveredElement?.closest('.kanban-column');
+        if (targetCol) {
+            targetCol.style.background = 'rgba(236, 72, 153, 0.04)';
+            targetCol.style.borderColor = 'rgba(236, 72, 153, 0.2)';
+        }
+    });
+    
+    card.addEventListener('pointerup', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        card.releasePointerCapture(e.pointerId);
+        
+        // スタイルリセット
+        card.style.width = '';
+        card.style.height = '';
+        card.style.position = '';
+        card.style.left = '';
+        card.style.top = '';
+        card.style.zIndex = '';
+        card.style.pointerEvents = '';
+        card.style.transform = '';
+        card.style.boxShadow = '';
+        card.style.cursor = 'grab';
+        card.style.transition = 'transform 0.2s, box-shadow 0.2s';
+        
+        const columns = document.querySelectorAll('.kanban-column');
+        columns.forEach(col => {
+            col.style.background = 'rgba(255, 255, 255, 0.02)';
+            col.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+        });
+        
+        const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
+        const targetCol = hoveredElement?.closest('.kanban-column');
+        
+        if (placeholder && placeholder.parentElement) {
+            placeholder.remove();
+        }
+        
+        if (targetCol) {
+            const newStatus = targetCol.getAttribute('data-status');
+            const cardId = card.getAttribute('data-id');
+            
+            const customer = state.customers.find(c => c.id === cardId);
+            if (customer && customer.status !== newStatus) {
+                const oldStatus = customer.status || 'lead';
+                customer.status = newStatus;
+                customer.updatedAt = Date.now();
+                
+                saveState();
+                
+                const statusNames = {
+                    lead: '未アプローチ',
+                    contacted: 'DM送付済',
+                    waiting: '返信待ち/商談中',
+                    proposal: 'プラン提案中',
+                    won: '成約！🎉'
+                };
+                recordChangelogAuto(
+                    '⚔️ アプローチ進捗の更新',
+                    `顧客「${customer.name}」様の状況を「${statusNames[oldStatus]}」から「${statusNames[newStatus]}」へ変更しました。`
+                );
+                
+                showToast(`「${customer.name}」を進捗「${statusNames[newStatus]}」へ移動しました！`);
+            }
+        }
+        
+        renderCRM();
+    });
+    
+    card.addEventListener('pointercancel', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        card.releasePointerCapture(e.pointerId);
+        
+        card.style.width = '';
+        card.style.height = '';
+        card.style.position = '';
+        card.style.left = '';
+        card.style.top = '';
+        card.style.zIndex = '';
+        card.style.pointerEvents = '';
+        card.style.transform = '';
+        card.style.boxShadow = '';
+        card.style.cursor = 'grab';
+        
+        if (placeholder && placeholder.parentElement) {
+            placeholder.remove();
+        }
+        
+        renderCRM();
+    });
 }
 
 function addCustomer() {
@@ -3915,7 +4250,9 @@ function addCustomer() {
         hearBudget: hearBudget,
         hearPace: hearPace,
         hearReqAllergy: hearReqAllergy,
-        hearReqFamily: hearReqFamily
+        hearReqFamily: hearReqFamily,
+        status: 'lead',
+        updatedAt: Date.now()
     };
 
     if (!state.customers) state.customers = [];
@@ -4401,7 +4738,18 @@ function renderMemos() {
             card.innerHTML = `
                 <div class="memo-card-header">
                     <span class="memo-category-badge">${catName}</span>
-                    <div class="memo-actions-btn-group">
+                    <div class="memo-actions-btn-group" style="display: flex; gap: 4px; align-items: center;">
+                        <!-- 💬 Card Comment Icon -->
+                        ${(() => {
+                            const mChats = (state.cardChats || []).filter(c => c.cardId === m.id);
+                            const count = mChats.length;
+                            return `
+                                <button type="button" class="btn-memo-action comment" onclick="event.stopPropagation(); openCardChatPanel('${m.id}', '${(m.title || '').replace(/'/g, "\\'")}')" title="一言チャット" style="position: relative; color: ${count > 0 ? 'var(--color-pink)' : 'var(--text-muted)'};">
+                                    <i data-lucide="message-square"></i>
+                                    ${count > 0 ? `<span style="font-size: 7px; font-weight: bold; background: var(--color-pink); color: white; padding: 0px 3px; border-radius: 4px; position: absolute; top: -3px; right: -3px; z-index: 5;">${count}</span>` : ''}
+                                </button>
+                            `;
+                        })()}
                         <button type="button" class="btn-memo-action copy" onclick="copyMemoContent('${m.id}', this)" title="本文をコピー">
                             <i data-lucide="copy"></i>
                         </button>
@@ -4717,9 +5065,37 @@ function updatePayPayQR(pAPaid, pBPaid, pAShouldPay, pBShouldPay, pA, pB) {
         qrContainer.style.display = 'flex';
         // PayPay送金用のメッセージを含めたQRコード用ペイロードテキスト
         const qrPayload = `PayPay送金清算\n金額: ¥${diff.toLocaleString()}\n受取人: ${receiverName}\n支払人: ${payerName}\nCo-Founder Hub 経費清算用`;
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrPayload)}`;
         
-        qrImageDiv.innerHTML = `<img src="${qrUrl}" alt="PayPay送金用QRコード" style="width: 120px; height: 120px; object-fit: contain; display: block;">`;
+        // QRiousを使ってローカルでQRコードを動的生成
+        qrImageDiv.innerHTML = '';
+        const qrCanvas = document.createElement('canvas');
+        qrCanvas.style.width = '120px';
+        qrCanvas.style.height = '120px';
+        qrCanvas.style.display = 'block';
+        qrCanvas.style.margin = '0 auto';
+        qrImageDiv.appendChild(qrCanvas);
+        
+        try {
+            if (typeof QRious !== 'undefined') {
+                new QRious({
+                    element: qrCanvas,
+                    value: qrPayload,
+                    size: 150,
+                    level: 'H',
+                    background: '#ffffff',
+                    foreground: '#0f172a'
+                });
+            } else {
+                // QRiousがロードされていない場合のWeb APIフォールバック
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrPayload)}`;
+                qrImageDiv.innerHTML = `<img src="${qrUrl}" alt="PayPay送金用QRコード" style="width: 120px; height: 120px; object-fit: contain; display: block; margin: 0 auto;">`;
+            }
+        } catch (e) {
+            console.error("QR Code generation error:", e);
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrPayload)}`;
+            qrImageDiv.innerHTML = `<img src="${qrUrl}" alt="PayPay送金用QRコード" style="width: 120px; height: 120px; object-fit: contain; display: block; margin: 0 auto;">`;
+        }
+        
         qrDesc.textContent = `送金金額: ¥${diff.toLocaleString()} (${payerName} → ${receiverName})`;
     } else {
         qrContainer.style.display = 'none';
@@ -4822,8 +5198,17 @@ function renderTasks() {
                 moveControlsHTML += `<div></div>`;
             }
             
+            // タスク用のコメント件数算出
+            const tChats = (state.cardChats || []).filter(c => c.cardId === task.id);
+            const count = tChats.length;
+            
             moveControlsHTML += `
-                <div style="display: flex; gap: 6px;">
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <!-- 💬 Card Comment Icon -->
+                    <button type="button" class="btn-memo-action comment" onclick="event.stopPropagation(); openCardChatPanel('${task.id}', '${task.title.replace(/'/g, "\\'")}')" title="一言チャット" style="border: none; background: none; cursor: pointer; color: ${count > 0 ? 'var(--color-pink)' : 'var(--text-secondary)'}; padding: 4px; position: relative; display: inline-flex; align-items: center; justify-content: center;">
+                        <i data-lucide="message-square" style="width: 12px; height: 12px;"></i>
+                        ${count > 0 ? `<span style="font-size: 7px; font-weight: bold; background: var(--color-pink); color: white; padding: 0px 3px; border-radius: 4px; position: absolute; top: -3px; right: -3px; z-index: 5;">${count}</span>` : ''}
+                    </button>
                     <button type="button" class="btn-memo-action edit" onclick="openEditTask('${task.id}')" title="編集" style="border: none; background: none; cursor: pointer; color: var(--text-secondary); padding: 4px;"><i data-lucide="edit-3" style="width: 12px; height: 12px;"></i></button>
                     <button type="button" class="btn-memo-action delete" onclick="deleteTask('${task.id}')" title="削除" style="border: none; background: none; cursor: pointer; color: var(--color-pink); padding: 4px;"><i data-lucide="trash-2" style="width: 12px; height: 12px;"></i></button>
                 </div>
@@ -4946,29 +5331,15 @@ function handleAddOrEditTask() {
 }
 window.handleAddOrEditTask = handleAddOrEditTask;
 
-function openEditTask(id) {
-    const task = state.tasks.find(t => t.id === id);
-    if (!task) return;
-    
-    document.getElementById('task-modal-title').textContent = 'タスクを編集';
-    document.getElementById('task-edit-id').value = task.id;
-    document.getElementById('task-title').value = task.title;
-    document.getElementById('task-assignee').value = task.assignee;
-    document.getElementById('task-status').value = task.status;
-    document.getElementById('task-priority').value = task.priority;
-    document.getElementById('task-deadline').value = task.deadline;
-    document.getElementById('task-desc').value = task.desc || '';
-    
-    openModal('modal-add-task');
-}
-window.openEditTask = openEditTask;
-
 function deleteTask(id) {
-    const task = state.tasks.find(t => t.id === id);
+    if (!state.tasks || !Array.isArray(state.tasks)) {
+        state.tasks = [];
+    }
+    const task = state.tasks.find(t => t && t.id === id);
     if (!task) return;
-    
-    if (confirm(`本当にタスク「${task.title}」を削除しますか？`)) {
-        state.tasks = state.tasks.filter(t => t.id !== id);
+
+    if (confirm(`本当にタスク「${task.title || ''}」を削除しますか？`)) {
+        state.tasks = state.tasks.filter(t => t && t.id !== id);
         saveState();
         renderTasks();
         showToast('タスクを削除しました', 'danger');
@@ -5571,8 +5942,6 @@ function renderLPAnalytics() {
     const cvrEl = document.getElementById('analytics-cvr');
     const bounceEl = document.getElementById('analytics-bounce');
     
-    if (!pvEl || !uuEl || !cvrEl || !bounceEl) return;
-    
     if (!state.customers) state.customers = [];
     
     const customerCount = state.customers.length;
@@ -5584,10 +5953,10 @@ function renderLPAnalytics() {
     const cvrVal = ((cvVal / uuVal) * 100).toFixed(1);
     const bounceVal = (42.1 - (customerCount * 0.1)).toFixed(1);
     
-    pvEl.textContent = `${pvVal.toLocaleString()} PV`;
-    uuEl.textContent = `${uuVal.toLocaleString()} UU`;
-    cvrEl.textContent = `${cvrVal} %`;
-    bounceEl.textContent = `${bounceVal} %`;
+    if (pvEl) pvEl.textContent = `${pvVal.toLocaleString()} PV`;
+    if (uuEl) uuEl.textContent = `${uuVal.toLocaleString()} UU`;
+    if (cvrEl) cvrEl.textContent = `${cvrVal} %`;
+    if (bounceEl) bounceEl.textContent = `${bounceVal} %`;
     
     // マーケティングCVファネルの数値を更新
     const step1 = document.getElementById('funnel-step-1');
@@ -5616,8 +5985,8 @@ function renderLPAnalytics() {
     if (step4) step4.textContent = `${s4Val} 件 (${s4Pct}%)`;
     if (bar4) bar4.style.width = `${s4Pct}%`;
     
-    // Chart.jsによるアクセストレンド折れ線グラフ描画
-    const ctx = document.getElementById('analytics-trend-chart');
+    // Chart.jsによるアクセストレンド折れ線グラフ描画 (修正: 正しいID lp-analytics-chart をクエリ)
+    const ctx = document.getElementById('lp-analytics-chart');
     if (!ctx) return;
     
     if (analyticsTrendChartInstance) {
@@ -5627,6 +5996,7 @@ function renderLPAnalytics() {
     const dates = [];
     const pvData = [];
     const uuData = [];
+    const cvData = [];
     
     for (let i = 6; i >= 0; i--) {
         const d = new Date();
@@ -5636,9 +6006,11 @@ function renderLPAnalytics() {
         // 曜日による波形と顧客数の掛け合わせ
         const baseUU = 110 + Math.sin(i) * 15 + (customerCount * 2);
         const basePV = baseUU * 1.45 + Math.cos(i) * 10;
+        const baseCV = Math.max(1, Math.round(baseUU * 0.03) + (i === 0 ? customerCount : 0));
         
         uuData.push(Math.round(baseUU));
         pvData.push(Math.round(basePV));
+        cvData.push(Math.round(baseCV));
     }
     
     analyticsTrendChartInstance = new Chart(ctx, {
@@ -5650,19 +6022,34 @@ function renderLPAnalytics() {
                     label: 'PV (ページビュー)',
                     data: pvData,
                     borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.02)',
                     borderWidth: 2,
-                    tension: 0.3,
-                    fill: true
+                    tension: 0.35,
+                    fill: true,
+                    pointBackgroundColor: '#10b981',
+                    pointHoverRadius: 6
                 },
                 {
                     label: 'UU (ユニーク訪問者)',
                     data: uuData,
                     borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.02)',
                     borderWidth: 2,
-                    tension: 0.3,
-                    fill: true
+                    tension: 0.35,
+                    fill: true,
+                    pointBackgroundColor: '#3b82f6',
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'CV (コンバージョン/成約)',
+                    data: cvData,
+                    borderColor: '#ec4899',
+                    backgroundColor: 'rgba(236, 72, 153, 0.02)',
+                    borderWidth: 2.5,
+                    tension: 0.35,
+                    fill: true,
+                    pointBackgroundColor: '#ec4899',
+                    pointHoverRadius: 6
                 }
             ]
         },
@@ -5671,25 +6058,34 @@ function renderLPAnalytics() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'top',
-                    labels: {
-                        boxWidth: 10,
-                        font: { size: 10, weight: '700', family: 'inherit' },
-                        color: 'var(--text-secondary)'
-                    }
+                    display: false // HTML側にインジケーター凡例があるため非表示
                 }
             },
             scales: {
                 x: {
                     grid: { display: false },
-                    ticks: { font: { size: 9, weight: '600' }, color: 'var(--text-secondary)' }
+                    ticks: { font: { size: 9, weight: '700', family: 'Outfit' }, color: 'rgba(255,255,255,0.4)' }
                 },
                 y: {
-                    grid: { color: 'rgba(0,0,0,0.03)' },
-                    ticks: { font: { size: 9, weight: '600' }, color: 'var(--text-secondary)' }
+                    grid: { color: 'rgba(255,255,255,0.03)' },
+                    ticks: { font: { size: 9, weight: '700', family: 'Outfit' }, color: 'rgba(255,255,255,0.4)' }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: 'neonGlow',
+            beforeDatasetsDraw: (chart) => {
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = 'rgba(236, 72, 153, 0.35)'; // ネオンパープルグロー効果
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 2;
+            },
+            afterDatasetsDraw: (chart) => {
+                chart.ctx.restore();
+            }
+        }]
     });
 }
 window.renderLPAnalytics = renderLPAnalytics;
@@ -5801,7 +6197,9 @@ function smartMergeState(local, cloud) {
         { key: 'updates', id: 'id' },
         { key: 'customers', id: 'id' },
         { key: 'phases', id: 'id' },
-        { key: 'changelogs', id: 'id' }
+        { key: 'changelogs', id: 'id' },
+        { key: 'aiChatHistory', id: 'id' },
+        { key: 'cardChats', id: 'id' }
     ];
 
     arrayKeys.forEach(({ key, id }) => {
@@ -5954,3 +6352,437 @@ window.saveToHistory = saveToHistory;
 window.smartMergeState = smartMergeState;
 window.renderRecoveryCenter = renderRecoveryCenter;
 window.rollbackToHistory = rollbackToHistory;
+
+// ==========================================
+// 24. 🆕 各カードへの一言チャットスレッド機能 (Threaded Chats)
+// ==========================================
+let activeCardChatId = null;
+
+function detectMentions(text, senderName) {
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+    
+    let isMentioned = false;
+    let targetName = '';
+    
+    // パートナー同士のメンションチェック
+    if (senderName === pA) {
+        if (text.includes(`@${pB}`) || text.includes(pB)) {
+            isMentioned = true;
+            targetName = pB;
+        }
+    } else if (senderName === pB) {
+        if (text.includes(`@${pA}`) || text.includes(pA)) {
+            isMentioned = true;
+            targetName = pA;
+        }
+    } else {
+        // フォールバックチェック
+        if (text.includes('@' + pA)) { isMentioned = true; targetName = pA; }
+        if (text.includes('@' + pB)) { isMentioned = true; targetName = pB; }
+    }
+    
+    if (isMentioned) {
+        // 1. ヘッダーの通知ベルアイコンをブルブル震えさせる
+        const bellBtn = document.getElementById('btn-notifications');
+        if (bellBtn) {
+            bellBtn.classList.add('bell-active-animation');
+            setTimeout(() => {
+                bellBtn.classList.remove('bell-active-animation');
+            }, 1000);
+        }
+        
+        // 2. お知らせログに登録
+        if (!state.notifications) state.notifications = [];
+        state.notifications.unshift({
+            id: 'noti-' + Date.now(),
+            title: '💬 一言チャットでメンションされました',
+            desc: `${senderName}: "${text}"`,
+            type: 'info',
+            date: new Date().toISOString().split('T')[0],
+            read: false
+        });
+        
+        // 3. 極上パープルトースト通知
+        showToast(`@${targetName} 宛ての新着メンションがあります！`, 'info');
+        
+        // 4. 通知一覧とバッジの再描画
+        if (typeof renderNotifications === 'function') renderNotifications();
+        if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
+    }
+}
+
+function openCardChatPanel(cardId, cardTitle) {
+    activeCardChatId = cardId;
+    const panel = document.getElementById('chat-slide-panel');
+    const subtitle = document.getElementById('chat-panel-subtitle');
+    
+    if (!panel || !subtitle) return;
+    
+    subtitle.textContent = `対象カード: ${cardTitle}`;
+    panel.classList.add('open');
+    
+    // スライドイン後にフォーカスをあてる
+    setTimeout(() => {
+        document.getElementById('chat-panel-input')?.focus();
+    }, 200);
+    
+    renderCardChats();
+}
+
+function closeCardChatPanel() {
+    activeCardChatId = null;
+    const panel = document.getElementById('chat-slide-panel');
+    if (panel) {
+        panel.classList.remove('open');
+    }
+}
+
+function renderCardChats() {
+    const body = document.getElementById('chat-panel-body');
+    if (!body || !activeCardChatId) return;
+    
+    body.innerHTML = '';
+    
+    const chats = (state.cardChats || []).filter(c => c.cardId === activeCardChatId);
+    
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+    
+    if (chats.length === 0) {
+        body.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); font-size: 11.5px; padding: 48px 16px;">
+                <i data-lucide="messages-square" style="width: 32px; height: 32px; opacity: 0.2; margin-bottom: 8px; margin-left: auto; margin-right: auto;"></i>
+                <p style="margin: 0; line-height: 1.5;">このカードにはまだチャットがありません。<br>下のフォームから最初のコメントを入力してお互いに相談・メモを残しましょう！</p>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        return;
+    }
+    
+    chats.forEach(c => {
+        // 送信者がどちらであるかを判別
+        const isMe = c.sender === 'partnerA'; 
+        const senderName = isMe ? pA : pB;
+        
+        const bubbleWrap = document.createElement('div');
+        bubbleWrap.style.display = 'flex';
+        bubbleWrap.style.flexDirection = 'column';
+        bubbleWrap.style.gap = '2px';
+        bubbleWrap.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+        bubbleWrap.style.maxWidth = '85%';
+        bubbleWrap.className = 'chat-msg';
+        
+        // メンション表現のハイライト置換 (@名前 -> ピンク)
+        let textHtml = c.text;
+        textHtml = textHtml.replace(/@([^\s，、。]+)/g, '<span style="color: #ff007f; font-weight: 750;">@$1</span>');
+        
+        bubbleWrap.innerHTML = `
+            <span style="font-size: 9px; color: var(--text-muted); font-weight: 700; text-align: ${isMe ? 'right' : 'left'};">${senderName}</span>
+            <div style="display: flex; gap: 6px; flex-direction: ${isMe ? 'row-reverse' : 'row'}; align-items: start;">
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: ${isMe ? 'linear-gradient(135deg, var(--color-pink), #ff007f)' : 'rgba(255,255,255,0.06)'}; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; border: 1px solid rgba(255,255,255,0.05); flex-shrink: 0;">
+                    ${senderName.charAt(0).toUpperCase()}
+                </div>
+                <div style="background: ${isMe ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'rgba(255, 255, 255, 0.03)'}; border: 1px solid ${isMe ? 'rgba(79, 70, 229, 0.2)' : 'rgba(255,255,255,0.05)'}; color: var(--text-main); border-radius: ${isMe ? '10px 0 10px 10px' : '0 10px 10px 10px'}; padding: 8px 12px; font-size: 12px; line-height: 1.45; word-break: break-all; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                    ${textHtml}
+                </div>
+            </div>
+            <span style="font-size: 8px; color: var(--text-muted); text-align: ${isMe ? 'right' : 'left'}; margin-top: 1px;">
+                ${new Date(c.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+            </span>
+        `;
+        body.appendChild(bubbleWrap);
+    });
+    
+    body.scrollTop = body.scrollHeight;
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function sendCardChatMessage() {
+    const input = document.getElementById('chat-panel-input');
+    if (!input || !activeCardChatId) return;
+    
+    const text = input.value.trim();
+    if (!text) return;
+    
+    // システムのチャット送信者(chat-sender)に準拠
+    const chatSender = document.getElementById('chat-sender');
+    const sender = chatSender ? chatSender.value : 'partnerA';
+    
+    const pA = state.settings.partnerAName;
+    const pB = state.settings.partnerBName;
+    const senderName = sender === 'partnerA' ? pA : pB;
+    
+    if (!state.cardChats) state.cardChats = [];
+    
+    state.cardChats.push({
+        id: 'cchat-' + Date.now(),
+        cardId: activeCardChatId,
+        sender: sender,
+        text: text,
+        timestamp: Date.now()
+    });
+    
+    input.value = '';
+    
+    saveState();
+    detectMentions(text, senderName);
+    
+    renderCardChats();
+    
+    // 親カードのチャット件数表示（バッジ）を更新するために各モジュールを再描画
+    renderMemos();
+    renderIdeas();
+    renderTasks();
+    renderCRM();
+}
+
+function initCardChatEvents() {
+    const closeBtn = document.getElementById('btn-close-chat-panel');
+    if (closeBtn) closeBtn.addEventListener('click', closeCardChatPanel);
+    
+    const sendBtn = document.getElementById('btn-send-panel-chat');
+    const input = document.getElementById('chat-panel-input');
+    
+    if (sendBtn && input) {
+        sendBtn.addEventListener('click', sendCardChatMessage);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendCardChatMessage();
+            }
+        });
+    }
+}
+
+window.openCardChatPanel = openCardChatPanel;
+window.closeCardChatPanel = closeCardChatPanel;
+window.renderCardChats = renderCardChats;
+window.sendCardChatMessage = sendCardChatMessage;
+window.initCardChatEvents = initCardChatEvents;
+
+// ==========================================
+// 25. 🆕 サムライAI企画パートナー用 プリセット＆ダイアログ
+// ==========================================
+function setAIPrompt(type) {
+    const input = document.getElementById('main-ai-chat-input');
+    if (!input) return;
+    
+    let prompt = '';
+    if (type === 'dm') {
+        prompt = 'インスタDMで旅行好きの外国人ユーザーに、私たちのオーダーメイド旅行プラン作成サービス『ナビサムライ』をアピールする、親しみやすく魅力的な初回メッセージ案を考えてください。';
+    } else if (type === 'plan') {
+        prompt = '「20代のカップルで、日本の京都と金沢を5日間の日程で旅行したい。アクティブに楽しみたいが、予算は標準的。」というお客様向けの、ナビサムライ流のオリジナル旅行プラン構成案を作成してください。';
+    } else if (type === 'biz') {
+        prompt = 'ナビサムライ（煌記：事業開発/システム、和弥：営業/マーケ）の共同創業チームとして、今月の売上目標8万円を達成するための、SNSを活用した最新のマーケティング施策と実務アクションプランを提案してください。';
+    }
+    
+    input.value = prompt;
+    input.focus();
+}
+
+function renderAIChat() {
+    const chatLog = document.getElementById('ai-chat-log');
+    if (!chatLog) return;
+    
+    const keyStatus = document.getElementById('ai-key-status');
+    const geminiKey = state.settings.geminiApiKey || state.geminiApiKey || '';
+    
+    if (keyStatus) {
+        if (geminiKey) {
+            keyStatus.innerHTML = `✅ APIキー設定済 (Geminiクラウド同期中)`;
+            keyStatus.style.background = 'rgba(16, 185, 129, 0.1)';
+            keyStatus.style.color = '#34d399';
+            keyStatus.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+        } else {
+            keyStatus.innerHTML = `❌ APIキー未設定 (デモモード実行中)`;
+            keyStatus.style.background = 'rgba(239, 68, 68, 0.1)';
+            keyStatus.style.color = '#f87171';
+            keyStatus.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+        }
+    }
+    
+    chatLog.innerHTML = `
+        <div class="chat-msg ai" style="display: flex; gap: 10px; align-items: start;">
+            <div class="chat-avatar" style="width: 32px; height: 32px; background: var(--color-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">
+                <i data-lucide="bot" style="width: 16px; height: 16px;"></i>
+            </div>
+            <div class="chat-bubble" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-main); padding: 12px 16px; border-radius: 0 12px 12px 12px; font-size: 13.5px; line-height: 1.6; max-width: 80%; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                <p style="margin: 0; font-weight: 800; color: var(--color-primary); margin-bottom: 6px; font-size: 13.8px;">⚔️ ナビサムライ 共同創業AIパートナー</p>
+                <p style="margin: 0;">お疲れ様です！『ナビサムライ』企画パートナーAIです。お二人の事業戦略、アプローチDM文面、顧客への提案旅行プラン作成など、何でも壁打ちしてください！下のボタンからアプローチ用テンプレートや企画プロンプトを瞬時にセットできます。</p>
+            </div>
+        </div>
+    `;
+    
+    const history = state.aiChatHistory || [];
+    history.forEach(msg => {
+        const bubble = document.createElement('div');
+        const isUser = msg.role === 'user';
+        
+        bubble.className = isUser ? 'chat-msg user' : 'chat-msg ai';
+        bubble.style.display = 'flex';
+        bubble.style.gap = '10px';
+        bubble.style.maxWidth = '85%';
+        bubble.style.alignSelf = isUser ? 'flex-end' : 'flex-start';
+        if (isUser) {
+            bubble.style.flexDirection = 'row-reverse';
+            bubble.innerHTML = `
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--color-pink); color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0;">ME</div>
+                <div style="background: linear-gradient(135deg, var(--color-primary), #6366f1); color: #ffffff; border: none; border-radius: 12px 0 12px 12px; padding: 10px 14px; font-size: 12.8px; line-height: 1.5; font-weight: 500; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); word-break: break-all;">
+                    ${msg.text}
+                </div>
+            `;
+        } else {
+            bubble.innerHTML = `
+                <div class="chat-avatar" style="width: 32px; height: 32px; background: var(--color-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">
+                    <i data-lucide="bot" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-main); padding: 12px 16px; border-radius: 0 12px 12px 12px; font-size: 13.2px; line-height: 1.55; white-space: pre-wrap; word-break: break-all; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">${msg.text}</div>
+            `;
+        }
+        chatLog.appendChild(bubble);
+    });
+    
+    chatLog.scrollTop = chatLog.scrollHeight;
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+async function handleSendAIChat() {
+    const input = document.getElementById('main-ai-chat-input');
+    const chatLog = document.getElementById('ai-chat-log');
+    
+    if (!input || !chatLog) return;
+    
+    const text = input.value.trim();
+    if (!text) return;
+    
+    if (!state.aiChatHistory) state.aiChatHistory = [];
+    
+    // ユーザーメッセージを追加
+    state.aiChatHistory.push({
+        id: 'ai-msg-' + Date.now() + '-u',
+        role: 'user',
+        text: text,
+        timestamp: Date.now()
+    });
+    
+    input.value = '';
+    renderAIChat();
+    
+    // 光るスケルトンローダー（glassmorphism skeleton）の表示
+    const skeleton = document.createElement('div');
+    skeleton.className = 'chat-msg ai skeleton-msg';
+    skeleton.style.display = 'flex';
+    skeleton.style.gap = '10px';
+    skeleton.style.maxWidth = '85%';
+    skeleton.style.alignSelf = 'flex-start';
+    skeleton.innerHTML = `
+        <div class="chat-avatar" style="width: 32px; height: 32px; background: var(--color-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">
+            <i data-lucide="bot" style="width: 16px; height: 16px;"></i>
+        </div>
+        <div class="chat-bubble skeleton-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 14px; border-radius: 0 12px 12px 12px; width: 300px; display: flex; flex-direction: column; gap: 8px;">
+            <div class="skeleton-line" style="width: 80%; height: 12px; background: rgba(255,255,255,0.06); border-radius: 4px;"></div>
+            <div class="skeleton-line" style="width: 95%; height: 12px; background: rgba(255,255,255,0.06); border-radius: 4px;"></div>
+            <div class="skeleton-line" style="width: 60%; height: 12px; background: rgba(255,255,255,0.06); border-radius: 4px;"></div>
+        </div>
+    `;
+    chatLog.appendChild(skeleton);
+    chatLog.scrollTop = chatLog.scrollHeight;
+    
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    
+    let reply = '';
+    const geminiKey = state.settings.geminiApiKey || state.geminiApiKey || '';
+    
+    const systemPrompt = `You are "Navi Samurai AI" (ナビサムライAI), an elite startup co-pilot and business strategist for "Navi Samurai" (ナビサムライ), a premium travel planning service founded by Kouki (煌記) and Kazuya (和弥).
+Navi Samurai is built on Vanilla HTML/CSS/JS and aims to wow international visitors with bespoke, high-end travel plans in Japan, easing their stress and making their pre-trip preparation highly exciting.
+Kouki (煌記) is in charge of product development, system development, and UI/UX design.
+Kazuya (和弥) is in charge of sales, marketing, and client relationships.
+Provide highly customized, motivating, smart, and direct advice. Structure your response in clean, beautiful Japanese using markdown bullets and glowing terms. Offer ideas specifically relevant to their roles to accelerate their work!`;
+
+    const prompt = `${systemPrompt}\n\n質問・壁打ち内容: ${text}`;
+    
+    if (geminiKey) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                })
+            });
+            if (response.ok) {
+                const resData = await response.json();
+                if (resData.candidates && resData.candidates[0] && resData.candidates[0].content && resData.candidates[0].content.parts[0]) {
+                    reply = resData.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error('Unexpected API structure');
+                }
+            } else {
+                const errorData = await response.json();
+                reply = `⚠️ Gemini APIエラーが発生しました。設定メニューからAPIキーを確認してください。\nエラー: ${errorData.error ? errorData.error.message : 'API呼び出しの失敗'}`;
+            }
+        } catch (err) {
+            console.error('Gemini API fetch error:', err);
+            reply = `⚠️ AI接続エラーが発生しました。しばらく待ってから再度お試しください。\nエラー: ${err.message}`;
+        }
+    } else {
+        // デモ用模擬アドバイス
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        reply = getLocalMockupReply(text);
+    }
+    
+    // スケルトン削除
+    if (skeleton.parentElement) {
+        skeleton.remove();
+    }
+    
+    state.aiChatHistory.push({
+        id: 'ai-msg-' + Date.now() + '-m',
+        role: 'model',
+        text: reply,
+        timestamp: Date.now()
+    });
+    
+    saveState();
+    renderAIChat();
+}
+
+function initAIChatTabEvents() {
+    const sendBtn = document.getElementById('btn-main-send-ai-chat');
+    const input = document.getElementById('main-ai-chat-input');
+    const clearBtn = document.getElementById('btn-clear-ai-history');
+    
+    if (sendBtn && input) {
+        sendBtn.addEventListener('click', handleSendAIChat);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleSendAIChat();
+            }
+        });
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (confirm('AIとの対話履歴を完全にクリアしますか？')) {
+                state.aiChatHistory = [];
+                saveState();
+                renderAIChat();
+                showToast('チャット履歴をクリアしました！');
+            }
+        });
+    }
+}
+
+window.setAIPrompt = setAIPrompt;
+window.renderAIChat = renderAIChat;
+window.handleSendAIChat = handleSendAIChat;
+window.initAIChatTabEvents = initAIChatTabEvents;

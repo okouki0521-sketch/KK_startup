@@ -2749,6 +2749,211 @@ body {
     transform: scale(0.98);
 }
 
+/* ==========================================
+   23. コックピット『5大神機能 ＆ UI/UX極限進化』Styles
+   ========================================== */
+
+/* 全体背景とタイポグラフィの極限美化 */
+body {
+    background: linear-gradient(135deg, #090d16, #0e1322) !important;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
+    color: #f1f5f9 !important;
+    letter-spacing: -0.015em;
+}
+
+h1, h2, h3, h4, h5, h6, .stat-value {
+    font-family: 'Outfit', sans-serif !important;
+    letter-spacing: -0.02em;
+}
+
+/* グラスモフィズムとネオングローの適用 */
+.sidebar, .content-card, .card, .stat-card, .modal-box, .crm-stat-card {
+    background: rgba(255, 255, 255, 0.02) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* ホバー時の美しい発光効果 */
+.content-card:hover, .card:hover, .stat-card:hover, .crm-stat-card:hover {
+    border-color: rgba(236, 72, 153, 0.2) !important;
+    box-shadow: 0 0 25px rgba(236, 72, 153, 0.08), 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* パートナー同期オーロラパルス */
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    box-shadow: 0 0 10px #10b981;
+    animation: aurora-pulse 2s infinite ease-in-out;
+}
+
+@keyframes aurora-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.8;
+        box-shadow: 0 0 8px #10b981;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 1;
+        box-shadow: 0 0 16px #10b981, 0 0 24px rgba(16, 185, 129, 0.4);
+    }
+}
+
+/* スケルトンローダー（波打つグラスモフィズム） */
+.skeleton-card {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: var(--border-radius-md);
+    padding: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+.skeleton-line {
+    height: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-line::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: -150px;
+    height: 100%;
+    width: 150px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+    animation: skeleton-glow 1.5s infinite ease-in-out;
+}
+
+@keyframes skeleton-glow {
+    0% { left: -150px; }
+    100% { left: 100%; }
+}
+
+/* アプローチ進捗カンバンボード Styles */
+.kanban-board-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+.kanban-board-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+}
+
+.kanban-column {
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.kanban-column.drag-over {
+    background: rgba(236, 72, 153, 0.03) !important;
+    border-color: rgba(236, 72, 153, 0.2) !important;
+}
+
+.kanban-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-sm);
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.kanban-card:hover {
+    border-color: rgba(236, 72, 153, 0.3) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), 0 0 10px rgba(236, 72, 153, 0.05) !important;
+}
+
+.kanban-card:active {
+    cursor: grabbing;
+}
+
+.kanban-card-title {
+    font-size: 13px;
+    font-weight: 750;
+    color: var(--text-main);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.kanban-card-meta {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.kanban-card-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.kanban-card-badge.gold { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.kanban-card-badge.blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.kanban-card-badge.pink { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+
+/* AIコックピット・チャットバルーン Styles */
+.chat-msg {
+    animation: chat-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes chat-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-msg.user {
+    justify-content: flex-end;
+}
+
+.chat-msg.user .chat-bubble {
+    background: linear-gradient(135deg, var(--color-primary), #6366f1) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 12px 0 12px 12px !important;
+}
+
+/* 一言チャットサイドスライドパネル Styles */
+.chat-slide-panel.open {
+    right: 0 !important;
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 通知ベルの脈動Keyframes */
+@keyframes bell-ring {
+    0%, 100% { transform: rotate(0); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(10deg); }
+    20%, 40%, 60%, 80% { transform: rotate(-10deg); }
+}
+
+.bell-active-animation {
+    animation: bell-ring 1s ease-in-out;
+}
+
 
 
 
