@@ -4075,8 +4075,6 @@ function renderCRM() {
 // ⚔️ カンバンカードのPointer Eventsドラッグ＆ドロップ実装
 function setupPointerDrag(card) {
     let isDragging = false;
-    let startX = 0;
-    let startY = 0;
     let offsetX = 0;
     let offsetY = 0;
     let initialParent = null;
@@ -4090,23 +4088,24 @@ function setupPointerDrag(card) {
         }
         
         isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        
         rect = card.getBoundingClientRect();
+        
+        // タッチやクリックされた実際の位置とカードの左上の差分（オフセット）を計算
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
         
         initialParent = card.parentElement;
         
-        // プレースホルダーの生成
+        // プレースホルダー（元あった場所の点線枠）の生成
         placeholder = document.createElement('div');
         placeholder.style.width = rect.width + 'px';
         placeholder.style.height = rect.height + 'px';
         placeholder.style.background = 'rgba(255, 255, 255, 0.02)';
-        placeholder.style.border = '2px dashed rgba(255, 255, 255, 0.12)';
+        placeholder.style.border = '2px dashed rgba(99, 102, 241, 0.15)';
         placeholder.style.borderRadius = 'var(--border-radius-md)';
         placeholder.style.margin = getComputedStyle(card).margin;
+        
+        initialParent.insertBefore(placeholder, card);
         
         // フワッと浮かび上がる極上グローエフェクト適用
         card.style.width = rect.width + 'px';
@@ -4117,17 +4116,19 @@ function setupPointerDrag(card) {
         card.style.zIndex = '9999';
         card.style.pointerEvents = 'none';
         card.style.transform = 'scale(1.05)';
-        card.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(236, 72, 153, 0.35)';
+        card.style.boxShadow = '0 15px 35px rgba(15, 23, 42, 0.12), 0 0 20px rgba(236, 72, 153, 0.15)';
         card.style.cursor = 'grabbing';
-        card.style.transition = 'none'; // ドラッグ中はアニメーションをオフにして追従性を上げる
+        card.style.transition = 'none'; // ドラッグ中の遅延を完全排除
         
-        initialParent.insertBefore(placeholder, card);
+        // 親のガラス効果やoverflow制限から解放するためにBodyの直下に退避
+        document.body.appendChild(card);
         card.setPointerCapture(e.pointerId);
     });
     
     card.addEventListener('pointermove', function(e) {
         if (!isDragging) return;
         
+        // カーソルの位置からオフセットを引くことで、掴んだその位置のままズレなく追従させる
         const x = e.clientX - offsetX;
         const y = e.clientY - offsetY;
         
@@ -4138,7 +4139,7 @@ function setupPointerDrag(card) {
         const columns = document.querySelectorAll('.kanban-column');
         columns.forEach(col => {
             col.style.background = 'rgba(255, 255, 255, 0.02)';
-            col.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+            col.style.borderColor = 'rgba(99, 102, 241, 0.08)';
         });
         
         const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
@@ -4155,23 +4156,10 @@ function setupPointerDrag(card) {
         
         card.releasePointerCapture(e.pointerId);
         
-        // スタイルリセット
-        card.style.width = '';
-        card.style.height = '';
-        card.style.position = '';
-        card.style.left = '';
-        card.style.top = '';
-        card.style.zIndex = '';
-        card.style.pointerEvents = '';
-        card.style.transform = '';
-        card.style.boxShadow = '';
-        card.style.cursor = 'grab';
-        card.style.transition = 'transform 0.2s, box-shadow 0.2s';
-        
         const columns = document.querySelectorAll('.kanban-column');
         columns.forEach(col => {
             col.style.background = 'rgba(255, 255, 255, 0.02)';
-            col.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+            col.style.borderColor = 'rgba(99, 102, 241, 0.08)';
         });
         
         const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
@@ -4180,6 +4168,9 @@ function setupPointerDrag(card) {
         if (placeholder && placeholder.parentElement) {
             placeholder.remove();
         }
+        
+        // bodyに移動させていたドラッグ中の一時エレメントを消去
+        card.remove();
         
         if (targetCol) {
             const newStatus = targetCol.getAttribute('data-status');
@@ -4218,21 +4209,11 @@ function setupPointerDrag(card) {
         
         card.releasePointerCapture(e.pointerId);
         
-        card.style.width = '';
-        card.style.height = '';
-        card.style.position = '';
-        card.style.left = '';
-        card.style.top = '';
-        card.style.zIndex = '';
-        card.style.pointerEvents = '';
-        card.style.transform = '';
-        card.style.boxShadow = '';
-        card.style.cursor = 'grab';
-        
         if (placeholder && placeholder.parentElement) {
             placeholder.remove();
         }
         
+        card.remove();
         renderCRM();
     });
 }
