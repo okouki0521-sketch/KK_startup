@@ -3285,9 +3285,22 @@ function openEditModal(type, id) {
         `;
     } else if (type === 'customers') {
         html = `
-            <div class="form-group">
-                <label>顧客名 / 団体名</label>
-                <input type="text" id="edit-cust-name" value="${item.name.replace(/"/g, '&quot;')}" required style="width: 100%;">
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>顧客名 / 団体名</label>
+                    <input type="text" id="edit-cust-name" value="${item.name.replace(/"/g, '&quot;')}" required style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>進捗ステータス</label>
+                    <select id="edit-cust-status" style="width: 100%;">
+                        <option value="lead" ${item.status === 'lead' ? 'selected' : ''}>未アプローチ</option>
+                        <option value="contacted" ${item.status === 'contacted' ? 'selected' : ''}>DM送付済</option>
+                        <option value="waiting" ${item.status === 'waiting' ? 'selected' : ''}>返信待ち / 商談中</option>
+                        <option value="proposal" ${item.status === 'proposal' ? 'selected' : ''}>プラン提案中</option>
+                        <option value="won" ${item.status === 'won' ? 'selected' : ''}>成約！🎉</option>
+                        <option value="lost" ${item.status === 'lost' ? 'selected' : ''}>失注 ❌</option>
+                    </select>
+                </div>
             </div>
             <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div class="form-group">
@@ -3340,6 +3353,10 @@ function openEditModal(type, id) {
             <div class="form-group">
                 <label>顧客メモ・特記事項</label>
                 <textarea id="edit-cust-memo" rows="3" style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.memo || ''}</textarea>
+            </div>
+            <div class="form-group">
+                <label>結果の詳細・理由（例：成約の決め手、または失注の理由）</label>
+                <textarea id="edit-cust-outcome-detail" rows="2" style="width: 100%; font-family: inherit; font-size: 13px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md);">${item.outcomeDetail || ''}</textarea>
             </div>
             <div class="form-group" style="margin-top: 12px; border-top: 1px dashed var(--border-color); padding-top: 12px;">
                 <label style="font-weight: 750; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
@@ -3491,6 +3508,8 @@ function saveEditItem(type, id) {
         }
     } else if (type === 'customers') {
         item.name = document.getElementById('edit-cust-name').value.trim();
+        item.status = document.getElementById('edit-cust-status').value;
+        item.outcomeDetail = document.getElementById('edit-cust-outcome-detail').value.trim();
         item.age = document.getElementById('edit-cust-age').value;
         item.country = document.getElementById('edit-cust-country').value.trim();
         item.plan = document.getElementById('edit-cust-plan').value;
@@ -3718,6 +3737,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 入力リセット
             document.getElementById('cust-name').value = '';
             document.getElementById('cust-memo').value = '';
+            document.getElementById('cust-outcome-detail').value = '';
             document.getElementById('cust-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('cust-plan').value = '不明';
             document.getElementById('cust-duration').value = '不明';
@@ -3832,7 +3852,7 @@ function renderCRM() {
     const searchQuery = (document.getElementById('crm-search')?.value || '').toLowerCase().trim();
     
     // カンバンのカラム定義
-    const statuses = ['lead', 'contacted', 'waiting', 'proposal', 'won'];
+    const statuses = ['lead', 'contacted', 'waiting', 'proposal', 'won', 'lost'];
     
     // カラムの全初期化
     statuses.forEach(status => {
@@ -3894,7 +3914,7 @@ function renderCRM() {
         return nameMatch || countryMatch || planMatch;
     });
 
-    const colCounts = { lead: 0, contacted: 0, waiting: 0, proposal: 0, won: 0 };
+    const colCounts = { lead: 0, contacted: 0, waiting: 0, proposal: 0, won: 0, lost: 0 };
 
     // フィルタされた結果をカンバンボードに挿入
     filteredCustomers.forEach(c => {
@@ -3949,6 +3969,13 @@ function renderCRM() {
                 <div style="font-size: 10.5px; color: var(--text-secondary); background: rgba(0,0,0,0.12); padding: 5px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
                     <i data-lucide="map-pin" style="width: 10px; height: 10px; color: var(--color-blue);"></i>
                     <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">目的: ${c.hearDestination}</span>
+                </div>
+                ` : ''}
+                
+                ${c.outcomeDetail ? `
+                <div style="font-size: 10px; color: ${status === 'lost' ? '#ef4444' : (status === 'won' ? '#10b981' : 'var(--color-primary)')}; background: ${status === 'lost' ? 'rgba(239,68,68,0.06)' : (status === 'won' ? 'rgba(16,185,129,0.06)' : 'rgba(99,102,241,0.06)')}; padding: 4px 6px; border-radius: 4px; border: 1px solid ${status === 'lost' ? 'rgba(239,68,68,0.15)' : (status === 'won' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)')}; display: flex; align-items: flex-start; gap: 4px; margin-top: 2px;">
+                    <i data-lucide="${status === 'lost' ? 'x-circle' : (status === 'won' ? 'check-circle-2' : 'info')}" style="width: 9.5px; height: 9.5px; margin-top: 1.5px; flex-shrink: 0;"></i>
+                    <span style="overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3;">${c.outcomeDetail}</span>
                 </div>
                 ` : ''}
                 
@@ -4075,6 +4102,9 @@ function renderCRM() {
 // ⚔️ カンバンカードのPointer Eventsドラッグ＆ドロップ実装
 function setupPointerDrag(card) {
     let isDragging = false;
+    let dragStarted = false; // Whether we actually started the visual drag representation
+    let startX = 0;
+    let startY = 0;
     let offsetX = 0;
     let offsetY = 0;
     let initialParent = null;
@@ -4088,6 +4118,10 @@ function setupPointerDrag(card) {
         }
         
         isDragging = true;
+        dragStarted = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        
         rect = card.getBoundingClientRect();
         
         // タッチやクリックされた実際の位置とカードの左上の差分（オフセット）を計算
@@ -4096,57 +4130,65 @@ function setupPointerDrag(card) {
         
         initialParent = card.parentElement;
         
-        // プレースホルダー（元あった場所の点線枠）の生成
-        placeholder = document.createElement('div');
-        placeholder.style.width = rect.width + 'px';
-        placeholder.style.height = rect.height + 'px';
-        placeholder.style.background = 'rgba(255, 255, 255, 0.02)';
-        placeholder.style.border = '2px dashed rgba(99, 102, 241, 0.15)';
-        placeholder.style.borderRadius = 'var(--border-radius-md)';
-        placeholder.style.margin = getComputedStyle(card).margin;
-        
-        initialParent.insertBefore(placeholder, card);
-        
-        // フワッと浮かび上がる極上グローエフェクト適用
-        card.style.width = rect.width + 'px';
-        card.style.height = rect.height + 'px';
-        card.style.position = 'fixed';
-        card.style.left = rect.left + 'px';
-        card.style.top = rect.top + 'px';
-        card.style.zIndex = '9999';
-        card.style.pointerEvents = 'none';
-        card.style.transform = 'scale(1.05)';
-        card.style.boxShadow = '0 15px 35px rgba(15, 23, 42, 0.12), 0 0 20px rgba(236, 72, 153, 0.15)';
-        card.style.cursor = 'grabbing';
-        card.style.transition = 'none'; // ドラッグ中の遅延を完全排除
-        
-        // 親のガラス効果やoverflow制限から解放するためにBodyの直下に退避
-        document.body.appendChild(card);
         card.setPointerCapture(e.pointerId);
     });
     
     card.addEventListener('pointermove', function(e) {
         if (!isDragging) return;
         
-        // カーソルの位置からオフセットを引くことで、掴んだその位置のままズレなく追従させる
-        const x = e.clientX - offsetX;
-        const y = e.clientY - offsetY;
+        const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+        if (!dragStarted && dist > 4) {
+            dragStarted = true;
+            
+            // プレースホルダー（元あった場所の点線枠）の生成
+            placeholder = document.createElement('div');
+            placeholder.style.width = rect.width + 'px';
+            placeholder.style.height = rect.height + 'px';
+            placeholder.style.background = 'rgba(255, 255, 255, 0.02)';
+            placeholder.style.border = '2px dashed rgba(99, 102, 241, 0.15)';
+            placeholder.style.borderRadius = 'var(--border-radius-md)';
+            placeholder.style.margin = getComputedStyle(card).margin;
+            
+            initialParent.insertBefore(placeholder, card);
+            
+            // フワッと浮かび上がる極上グローエフェクト適用
+            card.style.width = rect.width + 'px';
+            card.style.height = rect.height + 'px';
+            card.style.position = 'fixed';
+            card.style.left = rect.left + 'px';
+            card.style.top = rect.top + 'px';
+            card.style.zIndex = '9999';
+            card.style.pointerEvents = 'none';
+            card.style.transform = 'scale(1.05)';
+            card.style.boxShadow = '0 15px 35px rgba(15, 23, 42, 0.12), 0 0 20px rgba(236, 72, 153, 0.15)';
+            card.style.cursor = 'grabbing';
+            card.style.transition = 'none'; // ドラッグ中の遅延を完全排除
+            
+            // 親のガラス効果やoverflow制限から解放するためにBodyの直下に退避
+            document.body.appendChild(card);
+        }
         
-        card.style.left = x + 'px';
-        card.style.top = y + 'px';
-        
-        // ホバー中の列をハイライト
-        const columns = document.querySelectorAll('.kanban-column');
-        columns.forEach(col => {
-            col.style.background = 'rgba(255, 255, 255, 0.02)';
-            col.style.borderColor = 'rgba(99, 102, 241, 0.08)';
-        });
-        
-        const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
-        const targetCol = hoveredElement?.closest('.kanban-column');
-        if (targetCol) {
-            targetCol.style.background = 'rgba(236, 72, 153, 0.04)';
-            targetCol.style.borderColor = 'rgba(236, 72, 153, 0.2)';
+        if (dragStarted) {
+            // カーソルの位置からオフセットを引くことで、掴んだその位置のままズレなく追従させる
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+            
+            card.style.left = x + 'px';
+            card.style.top = y + 'px';
+            
+            // ホバー中の列をハイライト
+            const columns = document.querySelectorAll('.kanban-column');
+            columns.forEach(col => {
+                col.style.background = 'rgba(255, 255, 255, 0.02)';
+                col.style.borderColor = 'rgba(99, 102, 241, 0.08)';
+            });
+            
+            const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
+            const targetCol = hoveredElement?.closest('.kanban-column');
+            if (targetCol) {
+                targetCol.style.background = 'rgba(236, 72, 153, 0.04)';
+                targetCol.style.borderColor = 'rgba(236, 72, 153, 0.2)';
+            }
         }
     });
     
@@ -4156,51 +4198,58 @@ function setupPointerDrag(card) {
         
         card.releasePointerCapture(e.pointerId);
         
-        const columns = document.querySelectorAll('.kanban-column');
-        columns.forEach(col => {
-            col.style.background = 'rgba(255, 255, 255, 0.02)';
-            col.style.borderColor = 'rgba(99, 102, 241, 0.08)';
-        });
-        
-        const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
-        const targetCol = hoveredElement?.closest('.kanban-column');
-        
-        if (placeholder && placeholder.parentElement) {
-            placeholder.remove();
-        }
-        
-        // bodyに移動させていたドラッグ中の一時エレメントを消去
-        card.remove();
-        
-        if (targetCol) {
-            const newStatus = targetCol.getAttribute('data-status');
-            const cardId = card.getAttribute('data-id');
+        if (dragStarted) {
+            const columns = document.querySelectorAll('.kanban-column');
+            columns.forEach(col => {
+                col.style.background = 'rgba(255, 255, 255, 0.02)';
+                col.style.borderColor = 'rgba(99, 102, 241, 0.08)';
+            });
             
-            const customer = state.customers.find(c => c.id === cardId);
-            if (customer && customer.status !== newStatus) {
-                const oldStatus = customer.status || 'lead';
-                customer.status = newStatus;
-                customer.updatedAt = Date.now();
-                
-                saveState();
-                
-                const statusNames = {
-                    lead: '未アプローチ',
-                    contacted: 'DM送付済',
-                    waiting: '返信待ち/商談中',
-                    proposal: 'プラン提案中',
-                    won: '成約！🎉'
-                };
-                recordChangelogAuto(
-                    '⚔️ アプローチ進捗の更新',
-                    `顧客「${customer.name}」様の状況を「${statusNames[oldStatus]}」から「${statusNames[newStatus]}」へ変更しました。`
-                );
-                
-                showToast(`「${customer.name}」を進捗「${statusNames[newStatus]}」へ移動しました！`);
+            const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
+            const targetCol = hoveredElement?.closest('.kanban-column');
+            
+            if (placeholder && placeholder.parentElement) {
+                placeholder.remove();
             }
+            
+            // bodyに移動させていたドラッグ中の一時エレメントを消去
+            card.remove();
+            
+            if (targetCol) {
+                const newStatus = targetCol.getAttribute('data-status');
+                const cardId = card.getAttribute('data-id');
+                
+                const customer = state.customers.find(c => c.id === cardId);
+                if (customer && customer.status !== newStatus) {
+                    const oldStatus = customer.status || 'lead';
+                    customer.status = newStatus;
+                    customer.updatedAt = Date.now();
+                    
+                    saveState();
+                    
+                    const statusNames = {
+                        lead: '未アプローチ',
+                        contacted: 'DM送付済',
+                        waiting: '返信待ち/商談中',
+                        proposal: 'プラン提案中',
+                        won: '成約！🎉',
+                        lost: '失注 ❌'
+                    };
+                    recordChangelogAuto(
+                        '⚔️ アプローチ進捗の更新',
+                        `顧客「${customer.name}」様の状況を「${statusNames[oldStatus]}」から「${statusNames[newStatus]}」へ変更しました。`
+                    );
+                    
+                    showToast(`「${customer.name}」を進捗「${statusNames[newStatus]}」へ移動しました！`);
+                }
+            }
+            
+            renderCRM();
+        } else {
+            // タップまたはクリックと判定！
+            const cardId = card.getAttribute('data-id');
+            openCustomerDetailView(cardId);
         }
-        
-        renderCRM();
     });
     
     card.addEventListener('pointercancel', function(e) {
@@ -4209,14 +4258,140 @@ function setupPointerDrag(card) {
         
         card.releasePointerCapture(e.pointerId);
         
-        if (placeholder && placeholder.parentElement) {
-            placeholder.remove();
+        if (dragStarted) {
+            if (placeholder && placeholder.parentElement) {
+                placeholder.remove();
+            }
+            
+            card.remove();
+            renderCRM();
         }
-        
-        card.remove();
-        renderCRM();
     });
 }
+
+// 👤 顧客詳細モーダル表示ロジック (ワンタップ詳細)
+function openCustomerDetailView(id) {
+    const customer = state.customers.find(c => c.id === id);
+    if (!customer) return;
+
+    // テキスト要素の設定
+    document.getElementById('detail-cust-name').textContent = customer.name;
+    document.getElementById('detail-cust-age').textContent = customer.age || '不明';
+    
+    // アプローチステータス
+    const statusNames = {
+        lead: '未アプローチ',
+        contacted: 'DM送付済',
+        waiting: '返信待ち',
+        proposal: 'プラン提案中',
+        won: '成約！🎉'
+    };
+    const statusColors = {
+        lead: '#64748b',
+        contacted: '#3b82f6',
+        waiting: '#f59e0b',
+        proposal: '#ec4899',
+        won: '#10b981'
+    };
+    const statusEl = document.getElementById('detail-cust-status');
+    statusEl.textContent = statusNames[customer.status || 'lead'] || '不明';
+    statusEl.style.backgroundColor = statusColors[customer.status || 'lead'] || '#64748b';
+
+    // 国籍に応じたフラグ絵文字の自動判別用マップ
+    const countryFlags = {
+        '日本': '🇯🇵 日本',
+        'アメリカ': '🇺🇸 アメリカ',
+        'イギリス': '🇬🇧 イギリス',
+        'フランス': '🇫🇷 フランス',
+        'ドイツ': '🇩🇪 ドイツ',
+        'イタリア': '🇮🇹 イタリア',
+        'オーストラリア': '🇦🇺 オーストラリア',
+        '台湾': '🇹🇼 台湾',
+        '韓国': '🇰🇷 韓国',
+        '中国': '🇨🇳 中国',
+        '香港': '🇭🇰 香港',
+        'タイ': '🇹🇭 タイ'
+    };
+    let flagDisplay = customer.country;
+    if (customer.country in countryFlags) {
+        flagDisplay = countryFlags[customer.country];
+    } else {
+        flagDisplay = `🏳️ ${customer.country}`;
+    }
+    document.getElementById('detail-cust-country').textContent = flagDisplay;
+    document.getElementById('detail-cust-date').textContent = customer.date || '日付未定';
+    
+    // 金額フォーマット
+    document.getElementById('detail-cust-amount').textContent = `¥${Number(customer.amount || 0).toLocaleString()}`;
+    
+    // 購入プランバッジのクラス調整
+    const planEl = document.getElementById('detail-cust-plan');
+    planEl.textContent = customer.plan || '不明';
+    planEl.className = 'kanban-card-badge';
+    let planClass = 'standard';
+    if (customer.plan === 'プロ') planClass = 'pro';
+    if (customer.plan === 'プレミアム') planClass = 'premium';
+    planEl.classList.add(planClass === 'standard' ? 'blue' : (planClass === 'pro' ? 'pink' : 'gold'));
+
+    document.getElementById('detail-cust-duration').textContent = customer.duration || '不明';
+    document.getElementById('detail-cust-memo').textContent = customer.memo || '特記事項なし';
+
+    // ヒアリングシート
+    document.getElementById('detail-hear-destination').textContent = customer.hearDestination || '未入力';
+    
+    const budgetLabels = {
+        '不明': '不明',
+        'standard': '標準 (一般的なホテル・体験)',
+        'budget': '節約 (ドミトリー・格安メイン)',
+        'luxury': '贅沢 (高級宿・プライベートガイド)'
+    };
+    document.getElementById('detail-hear-budget').textContent = budgetLabels[customer.hearBudget] || customer.hearBudget || '不明';
+
+    const paceLabels = {
+        '不明': '不明',
+        'moderate': 'のんびり (観光は1日2-3箇所)',
+        'active': 'アクティブ (朝から夜まで満喫)'
+    };
+    document.getElementById('detail-hear-pace').textContent = paceLabels[customer.hearPace] || customer.hearPace || '不明';
+
+    // 特別な要望 (アレルギー/家族連れ)
+    const reqContainer = document.getElementById('detail-hear-requirements');
+    reqContainer.innerHTML = '';
+    if (customer.hearReqAllergy) {
+        reqContainer.innerHTML += `<span class="badge-req" style="font-size: 10.5px; padding: 2px 6px; border-radius: 4px; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); font-weight: 700; margin-right: 4px;">アレルギー</span>`;
+    }
+    if (customer.hearReqFamily) {
+        reqContainer.innerHTML += `<span class="badge-req" style="font-size: 10.5px; padding: 2px 6px; border-radius: 4px; background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); font-weight: 700;">家族連れ</span>`;
+    }
+    if (!customer.hearReqAllergy && !customer.hearReqFamily) {
+        reqContainer.innerHTML = `<span style="font-size: 12px; color: var(--text-muted);">特になし</span>`;
+    }
+
+    // 各種アクションボタンにイベント登録
+    // 1. 顧客情報編集へリダイレクト
+    const editBtn = document.getElementById('btn-detail-edit');
+    editBtn.onclick = function() {
+        closeModal('modal-customer-detail-view');
+        openEditModal('customers', id);
+    };
+
+    // 2. 一言スレッドチャットパネルを起動
+    const chatBtn = document.getElementById('btn-detail-quick-chat');
+    chatBtn.onclick = function() {
+        closeModal('modal-customer-detail-view');
+        openCardChatPanel(customer.id, customer.name);
+    };
+
+    // Lucideアイコンの再描画
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // 詳細モーダルを表示
+    openModal('modal-customer-detail-view');
+}
+
+window.openCustomerDetailView = openCustomerDetailView;
 
 function addCustomer() {
     const name = document.getElementById('cust-name').value.trim();
@@ -4232,6 +4407,7 @@ function addCustomer() {
     const amount = parseInt(document.getElementById('cust-amount').value) || 0;
     const date = document.getElementById('cust-date').value;
     const memo = document.getElementById('cust-memo').value.trim();
+    const outcomeDetail = document.getElementById('cust-outcome-detail').value.trim();
 
     // ヒアリングシート情報
     const hearDestination = document.getElementById('cust-hear-destination').value.trim();
@@ -4255,6 +4431,7 @@ function addCustomer() {
         amount: amount,
         date: date,
         memo: memo,
+        outcomeDetail: outcomeDetail,
         hearDestination: hearDestination,
         hearBudget: hearBudget,
         hearPace: hearPace,

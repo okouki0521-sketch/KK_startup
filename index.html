@@ -926,7 +926,7 @@
 
                 <!-- カンバンボードコンテナ -->
                 <div class="kanban-board-wrapper" style="overflow-x: auto; padding-bottom: 12px; margin-top: 10px;">
-                    <div class="kanban-board" style="display: grid; grid-template-columns: repeat(5, minmax(240px, 1fr)); gap: 16px; min-width: 1200px;">
+                    <div class="kanban-board" style="display: grid; grid-template-columns: repeat(6, minmax(240px, 1fr)); gap: 16px; min-width: 1400px;">
                         
                         <!-- 1. 未アプローチ -->
                         <div class="kanban-column" data-status="lead" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 500px;">
@@ -989,6 +989,19 @@
                                 <span class="kanban-column-count" id="count-won" style="font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; color: var(--text-secondary);">0</span>
                             </div>
                             <div class="kanban-cards-container" id="cards-won" style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 450px;">
+                                <!-- 動的生成 -->
+                            </div>
+                        </div>
+
+                        <!-- 6. 失注 ❌ -->
+                        <div class="kanban-column" data-status="lost" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 500px;">
+                            <div class="kanban-column-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 4px;">
+                                <span style="font-size: 13px; font-weight: 800; color: #ef4444; display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span> 失注 ❌
+                                </span>
+                                <span class="kanban-column-count" id="count-lost" style="font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px; color: var(--text-secondary);">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="cards-lost" style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 450px;">
                                 <!-- 動的生成 -->
                             </div>
                         </div>
@@ -1509,6 +1522,10 @@
                     <label>顧客メモ・特記事項</label>
                     <textarea id="cust-memo" rows="3" placeholder="例: 桜の時期の京都ガイドツアーを希望。英語でのフルサポート付き。"></textarea>
                 </div>
+                <div class="form-group">
+                    <label>結果の詳細・理由（例：成約の決め手、または失注の理由）</label>
+                    <textarea id="cust-outcome-detail" rows="2" placeholder="例: 予算オーバーのため失注 / 日本文化体験プログラムに非常に満足し即決で成約！"></textarea>
+                </div>
                 <div class="form-group" style="margin-top: 12px; border-top: 1px dashed var(--border-color); padding-top: 12px;">
                     <label style="font-weight: 750; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
                         <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i> LumiJourney ヒアリングシート (Zoom面談用)
@@ -1552,6 +1569,121 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary btn-close-modal">キャンセル</button>
                 <button class="btn btn-primary" id="btn-submit-customer">顧客を登録</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル: 顧客情報詳細表示 (ワンタップ大きく表示) -->
+    <div class="modal-overlay" id="modal-customer-detail-view">
+        <div class="modal-box" style="width: 720px; max-width: 92%;">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="user" class="text-primary" style="width: 22px; height: 22px; color: var(--color-primary);"></i>
+                    <h3 style="margin: 0;">顧客プロファイル詳細</h3>
+                </div>
+                <button class="btn-close-modal"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="modal-body" style="padding-top: 8px; max-height: 70vh; overflow-y: auto;">
+                <!-- 顧客のメイン基本情報カード (白ベースの洗練されたグラスカード) -->
+                <div class="detail-hero-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(236, 72, 153, 0.04) 100%); border: 1px solid rgba(99, 102, 241, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span id="detail-cust-name" style="font-size: 24px; font-weight: 850; color: #1e1b4b; line-height: 1.2;">John Smith</span>
+                                <span id="detail-cust-age" style="font-size: 14px; color: var(--text-secondary); background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 20px; font-weight: 600;">30代</span>
+                                <span id="detail-cust-status" style="font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 10px; color: white;">未アプローチ</span>
+                            </div>
+                            <div style="margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <span id="detail-cust-country" class="badge-country" style="font-size: 13px; font-weight: 600; padding: 3px 8px; background: white; border: 1px solid #e2e8f0; border-radius: 6px;">🇺🇸 アメリカ</span>
+                                <span style="font-size: 13px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
+                                    <i data-lucide="calendar" style="width: 13px; height: 13px;"></i>
+                                    登録/購入日: <span id="detail-cust-date" style="font-weight: 650; color: var(--text-main);">2026/06/01</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div style="text-align: right; min-width: 140px;">
+                            <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">売上金額 / プラン</div>
+                            <div id="detail-cust-amount" style="font-size: 24px; font-weight: 900; color: var(--color-success); margin-top: 2px;">¥150,000</div>
+                            <div style="margin-top: 6px; display: flex; justify-content: flex-end; gap: 6px;">
+                                <span id="detail-cust-plan" class="kanban-card-badge" style="font-size: 10px; font-weight: 750; padding: 2px 8px; border-radius: 4px;">プレミアム</span>
+                                <span id="detail-cust-duration" style="font-size: 10.5px; color: var(--text-muted); background: white; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">1ヶ月</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 結果・失注理由表示エリア (成約・失注等の最終結果) -->
+                <div id="detail-outcome-container" style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 20px; display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <i id="detail-outcome-icon" data-lucide="info" style="width: 16px; height: 16px; color: #ef4444;"></i>
+                        <h4 id="detail-outcome-title" style="font-size: 13.5px; font-weight: 800; color: #ef4444; margin: 0;">失注理由・最終結果</h4>
+                    </div>
+                    <div id="detail-outcome-text" style="font-size: 13px; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; word-break: break-all;">
+                        予算オーバーのため失注。
+                    </div>
+                </div>
+
+                <!-- 2カラム構成: 左側=特記事項・メモ、右側=LumiJourney ヒアリングシート -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch;">
+                    <!-- 左カラム: 顧客メモ & コメントスレッドへのショートカット -->
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; flex-grow: 1; display: flex; flex-direction: column;">
+                            <h4 style="font-size: 13.5px; font-weight: 800; color: #1e1b4b; margin-top: 0; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="file-text" style="width: 15px; height: 15px; color: var(--color-blue);"></i> 顧客メモ・特記事項
+                            </h4>
+                            <div id="detail-cust-memo" style="font-size: 13px; color: var(--text-main); line-height: 1.6; white-space: pre-wrap; word-break: break-all; flex-grow: 1; background: white; border: 1px solid #f1f5f9; padding: 12px; border-radius: 8px; min-height: 120px;">
+                                桜の時期の京都ガイドツアーを希望。英語でのフルサポート付き。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右カラム: Zoom ヒアリングシート -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+                        <h4 style="font-size: 13.5px; font-weight: 800; color: #1e1b4b; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="clipboard-list" style="width: 15px; height: 15px; color: var(--color-pink);"></i> LumiJourney ヒアリングシート
+                        </h4>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="background: white; border: 1px solid #f1f5f9; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">旅行目的地</span>
+                                <span id="detail-hear-destination" style="font-size: 13px; font-weight: 750; color: var(--text-main);">東京、京都、金沢</span>
+                            </div>
+                            
+                            <div style="background: white; border: 1px solid #f1f5f9; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">予算クラス</span>
+                                <span id="detail-hear-budget" style="font-size: 13px; font-weight: 750; color: var(--text-main);">標準 (一般的なホテル・体験)</span>
+                            </div>
+                            
+                            <div style="background: white; border: 1px solid #f1f5f9; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">旅のペース</span>
+                                <span id="detail-hear-pace" style="font-size: 13px; font-weight: 750; color: var(--text-main);">のんびり (観光は1日2-3箇所)</span>
+                            </div>
+                            
+                            <div style="background: white; border: 1px solid #f1f5f9; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600; white-space: nowrap;">特別な配慮・要望</span>
+                                <div id="detail-hear-requirements" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                    <span class="badge-req" style="font-size: 10.5px; padding: 2px 6px; border-radius: 4px; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); font-weight: 700;">アレルギー</span>
+                                    <span class="badge-req" style="font-size: 10.5px; padding: 2px 6px; border-radius: 4px; background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); font-weight: 700;">家族連れ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="border-top: 1px solid #f1f5f9; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; padding: 16px 32px;">
+                <!-- 💬 一言チャットへの直接リンク -->
+                <button class="btn btn-secondary" id="btn-detail-quick-chat" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="message-square" style="width: 14px; height: 14px;"></i> 一言チャットを開く
+                </button>
+                
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-secondary btn-close-modal">閉じる</button>
+                    <button class="btn btn-primary" id="btn-detail-edit" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> この顧客を編集
+                    </button>
+                </div>
             </div>
         </div>
     </div>
