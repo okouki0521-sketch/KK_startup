@@ -4100,6 +4100,7 @@ function renderCRM() {
 }
 
 // ⚔️ カンバンカードのPointer Eventsドラッグ＆ドロップ実装
+// ⚔️ カンバンカードのPointer Eventsドラッグ＆ドロップ実装
 function setupPointerDrag(card) {
     let isDragging = false;
     let dragStarted = false; // Whether we actually started the visual drag representation
@@ -4111,29 +4112,7 @@ function setupPointerDrag(card) {
     let placeholder = null;
     let rect = null;
     
-    card.addEventListener('pointerdown', function(e) {
-        // ボタンやインプット、リンクのクリック時はドラッグをトリガーしない
-        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('.badge-comment-count')) {
-            return;
-        }
-        
-        isDragging = true;
-        dragStarted = false;
-        startX = e.clientX;
-        startY = e.clientY;
-        
-        rect = card.getBoundingClientRect();
-        
-        // タッチやクリックされた実際の位置とカードの左上の差分（オフセット）を計算
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
-        
-        initialParent = card.parentElement;
-        
-        card.setPointerCapture(e.pointerId);
-    });
-    
-    card.addEventListener('pointermove', function(e) {
+    function onPointerMove(e) {
         if (!isDragging) return;
         
         const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
@@ -4158,7 +4137,6 @@ function setupPointerDrag(card) {
             card.style.left = rect.left + 'px';
             card.style.top = rect.top + 'px';
             card.style.zIndex = '9999';
-            card.style.pointerEvents = 'none';
             card.style.transform = 'scale(1.05)';
             card.style.boxShadow = '0 15px 35px rgba(15, 23, 42, 0.12), 0 0 20px rgba(236, 72, 153, 0.15)';
             card.style.cursor = 'grabbing';
@@ -4183,20 +4161,26 @@ function setupPointerDrag(card) {
                 col.style.borderColor = 'rgba(99, 102, 241, 0.08)';
             });
             
+            // カード自体を一時的に隠して、背後にあるカラムを検出する (Flickerなし)
+            card.style.display = 'none';
             const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
+            card.style.display = '';
+            
             const targetCol = hoveredElement?.closest('.kanban-column');
             if (targetCol) {
                 targetCol.style.background = 'rgba(236, 72, 153, 0.04)';
                 targetCol.style.borderColor = 'rgba(236, 72, 153, 0.2)';
             }
         }
-    });
+    }
     
-    card.addEventListener('pointerup', function(e) {
+    function onPointerUp(e) {
         if (!isDragging) return;
         isDragging = false;
         
-        card.releasePointerCapture(e.pointerId);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
         
         if (dragStarted) {
             const columns = document.querySelectorAll('.kanban-column');
@@ -4205,7 +4189,10 @@ function setupPointerDrag(card) {
                 col.style.borderColor = 'rgba(99, 102, 241, 0.08)';
             });
             
+            card.style.display = 'none';
             const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
+            card.style.display = '';
+            
             const targetCol = hoveredElement?.closest('.kanban-column');
             
             if (placeholder && placeholder.parentElement) {
@@ -4250,13 +4237,15 @@ function setupPointerDrag(card) {
             const cardId = card.getAttribute('data-id');
             openCustomerDetailView(cardId);
         }
-    });
+    }
     
-    card.addEventListener('pointercancel', function(e) {
+    function onPointerCancel(e) {
         if (!isDragging) return;
         isDragging = false;
         
-        card.releasePointerCapture(e.pointerId);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
         
         if (dragStarted) {
             if (placeholder && placeholder.parentElement) {
@@ -4266,6 +4255,33 @@ function setupPointerDrag(card) {
             card.remove();
             renderCRM();
         }
+    }
+    
+    card.addEventListener('pointerdown', function(e) {
+        // ボタンやインプット、リンクのクリック時はドラッグをトリガーしない
+        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('.badge-comment-count')) {
+            return;
+        }
+        
+        // モバイルのフリック等のブラウザ既定挙動によるドラッグ停止を抑止
+        e.preventDefault();
+        
+        isDragging = true;
+        dragStarted = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        rect = card.getBoundingClientRect();
+        
+        // タッチやクリックされた実際の位置とカードの左上の差分（オフセット）を計算
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        
+        initialParent = card.parentElement;
+        
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointercancel', onPointerCancel);
     });
 }
 
@@ -4282,20 +4298,67 @@ function openCustomerDetailView(id) {
     const statusNames = {
         lead: '未アプローチ',
         contacted: 'DM送付済',
-        waiting: '返信待ち',
+        waiting: '返信待ち/商談中',
         proposal: 'プラン提案中',
-        won: '成約！🎉'
+        won: '成約！🎉',
+        lost: '失注 ❌'
     };
     const statusColors = {
         lead: '#64748b',
         contacted: '#3b82f6',
         waiting: '#f59e0b',
         proposal: '#ec4899',
-        won: '#10b981'
+        won: '#10b981',
+        lost: '#ef4444'
     };
     const statusEl = document.getElementById('detail-cust-status');
     statusEl.textContent = statusNames[customer.status || 'lead'] || '不明';
     statusEl.style.backgroundColor = statusColors[customer.status || 'lead'] || '#64748b';
+
+    // 結果・失注理由表示エリアの動的設定
+    const outcomeContainer = document.getElementById('detail-outcome-container');
+    const outcomeIcon = document.getElementById('detail-outcome-icon');
+    const outcomeTitle = document.getElementById('detail-outcome-title');
+    const outcomeText = document.getElementById('detail-outcome-text');
+    
+    if (outcomeContainer && outcomeIcon && outcomeTitle && outcomeText) {
+        const detail = (customer.outcomeDetail || '').trim();
+        const status = customer.status || 'lead';
+        
+        if (detail || status === 'lost' || status === 'won') {
+            outcomeContainer.style.display = 'block';
+            if (status === 'lost') {
+                outcomeContainer.style.background = 'rgba(239, 68, 68, 0.05)';
+                outcomeContainer.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+                outcomeTitle.style.color = '#ef4444';
+                outcomeTitle.textContent = '失注理由・最終結果 ❌';
+                outcomeIcon.style.color = '#ef4444';
+                outcomeIcon.setAttribute('data-lucide', 'x-circle');
+                outcomeText.textContent = detail || '失注理由が未入力です。「編集」から失注理由を入力してください。';
+                outcomeText.style.color = detail ? 'var(--text-main)' : 'var(--text-muted)';
+            } else if (status === 'won') {
+                outcomeContainer.style.background = 'rgba(16, 185, 129, 0.05)';
+                outcomeContainer.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                outcomeTitle.style.color = '#10b981';
+                outcomeTitle.textContent = '成約の決め手・成果 🎉';
+                outcomeIcon.style.color = '#10b981';
+                outcomeIcon.setAttribute('data-lucide', 'check-circle-2');
+                outcomeText.textContent = detail || '成約の決め手が未入力です。「編集」から入力してください。';
+                outcomeText.style.color = detail ? 'var(--text-main)' : 'var(--text-muted)';
+            } else {
+                outcomeContainer.style.background = 'rgba(99, 102, 241, 0.05)';
+                outcomeContainer.style.borderColor = 'rgba(99, 102, 241, 0.2)';
+                outcomeTitle.style.color = '#6366f1';
+                outcomeTitle.textContent = '進捗状況・アクション 💬';
+                outcomeIcon.style.color = '#6366f1';
+                outcomeIcon.setAttribute('data-lucide', 'info');
+                outcomeText.textContent = detail;
+                outcomeText.style.color = 'var(--text-main)';
+            }
+        } else {
+            outcomeContainer.style.display = 'none';
+        }
+    }
 
     // 国籍に応じたフラグ絵文字の自動判別用マップ
     const countryFlags = {
