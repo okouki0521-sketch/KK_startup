@@ -5581,6 +5581,33 @@ function handleAddOrEditTask() {
 }
 window.handleAddOrEditTask = handleAddOrEditTask;
 
+function openEditTask(id) {
+    if (!state.tasks) state.tasks = [];
+    const task = state.tasks.find(t => t.id === id);
+    if (!task) return;
+    
+    const modalTitle = document.getElementById('task-modal-title');
+    const editIdInput = document.getElementById('task-edit-id');
+    const titleInput = document.getElementById('task-title');
+    const assigneeSelect = document.getElementById('task-assignee');
+    const statusSelect = document.getElementById('task-status');
+    const prioritySelect = document.getElementById('task-priority');
+    const deadlineInput = document.getElementById('task-deadline');
+    const descInput = document.getElementById('task-desc');
+    
+    if (modalTitle) modalTitle.textContent = 'タスクを編集';
+    if (editIdInput) editIdInput.value = task.id;
+    if (titleInput) titleInput.value = task.title || '';
+    if (assigneeSelect) assigneeSelect.value = task.assignee || 'both';
+    if (statusSelect) statusSelect.value = task.status || 'todo';
+    if (prioritySelect) prioritySelect.value = task.priority || 'medium';
+    if (deadlineInput) deadlineInput.value = task.deadline || '';
+    if (descInput) descInput.value = task.desc || '';
+    
+    openModal('modal-add-task');
+}
+window.openEditTask = openEditTask;
+
 function deleteTask(id) {
     if (!state.tasks || !Array.isArray(state.tasks)) {
         state.tasks = [];
