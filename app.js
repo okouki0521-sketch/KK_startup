@@ -10,6 +10,7 @@ const DEFAULT_STATE = {
         projectName: 'KK_startup',
         syncSecretKey: 'KK_startup',
         migratedToRealNames: true,
+        financeBaselineCorrected: false,
         geminiApiKey: '',
         paypayUrlPA: '',
         paypayUrlPB: ''
@@ -54,7 +55,7 @@ const DEFAULT_STATE = {
             id: 'goal-real-1',
             title: '月間最低売上達成 (撤退ライン)',
             assignee: 'both',
-            current: 49000,
+            current: 9000,
             target: 30000,
             unit: '円',
             deadline: '2026-06-20'
@@ -63,7 +64,7 @@ const DEFAULT_STATE = {
             id: 'goal-real-2',
             title: '月間売上目標 (理想値)',
             assignee: 'both',
-            current: 49000,
+            current: 9000,
             target: 80000,
             unit: '円',
             deadline: '2026-06-20'
@@ -95,28 +96,7 @@ const DEFAULT_STATE = {
             notes: 'ユーザーフィードバック of 整理と、次の開発フェーズへの移行判断'
         }
     ],
-    expenses: [
-        {
-            id: 'exp-1779456720235',
-            title: 'コワーキング一時利用',
-            amount: 3000,
-            category: 'infrastructure',
-            payer: 'partnerA',
-            date: '2026-05-23',
-            merchant: 'WeWork 渋谷',
-            receipt: 'yes'
-        },
-        {
-            id: 'exp-1779505417088',
-            title: '同期テスト',
-            amount: 100,
-            category: 'infrastructure',
-            payer: 'partnerA',
-            date: '2026-05-23',
-            merchant: 'テスト店舗',
-            receipt: 'yes'
-        }
-    ],
+    expenses: [],
     ideas: [
         {
             id: 'idea-1779505462675',
@@ -144,16 +124,6 @@ const DEFAULT_STATE = {
             category: 'sales',
             receiver: 'common',
             date: '2026-05-15'
-        },
-        {
-            id: 'inc-1779456722675',
-            title: 'LP制作の着手金',
-            amount: 40000,
-            category: 'sales',
-            receiver: 'common',
-            date: '2026-05-23',
-            client: '旅行代理店 LumiTravel',
-            status: 'received'
         },
         {
             id: 'inc-1779505411415',
@@ -435,12 +405,17 @@ function initStore() {
             });
         }
     });
+
+    const financeDataNormalized = normalizeSeededFinanceData();
     
-    // 即時バックアップを保存して同期
+    // 即時バックアップを保存
+    if (financeDataNormalized) {
+        localStorage.setItem('cofounder_hub_state', JSON.stringify(state));
+    }
     localStorage.setItem('cofounder_hub_state_backup', JSON.stringify(state));
     
-    // クラウド同期のインターバルを開始
-    startSyncInterval();
+    // 起動時に一度だけクラウド側の変更を確認する
+    initializeCloudSync();
     
     // 起動時はローカルデータの保存（上書き）を行わず、即座に画面全体を最新の state に基づいて初期描画する
     updateDashboard();
@@ -474,6 +449,62 @@ function syncSalesGoals() {
     }
 }
 
+function normalizeSeededFinanceData() {
+    const incorrectExpenseIds = new Set([
+        'exp-1779456720235',
+        'exp-1779505417088'
+    ]);
+    const incorrectIncomeIds = new Set([
+        'inc-1779456722675'
+    ]);
+    const hadIncorrectSeededExpense = Array.isArray(state.expenses)
+        && state.expenses.some(expense => incorrectExpenseIds.has(expense.id));
+    const hadIncorrectSeededIncome = Array.isArray(state.incomes)
+        && state.incomes.some(income => incorrectIncomeIds.has(income.id));
+    const before = JSON.stringify({
+        expenses: state.expenses,
+        incomes: state.incomes,
+        goals: state.goals
+    });
+
+    if (Array.isArray(state.expenses)) {
+        state.expenses = state.expenses.filter(expense => !incorrectExpenseIds.has(expense.id));
+    } else {
+        state.expenses = [];
+    }
+
+    if (Array.isArray(state.incomes)) {
+        state.incomes = state.incomes.filter(income => !incorrectIncomeIds.has(income.id));
+    } else {
+        state.incomes = [];
+    }
+
+    const totalIncome = state.incomes.reduce((sum, income) => sum + (Number(income.amount) || 0), 0);
+    const totalExpense = state.expenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
+    const shouldForceFinanceBaseline = !state.settings.financeBaselineCorrected
+        || hadIncorrectSeededExpense
+        || hadIncorrectSeededIncome
+        || totalIncome === 13000
+        || totalIncome === 53000
+        || totalExpense !== 0;
+
+    if (shouldForceFinanceBaseline && (totalIncome !== 9000 || totalExpense !== 0)) {
+        state.incomes = JSON.parse(JSON.stringify(DEFAULT_STATE.incomes));
+        state.expenses = [];
+        state.settings.financeBaselineCorrected = true;
+        state.lastUpdated = Date.now();
+    }
+
+    syncSalesGoals();
+
+    const after = JSON.stringify({
+        expenses: state.expenses,
+        incomes: state.incomes,
+        goals: state.goals
+    });
+    return before !== after;
+}
+
 function saveState() {
     syncSalesGoals(); // 保存前に売上目標の現在値と実際の売上合計を自動連動
     saveToHistory(state); // 保存直前に現在の状態をタイムマシーン履歴に自動退避！
@@ -488,7 +519,6 @@ function saveState() {
 // ==========================================
 // 2.5 クラウド同期システム (Cloud Sync Manager)
 // ==========================================
-let syncIntervalId = null;
 let isCurrentlySyncing = false; // 二重実行防止
 
 function getBucketId(secretKey) {
@@ -503,16 +533,11 @@ function getBucketId(secretKey) {
     return (uniqueString + 'cofoundersync').substring(0, 16);
 }
 
-function startSyncInterval() {
-    if (syncIntervalId) clearInterval(syncIntervalId);
-    
+function initializeCloudSync() {
     const secretKey = state.settings.syncSecretKey;
     if (secretKey && secretKey.trim().length >= 4) {
-        console.log('Starting cloud sync interval...');
-        // 初回即時
+        console.log('Checking cloud data once on startup...');
         syncWithCloud();
-        // 5秒おきに自動チェック
-        syncIntervalId = setInterval(syncWithCloud, 5000);
     }
 }
 
@@ -560,6 +585,7 @@ async function syncWithCloud() {
                     }
                     
                     state = mergedState;
+                    normalizeSeededFinanceData();
                     localStorage.setItem('cofounder_hub_state', JSON.stringify(state));
                     localStorage.setItem('cofounder_hub_state_backup', JSON.stringify(state));
                     
@@ -573,7 +599,7 @@ async function syncWithCloud() {
                     // マージ結果をクラウドにも即座に再アップロードし、両者の状態を100%同一に揃える
                     await uploadToCloud();
                     
-                    showToast('パートナーのデータとインテリジェント統合されました', 'info');
+                    showToast('パートナーの変更内容を反映しました', 'info');
                 }
             }
         } else if (response.status === 404) {
@@ -632,11 +658,28 @@ async function uploadToCloud() {
         
         if (response.ok) {
             console.log('Successfully uploaded latest changes to cloud.');
+            updateSyncStatus('変更内容をパートナーへ連携済み');
         } else {
             console.error('Failed to upload latest changes (status):', response.status);
         }
     } catch (e) {
         console.error('Failed to upload latest changes to cloud:', e);
+    }
+}
+
+function updateSyncStatus(message) {
+    const statusEl = document.getElementById('partner-sync-status');
+    const timeEl = document.getElementById('last-sync-time-display');
+
+    if (statusEl) {
+        statusEl.textContent = message;
+    }
+
+    if (timeEl) {
+        timeEl.textContent = `最終連携: ${new Date().toLocaleTimeString('ja-JP', {
+            hour: '2-digit',
+            minute: '2-digit'
+        })}`;
     }
 }
 
@@ -835,7 +878,7 @@ function saveSettings() {
     applyDynamicNames();
     
     if (prevKey !== syncKey) {
-        startSyncInterval();
+        initializeCloudSync();
     }
     
     closeModal('modal-settings');
