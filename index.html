@@ -1139,13 +1139,13 @@
                     <label>プロジェクト・会社名</label>
                     <input type="text" id="settings-project-name" placeholder="例: Co-Founder Hub">
                 </div>
-                <!-- リアルタイム自動同期設定 -->
+                <!-- 変更時同期設定 -->
                 <div class="form-group" style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 16px;">
                     <label style="display: flex; align-items: center; gap: 6px; color: var(--color-primary); font-weight: 700;">
-                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> パートナーとのリアルタイム同期 (自動)
+                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> パートナーとの変更時同期
                     </label>
                     <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5;">
-                        お互いに【同じ合言葉 (4文字以上)】を入力して保存するだけで、クラウド経由でカレンダー、目標、経費、日報などすべてが自動でリアルタイム同期されます。
+                        お互いに【同じ合言葉 (4文字以上)】を入力すると、起動時に一度だけ相手の変更を確認し、保存などでデータ内容が変わった時だけクラウド経由で連携します。
                     </p>
                     <input type="text" id="settings-sync-key" placeholder="例: our-dream-project-2026" style="width: 100%;">
                 </div>
@@ -1918,6 +1918,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=restore-history-fix"></script>
 </body>
 </html>

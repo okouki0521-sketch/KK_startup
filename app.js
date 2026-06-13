@@ -486,7 +486,7 @@ function normalizeSeededFinanceData() {
         || hadIncorrectSeededIncome
         || totalIncome === 13000
         || totalIncome === 53000
-        || totalExpense !== 0;
+        || totalExpense === 3100;
 
     if (shouldForceFinanceBaseline && (totalIncome !== 9000 || totalExpense !== 0)) {
         state.incomes = JSON.parse(JSON.stringify(DEFAULT_STATE.incomes));
@@ -6591,6 +6591,36 @@ function renderRecoveryCenter() {
     }
 }
 
+function applyStateDefaults(restoredState) {
+    const nextState = JSON.parse(JSON.stringify(restoredState));
+
+    Object.keys(DEFAULT_STATE).forEach(key => {
+        if (!(key in nextState) || (Array.isArray(DEFAULT_STATE[key]) && !Array.isArray(nextState[key]))) {
+            nextState[key] = JSON.parse(JSON.stringify(DEFAULT_STATE[key]));
+        }
+    });
+
+    nextState.settings = { ...DEFAULT_STATE.settings, ...(nextState.settings || {}) };
+    nextState.agreement = { ...DEFAULT_STATE.agreement, ...(nextState.agreement || {}) };
+
+    return nextState;
+}
+
+function renderAfterStateRestore() {
+    applyDynamicNames();
+    updateDashboard();
+
+    const activeNav = document.querySelector('.nav-item.active');
+    const activeTabId = activeNav ? activeNav.getAttribute('data-tab') : 'dashboard';
+    switchTab(activeTabId || 'dashboard');
+
+    renderRecoveryCenter();
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
 // 22.5 バックアップ履歴からのロールバック実行
 async function rollbackToHistory(index) {
     try {
@@ -6606,6 +6636,11 @@ async function rollbackToHistory(index) {
         }
 
         const targetItem = history[index];
+        if (!targetItem.data || typeof targetItem.data !== 'object') {
+            alert('復元対象のバックアップデータが壊れているため、復元できません。');
+            return;
+        }
+
         const confirmRollback = confirm(
             `🕒 以下の時点のデータにロールバックしますか？\n\n` +
             `・保存日時: ${new Date(targetItem.timestamp).toLocaleString()}\n` +
@@ -6620,48 +6655,22 @@ async function rollbackToHistory(index) {
         saveToHistory(state);
 
         // stateとローカルストレージを復旧
-        state = JSON.parse(JSON.stringify(targetItem.data));
+        state = applyStateDefaults(targetItem.data);
+        state.settings.financeBaselineCorrected = true;
+        state.settings.restoredFromHistoryAt = Date.now();
         state.lastUpdated = Date.now(); // タイムスタンプを強制最新にし、クラウドにも同期
+        syncSalesGoals();
 
         const serialized = JSON.stringify(state);
         localStorage.setItem('cofounder_hub_state', serialized);
         localStorage.setItem('cofounder_hub_state_backup', serialized);
 
+        renderAfterStateRestore();
         console.log('Local restored. Uploading to cloud...');
 
-        // クラウド（KVDB）への即時同期
-        const secretKey = state.settings && state.settings.syncSecretKey;
-        if (secretKey && secretKey.trim().length >= 4) {
-            let hash = 0;
-            for (let i = 0; i < secretKey.length; i++) {
-                const char = secretKey.charCodeAt(i);
-                hash = (hash << 5) - hash + char;
-                hash = hash & hash;
-            }
-            const cleanKey = secretKey.replace(/[^a-zA-Z0-9]/g, '');
-            const uniqueString = cleanKey + Math.abs(hash).toString(36);
-            const keyName = (uniqueString + 'cofoundersync').substring(0, 16);
-            
-            const sharedBucket = "XCFoA3p5QxYZeeEomCFG68";
-            const url = `https://kvdb.io/${sharedBucket}/${keyName}`;
-            
-            try {
-                const response = await fetch(url, {
-                    method: 'PUT',
-                    mode: 'cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(state)
-                });
-                if (response.ok) {
-                    console.log('Cloud update success after rollback.');
-                }
-            } catch (err) {
-                console.error('Cloud upload error during rollback:', err);
-            }
-        }
+        await uploadToCloud();
 
-        alert('🎉 データのロールバック（復元）が成功しました！');
-        location.reload();
+        showToast('バックアップから復元しました');
     } catch (e) {
         alert('ロールバック実行中にエラーが発生しました: ' + e.message);
     }
